@@ -1,0 +1,1 @@
+Select * from `bigquery-public-data.ml_datasets.census_adult_income`;

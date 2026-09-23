@@ -1,0 +1,4 @@
+id_venta,id_tiempo,id_producto,id_cliente,id_vendedor,cantidad,precio_unitario,total
+1,1,101,201,301,1,800.0,800.0
+2,2,102,202,302,2,50.0,100.0
+3,3,103,203,303,3,25.0,75.0

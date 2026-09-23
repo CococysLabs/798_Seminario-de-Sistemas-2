@@ -1,0 +1,704 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<quiz>
+<!-- question: 0  -->
+  <question type="category">
+    <category>
+      <text>$module$/top/Por defecto en Pre Seminario de Sistemas 2</text>
+    </category>
+    <info format="moodle_auto_format">
+      <text>Categoría por defecto para preguntas compartidas en el contexto Pre Seminario de Sistemas 2.</text>
+    </info>
+    <idnumber></idnumber>
+  </question>
+
+<!-- question: 8143778  -->
+  <question type="multichoice">
+    <name>
+      <text>DSS2_1</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>¿Cuál de los siguientes servicios de AWS se utiliza para almacenar objetos, como imágenes o archivos PDF?</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text><![CDATA[<p>Amazon S3 (Simple Storage Service) está diseñado para almacenar y recuperar cualquier cantidad de datos, en cualquier momento, desde cualquier lugar en la web. Es ideal para archivos estáticos como imágenes, documentos o backups. EC2 es para instancias de cómputo, RDS para bases de datos relacionales, y Lambda para ejecutar código sin servidores.</p>]]></text>
+    </generalfeedback>
+    <defaultgrade>5.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>true</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <showstandardinstruction>0</showstandardinstruction>
+    <correctfeedback format="html">
+      <text><![CDATA[<p>Su respuesta es correcta.</p>]]></text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text><![CDATA[<p>Su respuesta es parcialmente correcta.</p>]]></text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text><![CDATA[<p>Su respuesta es incorrecta.</p>]]></text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>Amazon EC2</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>Amazon RDS</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="100" format="html">
+      <text><![CDATA[<p>Amazon S3</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>Amazon Lambda</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 8143796  -->
+  <question type="multichoice">
+    <name>
+      <text>DSS2_11</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>¿Qué principio de seguridad indica que un usuario solo debe tener los permisos mínimos necesarios para realizar su tarea?</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text><![CDATA[<p>El principio de <strong data-start="845" data-end="866">privilegio mínimo</strong> busca reducir el riesgo al limitar el acceso solo a lo estrictamente necesario. Esto previene errores accidentales y accesos maliciosos. Es una práctica clave en la configuración de roles, políticas y accesos en entornos cloud.</p>]]></text>
+    </generalfeedback>
+    <defaultgrade>5.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>true</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <showstandardinstruction>0</showstandardinstruction>
+    <correctfeedback format="html">
+      <text><![CDATA[<p>Su respuesta es correcta.</p>]]></text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text><![CDATA[<p>Su respuesta es parcialmente correcta.</p>]]></text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text><![CDATA[<p>Su respuesta es incorrecta.</p>]]></text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>Principio de Alta Disponibilidad</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>Principio de Máxima Privacidad</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="100" format="html">
+      <text><![CDATA[<p>Principio de Privilegio Mínimo</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>Principio de Redundancia</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 8143805  -->
+  <question type="multichoice">
+    <name>
+      <text>DSS2_14</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>¿Cuál de los siguientes es un riesgo común si se malconfigura el acceso a un bucket de almacenamiento público en la nube?</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text><![CDATA[<p>Si un bucket de almacenamiento (como S3 o Blob Storage) está mal configurado y se vuelve <strong data-start="2519" data-end="2546">público sin restricción</strong>, puede exponer archivos privados (datos personales, contraseñas, documentos confidenciales) a cualquier usuario de internet.</p>]]></text>
+    </generalfeedback>
+    <defaultgrade>5.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>true</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <showstandardinstruction>0</showstandardinstruction>
+    <correctfeedback format="html">
+      <text><![CDATA[<p>Su respuesta es correcta.</p>]]></text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text><![CDATA[<p>Su respuesta es parcialmente correcta.</p>]]></text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text><![CDATA[<p>Su respuesta es incorrecta.</p>]]></text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>Lentitud en la conexión</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>Aumento de latencia</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>Pérdida de redundancia</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="100" format="html">
+      <text><![CDATA[<p>Exposición de datos sensibles</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 8143844  -->
+  <question type="multichoice">
+    <name>
+      <text>DSS2_19</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>¿Cuál de las siguientes prácticas sería una violación común de las políticas de uso aceptable de un proveedor de nube?</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text><![CDATA[<p>Los proveedores incluyen <strong data-start="2501" data-end="2531">políticas de uso aceptable</strong> que prohíben expresamente el uso de su plataforma para actividades ilegales, como fraude, phishing, minería no autorizada o distribución de malware. Su incumplimiento puede llevar a la suspensión del servicio.</p>]]></text>
+    </generalfeedback>
+    <defaultgrade>5.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>true</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <showstandardinstruction>0</showstandardinstruction>
+    <correctfeedback format="html">
+      <text><![CDATA[<p>Su respuesta es correcta.</p>]]></text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text><![CDATA[<p>Su respuesta es parcialmente correcta.</p>]]></text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text><![CDATA[<p>Su respuesta es incorrecta.</p>]]></text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>Usar servicios para hospedar una página personal</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>Ejecutar procesos de análisis de datos sobre información pública</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="100" format="html">
+      <text><![CDATA[<p>Utilizar la infraestructura para actividades ilegales o distribución de malware</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>Crear entornos de prueba con datos ficticios</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 8143785  -->
+  <question type="multichoice">
+    <name>
+      <text>DSS2_4</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>¿Cuál de las siguientes afirmaciones sobre Amazon EC2 es correcta?</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text><![CDATA[<p data-start="2412" data-end="2638">Amazon EC2 (Elastic Compute Cloud) permite lanzar y gestionar instancias virtuales que funcionan como servidores. Es uno de los servicios centrales de AWS y clave para ejecutar aplicaciones en la nube.</p>]]></text>
+    </generalfeedback>
+    <defaultgrade>5.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>true</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <showstandardinstruction>0</showstandardinstruction>
+    <correctfeedback format="html">
+      <text><![CDATA[<p>Su respuesta es correcta.</p>]]></text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text><![CDATA[<p>Su respuesta es parcialmente correcta.</p>]]></text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text><![CDATA[<p>Su respuesta es incorrecta.</p>]]></text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>Es un sistema de almacenamiento en objetos</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="100" format="html">
+      <text><![CDATA[<p>Permite ejecutar instancias de servidores virtuales</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>Es un servicio de orquestación de contenedores</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>Solo funciona con bases de datos relacionales</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 8143790  -->
+  <question type="multichoice">
+    <name>
+      <text>DSS2_6</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>¿Cuál de las siguientes opciones representa un ejemplo de modelo SaaS (Software como Servicio)?</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text><![CDATA[<p>Google Drive es un ejemplo claro de SaaS, ya que el usuario accede a software completo (almacenamiento, edición de documentos, etc.) a través de internet, sin preocuparse por la infraestructura o el mantenimiento. Azure y EC2 son IaaS, y Kubernetes es una plataforma de orquestación (más cercana a PaaS).</p>]]></text>
+    </generalfeedback>
+    <defaultgrade>5.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>true</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <showstandardinstruction>0</showstandardinstruction>
+    <correctfeedback format="html">
+      <text><![CDATA[<p>Su respuesta es correcta.</p>]]></text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text><![CDATA[<p>Su respuesta es parcialmente correcta.</p>]]></text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text><![CDATA[<p>Su respuesta es incorrecta.</p>]]></text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>Microsoft Azure</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="100" format="html">
+      <text><![CDATA[<p>Google Drive</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>Kubernetes</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>Amazon EC2</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 8143793  -->
+  <question type="multichoice">
+    <name>
+      <text>DSS2_9</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>¿Qué afirmación describe mejor el modelo PaaS?</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text><![CDATA[<p>PaaS ofrece herramientas como bases de datos, entornos de ejecución y frameworks que permiten desarrollar, probar y desplegar aplicaciones sin tener que administrar servidores físicos o virtuales.</p>]]></text>
+    </generalfeedback>
+    <defaultgrade>5.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>true</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <showstandardinstruction>0</showstandardinstruction>
+    <correctfeedback format="html">
+      <text><![CDATA[<p>Su respuesta es correcta.</p>]]></text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text><![CDATA[<p>Su respuesta es parcialmente correcta.</p>]]></text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text><![CDATA[<p>Su respuesta es incorrecta.</p>]]></text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>Permite alquilar servidores virtuales y administrarlos totalmente</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>Ofrece software listo para usarse sin necesidad de instalación</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="100" format="html">
+      <text><![CDATA[<p>Proporciona un entorno de desarrollo sin preocuparse por la infraestructura</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>Es únicamente para almacenamiento de datos en la nube</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 8143802  -->
+  <question type="shortanswer">
+    <name>
+      <text>DSS2_13</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>¿Cómo se llama el modelo de seguridad en la nube donde tanto el proveedor como el cliente tienen responsabilidades específicas? <strong>(solo utilizar minúsculas)</strong></p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <usecase>0</usecase>
+    <answer fraction="100" format="moodle_auto_format">
+      <text>modelo de responsabilidad compartida</text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="100" format="moodle_auto_format">
+      <text>responsabilidad compartida</text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 8143811  -->
+  <question type="shortanswer">
+    <name>
+      <text>DSS2_18</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>¿Cómo se llama el principio ético que obliga a las empresas tecnológicas a informar claramente cómo usan los datos personales de sus usuarios? <strong>(utilice solo minúsculas)</strong></p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text><![CDATA[<p>La <strong data-start="1713" data-end="1730">transparencia</strong> es fundamental en la ética del uso de datos. Las empresas deben informar de forma clara y comprensible qué datos recolectan, con qué fin, cómo los protegen y si los comparten con terceros.</p>]]></text>
+    </generalfeedback>
+    <defaultgrade>5.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <usecase>0</usecase>
+    <answer fraction="100" format="moodle_auto_format">
+      <text>transparencia</text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 8143784  -->
+  <question type="shortanswer">
+    <name>
+      <text>DSS2_3</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>¿Qué servicio de AWS se utiliza para gestionar identidades y permisos dentro de una cuenta? <strong>(Utilice letras mayúsculas, sin espacios y el nombre abreviado)</strong></p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text><![CDATA[<p><strong>IAM</strong> permite crear usuarios, grupos, roles y políticas de seguridad para controlar el acceso a los recursos de AWS. Es una herramienta fundamental para asegurar entornos en la nube, mediante el principio de privilegio mínimo.</p>]]></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <usecase>0</usecase>
+    <answer fraction="100" format="moodle_auto_format">
+      <text>IAM</text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 8143792  -->
+  <question type="shortanswer">
+    <name>
+      <text>DSS2_8</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>¿Qué modelo de servicio en la nube brinda mayor control sobre la infraestructura al usuario? <strong>(utilice la primera y última letra en mayúscula ejemplo: XaaX, SaaS, IaaS, PaaS)</strong></p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text><![CDATA[<p>IaaS otorga al usuario control total sobre recursos como máquinas virtuales, redes y almacenamiento. Aunque el hardware es gestionado por el proveedor, el usuario tiene control sobre el sistema operativo, middleware y aplicaciones, lo que lo hace ideal para arquitecturas personalizadas.</p>]]></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <usecase>0</usecase>
+    <answer fraction="100" format="moodle_auto_format">
+      <text>IaaS</text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 8143795  -->
+  <question type="truefalse">
+    <name>
+      <text>DSS2_10</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>En el modelo IaaS, el proveedor administra tanto las aplicaciones como los datos.</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text><![CDATA[<p>En IaaS, el proveedor solo administra la infraestructura física (servidores, almacenamiento, red), mientras que el usuario es responsable del sistema operativo, middleware, datos y aplicaciones. Esto brinda flexibilidad, pero también mayor responsabilidad técnica al usuario.</p>]]></text>
+    </generalfeedback>
+    <defaultgrade>5.0000000</defaultgrade>
+    <penalty>1.0000000</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <answer fraction="0" format="moodle_auto_format">
+      <text>true</text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="100" format="moodle_auto_format">
+      <text>false</text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 8143799  -->
+  <question type="truefalse">
+    <name>
+      <text>DSS2_12</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>El cifrado de datos en reposo protege la información solo cuando está en tránsito entre servidores</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text><![CDATA[<p>El <strong data-start="1289" data-end="1310">cifrado en reposo</strong> protege los datos cuando están almacenados (por ejemplo, en discos duros o bases de datos). Para proteger la información en movimiento, se usa <strong data-start="1454" data-end="1477">cifrado en tránsito</strong>, como TLS/SSL. Ambos son necesarios para una seguridad integral.</p>]]></text>
+    </generalfeedback>
+    <defaultgrade>5.0000000</defaultgrade>
+    <penalty>1.0000000</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <answer fraction="0" format="moodle_auto_format">
+      <text>true</text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="100" format="moodle_auto_format">
+      <text>false</text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 8143806  -->
+  <question type="truefalse">
+    <name>
+      <text>DSS2_15</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Todos los servicios en la nube vienen preconfigurados de forma segura y no requieren ajustes por parte del usuario.</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text><![CDATA[<p>Aunque los proveedores ofrecen <strong data-start="2910" data-end="2949">configuraciones seguras por defecto</strong>, la responsabilidad de <strong data-start="2973" data-end="3017">revisar, ajustar y mantener la seguridad</strong> recae en el usuario. Muchos incidentes de seguridad en la nube se deben a <strong data-start="3092" data-end="3149">configuraciones incorrectas o negligencia del cliente</strong>.</p>]]></text>
+    </generalfeedback>
+    <defaultgrade>5.0000000</defaultgrade>
+    <penalty>1.0000000</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <answer fraction="0" format="moodle_auto_format">
+      <text>true</text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="100" format="moodle_auto_format">
+      <text>false</text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 8143781  -->
+  <question type="truefalse">
+    <name>
+      <text>DSS2_2</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Las funciones Lambda en AWS requieren que el usuario administre manualmente el servidor donde se ejecuta el código.</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text><![CDATA[<p>AWS Lambda es un servicio serverless, lo que significa que AWS administra toda la infraestructura subyacente. El usuario solo sube el código y define los desencadenadores. No hay necesidad de aprovisionar, escalar ni gestionar servidores.</p>]]></text>
+    </generalfeedback>
+    <defaultgrade>5.0000000</defaultgrade>
+    <penalty>1.0000000</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <answer fraction="0" format="moodle_auto_format">
+      <text>true</text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="100" format="moodle_auto_format">
+      <text>false</text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 8143847  -->
+  <question type="truefalse">
+    <name>
+      <text>DSS2_20</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Al aceptar los términos y condiciones de un proveedor cloud, el usuario delega toda la responsabilidad legal al proveedor.</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text><![CDATA[<p data-start="2931" data-end="3246">Aceptar los términos y condiciones <strong data-start="2991" data-end="3036">no elimina la responsabilidad del usuario</strong>. Aunque el proveedor debe cumplir con estándares legales, el usuario sigue siendo responsable de <strong data-start="3134" data-end="3193">cómo configura, utiliza y protege su entorno en la nube</strong>, incluyendo la protección de los datos que almacena.</p>]]></text>
+    </generalfeedback>
+    <defaultgrade>5.0000000</defaultgrade>
+    <penalty>1.0000000</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <answer fraction="0" format="moodle_auto_format">
+      <text>true</text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="100" format="moodle_auto_format">
+      <text>false</text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 8143786  -->
+  <question type="truefalse">
+    <name>
+      <text>DSS2_5</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>En AWS, un Security Group actúa como una firewall que controla el tráfico de entrada y salida de instancias EC2.</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text><![CDATA[<p>Los Security Groups son firewalls virtuales a nivel de instancia que controlan el tráfico en función de reglas configurables. Son esenciales para proteger recursos en la nube, permitiendo solo tráfico autorizado.</p>]]></text>
+    </generalfeedback>
+    <defaultgrade>5.0000000</defaultgrade>
+    <penalty>1.0000000</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <answer fraction="100" format="moodle_auto_format">
+      <text>true</text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="moodle_auto_format">
+      <text>false</text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+  </question>
+
+<!-- question: 8143791  -->
+  <question type="truefalse">
+    <name>
+      <text>DSS2_7</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>En el modelo PaaS, el proveedor de servicios gestiona tanto la infraestructura como la plataforma, y el usuario se encarga del desarrollo del software.</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text><![CDATA[<p>PaaS (Platform as a Service) proporciona al usuario herramientas de desarrollo, sistemas operativos y entornos de ejecución listos para crear aplicaciones, mientras que el proveedor se encarga de la infraestructura subyacente (hardware, red, almacenamiento, etc.).</p>]]></text>
+    </generalfeedback>
+    <defaultgrade>5.0000000</defaultgrade>
+    <penalty>1.0000000</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <answer fraction="100" format="moodle_auto_format">
+      <text>true</text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="moodle_auto_format">
+      <text>false</text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+  </question>
+
+</quiz>

@@ -1,0 +1,946 @@
+From: <Saved by Blink>
+Snapshot-Content-Location: https://ccia.ugr.es/~jfv/ed1/tedi/cdrom/docs/arb_B.htm
+Subject: ARBOLES-B
+Date: Sat, 8 Nov 2025 12:38:27 -0600
+MIME-Version: 1.0
+Content-Type: multipart/related;
+	type="text/html";
+	boundary="----MultipartBoundary--fJ6h23LiNy4hSr5kR9SPP1rBDm85MuZ1sLprT7og9Y----"
+
+
+------MultipartBoundary--fJ6h23LiNy4hSr5kR9SPP1rBDm85MuZ1sLprT7og9Y----
+Content-Type: text/html
+Content-ID: <frame-2BF9119CEE5472474DBA788A1B6FFF78@mhtml.blink>
+Content-Transfer-Encoding: quoted-printable
+Content-Location: https://ccia.ugr.es/~jfv/ed1/tedi/cdrom/docs/arb_B.htm
+
+<!--
+Proyecto: Estructuras de Datos
+Fichero:  arboles_B.html
+Fecha:    15/08/00
+--><html><head><meta http-equiv=3D"Content-Type" content=3D"text/html; char=
+set=3Dwindows-1252">
+   <title> ARBOLES-B </title>
+
+</head>
+<body background=3D"https://ccia.ugr.es/~jfv/ed1/tedi/cdrom/docs/anilla02.j=
+pg">
+
+
+
+<br><h1>B-=C1RBOLES</h1><hr noshade=3D"">
+<br><br><h2>1. INTRODUCCI=D3N.</h2>
+<p>Los B-=E1rboles sugieron en 1972 creados por R.Bayer y E.McCreight.El pr=
+oblema original=20
+comienza con la necesidad de mantener =EDndices en almacenamiento externo p=
+ara acceso a=20
+bases de datos,es decir,con el grave problema de la lentitud de estos dispo=
+sitivos se pretende=20
+aprovechar la gran capacidad de almacenamiento para mantener una cantidad d=
+e informaci=F3n=20
+muy alta organizada de forma que el acceso a una clave sea lo m=E1s r=E1pid=
+o posible.
+</p><p>Como se ha visto anteriormente existen m=E9todos y estructuras de da=
+tos que permiten=20
+realizar una b=FAsqueda dentro de un conjunto alto de datos en un tiempo de=
+ orden
+<i>O(log<sub>2</sub>n)</i>.
+As=ED tenemos el caso de los =E1rboles binarios AVL.=BFPor qu=E9 no usarlos=
+ para organizar=20
+a trav=E9s de ellos el =EDndice de una base de datos?la respuesta aparece s=
+i estudiamos=20
+m=E1s de cerca el problema de acceso a memoria externa.Mientras que en memo=
+ria interna el=20
+tiempo de acceso a <i>n</i> datos situados en distintas partes de la memori=
+a es independiente de=20
+las direcciones que estos ocupen(<i>n*cte</i> donde <i>cte</i> es el tiempo=
+ de acceso a 1 dato),en=20
+memoria externa es fundamental el acceder a datos situados en el mismo bloq=
+ue para hacer que el=20
+tiempo de ejecuci=F3n disminuya debido a que el tiempo depende fuertemente =
+del tiempo de acceso=20
+del dispositivo externo,si disminuimos el n=FAmero de accesos a disco l=F3g=
+icamente el=20
+tiempo resultante de ejecuci=F3n de nuestra b=FAsqueda se ve fuertemente re=
+cortado.Por=20
+consiguiente,si tratamos de construir una estructura de datos sobre disco e=
+s fundamental tener=20
+en cuenta que uno de los factores determinantes en el tiempo de ejecuci=F3n=
+ es el n=FAmero=20
+total de accesos,de forma que aunque dicho n&amp;uacite;mero pueda ser acot=
+ado por un orden de eficiencia=20
+es muy importante tener en cuenta el n=FAmero real ya que el tiempo para re=
+alizar un acceso=20
+es suficientemente alto como para que dos algoritmos pese a tener un mismo =
+orden,puedan tener en un=20
+caso un tiempo real de ejecuci=F3n aceptable y en otro inadmisible.
+</p><p>De esta forma,si construimos un =E1rbol binario de b=FAsqueda equili=
+brado en disco,los=20
+accesos a disco ser=E1n para cargar en memoria uno de los nodos,es decir,pa=
+ra poder llevar a=20
+memoria una cantidad de informaci=F3n suficiente como para poder decidir en=
+tre dos ramas.Los=20
+=E1rboles de m=FAltiples ramas tienen una altura menor que los =E1rboles bi=
+narios=20
+pues pueden contener m=E1s de dos hijos por nodo,adem=E1s de que puede hace=
+rse corresponder=20
+los nodos con las p=E1ginas en disco de forma que al realizar un =FAnico ac=
+ceso se leen un=20
+n=FAmero alto de datos que permiten elegir un camino de b=FAsqueda no entre=
+ dos ramas,sino=20
+en un n=FAmero considerablemente mayor de ellas.Adem=E1s,este tipo de =E1rb=
+oles hace m=E1s=20
+f=E1cil y menos costoso conseguir equilibrar el =E1rbol.
+</p><p>En resumen,los =E1rboles con m=FAltiples hijos hacen que el mantenim=
+iento de =EDndices=20
+en memoria externa sea mucho m=E1s eficiente y es justamente =E9ste el moti=
+vo por el que=20
+este tipo de =E1rboles han sido los que tradicionalmente se han usado para =
+el mantenimiento=20
+de =EDndices en sistemas de bases de datos.L=F3gicamente,aunque este tipo d=
+e estructuras=20
+sean m=E1s id=F3neas para mantener grandes cantidades de datos en almacenam=
+iento externo=20
+es posible construirlas de igual forma en memoria principal,y por consiguie=
+nte pueden ser mantenidas en=20
+memoria (mediante el uso de punteros por ejemplo)al igual que las que hemos=
+ estudiado hasta ahora.
+<br><br></p><h2>2. B-=C1RBOLES.</h2>
+<br><h3>DEFINICI=D3N.</h3>
+<p>Los B-=E1rboles son =E1rboles cuyos nodos pueden tener un n=FAmero m=FAl=
+tiple=20
+de hijos tal como muestra el esquema de uno de ellos en la figura 1.
+<br><br></p><center><img src=3D"https://ccia.ugr.es/~jfv/ed1/tedi/cdrom/ico=
+ns/arb_B1.gif"></center><br><br>
+<p>Como se puede observar en la figura 1,un B-=E1rbol se dice que es de ord=
+en <i>m</i> si sus=20
+nodos pueden contener hasta un m=E1ximo de <i>m</i> hijos.En la literatura =
+tambi=E9n=20
+aparece que si un =E1rbol es de orden <i>m</i> significa que el m=EDnimo n=
+=FAmero=20
+de hijos que puede tener es <i>m+1(m claves)</i>.Nosotros no la usaremos pa=
+ra diferenciar el caso=20
+de un n=FAmero m=E1ximo par e impar de claves en un nodo.
+</p><p>El conjunto de claves que se sit=FAan en un nodo cumplen la condici=
+=F3n:
+<br><br></p><center><img src=3D"https://ccia.ugr.es/~jfv/ed1/tedi/cdrom/ico=
+ns/arb_B2.gif"></center><br><br>
+<p>de forma que los elementos que cuelgan del primer hijo tienen una clave =
+con valor menor que=20
+<i>K<sub>1</sub></i>,los que cuelgan del segundo tienen una clave con valor=
+ mayor que <i>K<sub>1</sub></i> y=20
+menor que <i>K<sub>2</sub></i>,etc...Obviamente,los que cuelgan del =FAltim=
+o hijo tienen=20
+una clave con valor mayor que la =FAltima clave(hay que tener en cuenta que=
+ el nodo puede=20
+tener menos de <i>m</i> hijos y por consiguiente menos de <i>m-1</i> claves=
+).
+</p><p>Para que un =E1rbol sea B-=E1rbol adem=E1s deber=E1 cumplir lo sigui=
+ente:<br>
+</p><ul>
+<li>Todos los nodos excepto la ra=EDz tienen al menos <i>E((m-1)/2)</i> cla=
+ves.L=F3gicamente=20
+para los nodos interiores eso implica que tienen al menos <i>E((m+1)/2)</i>=
+ hijos.</li>
+<li>Todas las hojas est=E1n en el mismo nivel.</li>
+</ul>
+<p>El hecho de que la ra=EDz pueda tener menos descendientes se debe a que =
+si el crecimiento=20
+del =E1rbol hace que la ra=EDz se divida en dos hay que permitir dicha situ=
+aci=F3n=20
+para que los nuevos nodos mantengan esa propiedad.En el caso de que eso ocu=
+rra en un nodo interior=20
+distinto a la ra=EDz se soluciona propagando hacia arriba;l=F3gicamente est=
+a operaci=F3n=20
+no se puede realizar en el caso de ra=EDz.
+</p><p>Por otro lado,con el hecho de que los nodos interiores tengan un n=
+=FAmero m=EDnimo=20
+de descendientes aseguramos que en el nivel <i>n</i>(nivel 1 corresponde a =
+la ra=EDz)haya=20
+un m=EDnimo de <i>2E<sup>n-1</sup>((m+1)/2)</i>(el 2 es el m=EDnimo de hijo=
+s de la ra=EDz=20
+y <i>E((m+1)/2)</i> el m=EDnimo para los dem=E1s)y teniendo en cuenta que u=
+n =E1rbol=20
+con <i>N</i> claves tiene <i>N+1</i> descendientes en el nivel de las hojas=
+,podemos establecer la=20
+siguiente desigualdad:
+<br><br></p><center><img src=3D"https://ccia.ugr.es/~jfv/ed1/tedi/cdrom/ico=
+ns/arb_B3.gif"></center><br><br>
+<p>Resolviendo:
+<br><br></p><center><img src=3D"https://ccia.ugr.es/~jfv/ed1/tedi/cdrom/ico=
+ns/arb_B4.gif"></center><br><br>
+<p>que nos da una cota superior del n=FAmero de nodos a recorrer para local=
+izar un elemento=20
+en el =E1rbol.
+<br></p><h3>B=DASQUEDA EN UN B-=C1RBOL.</h3>
+<p>Localizar una clave en un B-=E1rbol es una operaci=F3n simple pues consi=
+ste en situarse=20
+en el nodo ra=EDz del =E1rbol,si la clave se encuentra ah=ED hemos terminad=
+o y si=20
+no es as=ED seleccionamos de entre los hijos el que se encuentra entre dos =
+valores de clave=20
+que son menor y mayor que la buscada respectivamente y repetimos el proceso=
+ hasta que la encontremos.En=20
+caso de que se llegue  a una hoja y no podamos proseguir la b=FAsqueda la c=
+lave no se encuentra en=20
+el =E1rbol.En definitiva,los pasos a seguir son los siguientes:
+</p><ol>
+<li>Seleccionar como nodo actual la ra=EDz del =E1rbol.</li><br>
+<li>Comprobar si la clave se encuentra en el nodo actual:<br>
+    <ol>
+         <li>Si la clave est=E1, fin.</li>
+         <li>Si la clave no est=E1:<br>
+            <ul>
+                <li>Si estamos en una hoja,no se encuentra la clave.Fin.</l=
+i>
+                <li>Si no estamos en una hoja,hacer nodo actual igual al hi=
+jo que corresponde=20
+			seg=FAn el valor de la clave a buscar y los valores de las claves del no=
+do=20
+			actual(i buscamos la clave K en un nodo con <i>n</i> claves:el hijo izqu=
+ierdo=20
+			si <i>K&lt;K<sub>1</sub></i>,el hijo derecho si <i>K&gt;K<sub>n</sub></i=
+> y el hijo=20
+			i-=E9simo si <i>K<sub>i</sub>&lt;K&lt;K<sub>i+1</sub></i>)y volver al se=
+gundo paso.</li>
+		</ul>
+	   </li>
+   </ol>
+</li>
+</ol>
+<br><h3>INSERCI=D3N EN UN B-=C1RBOL.</h3>
+<p>Para insertar una nueva clave usaremos un algoritmo que consiste en dos =
+pasos recursivos:
+</p><ol>
+<li>Buscamos la hoja donde debieramos encontrar el valor de la clave de una=
+ forma totalmente=20
+paralela a la b=FAsqueda de =E9sta tal como comentabamos en la secci=F3n an=
+terior(si=20
+en esta b=FAsqueda encontramos en algun lugar del =E1rbol la clave a insert=
+ar,el algoritmo=20
+no debe hacer nada m=E1s).Si la clave no se encuentra en el =E1rbol habremo=
+s llegado a una=20
+hoja que es justamente el lugar donde debemos realizar esa inserci=F3n.</li=
+>
+<li>Situados en un nodo donde realizar la inserci=F3n si no est=E1 completo=
+,es decir,si=20
+el n=FAmero de claves que existen es menor que el orden menos 1 del =E1rbol=
+,el elemento=20
+puede ser insertado y el algoritmo termina.En caso de que el nodo est=E9 co=
+mpleto insertamos=20
+la clave en su posici=F3n y puesto que no caben en un =FAnico nodo dividimo=
+s en dos=20
+nuevos nodos conteniendo cada uno de ellos la mitad de las claves y tomando=
+ una de =E9stas=20
+para insertarla en el padre(se usar=E1 la mediana).Si el padre est=E1 tambi=
+=E9n=20
+completo,habr=E1 que repetir el proceso hasta llegar a la ra=EDz.En caso de=
+ que la ra=EDz=20
+est=E9 completa,la altura del =E1rbol aumenta en uno creando un nuevo nodo =
+ra=EDz=20
+con una =FAnica clave.</li>
+</ol>
+<p>En la figura 2 podemos observar el efecto de insertar una nueva clave en=
+ un nodo que est=E1=20
+lleno.
+<br><br></p><center><img src=3D"https://ccia.ugr.es/~jfv/ed1/tedi/cdrom/ico=
+ns/arb_B5.gif"></center>
+<center><img src=3D"https://ccia.ugr.es/~jfv/ed1/tedi/cdrom/icons/arb_B6.gi=
+f"></center><br><br>
+<p>Podemos realizar una modificaci=F3n al algoritmo de forma que se retrase=
+ al m=E1ximo=20
+el momento de romper un nodo en dos.Con ello podr=EDamos vernos beneficiado=
+s por dos razones=20
+fundamentalmente:
+</p><ol>
+<li>La raz=F3n m=E1s importante para modificar as=ED el algoritmo es que lo=
+s nodos=20
+en el =E1rbol est=E1n m=E1s llenos con lo cual el gasto en memoria para man=
+tener=20
+la estructura es mucho menor.</li>
+<li>Retrasamos el momento en que la ra=EDz llega a dividirse y por consigui=
+ente retrasamos=20
+el momento en que la altura del =E1rbol aumenta.</li>
+</ol>
+<p>La forma m=E1s sencilla de realizar esta modificaci=F3n es que en el cas=
+o de que=20
+tengamos que realizar esa divisi=F3n,antes de llevarla a cabo,comprobemos s=
+i los hermanos=20
+adyacentes tienen espacio libre de forma que si alguno de ellos lo tiene se=
+ redistribuyen las=20
+claves que se encuentran en el nodo actual m=E1s las de ese hermano m&amp;a=
+s la clave que los=20
+separa(que se encuentra en el padre)m=E1s la clave a insertar de forma que =
+en el padre se=20
+queda la mediana y las dem=E1s quedan distribuidas entre los dos nodos.
+</p><p>En la figura 3 podemos observar el efecto de insertar una nueva clav=
+e en un nodo que est=E1=20
+lleno pero con redistribuci=F3n.
+<br><br></p><center><img src=3D"https://ccia.ugr.es/~jfv/ed1/tedi/cdrom/ico=
+ns/arb_B7.gif"></center><br><br>
+<br><h3>BORRADO EN UN B-=C1RBOL.</h3>
+<p>La idea para realizar el borrado de una clave es similar a la inserci=F3=
+n teniendo en=20
+cuenta que ahora,en lugar de divisiones,realizamos uniones.Existe un proble=
+ma a=F1adido,las claves=20
+a borrar pueden aparecer en cualquier lugar del =E1rbol y por consiguiente =
+no coincide con=20
+el caso de la inserci=F3n en la que siempre comenzamos desde una hoja y pro=
+pagamos hacia=20
+arriba.La soluci=F3n a esto es inmediata pues cuando borramos una clave que=
+ est=E1 en un=20
+nodo interior,lo primero que realizamos es un intercambio de este valor con=
+ el inmediato sucesor=20
+en el =E1rbol,es decir,el hijo m=E1s a la izquierda del hijo derecho de esa=
+ clave.
+</p><p>Las operaciones a realizar para poder llevar a cabo el borrado son p=
+or tanto:
+</p><ol>
+<li>Redistribuci=F3n:la utilizaremos en el caso en que al borrar una clave =
+el nodo se queda=20
+con un n=FAmero menor que el m=EDnimo y uno de los hermanos adyacentes tien=
+e al menos=20
+uno m=E1s que ese m=EDnimo,es decir,redistribuyendo podemos solucionar el p=
+roblema.</li>
+<li>Uni=F3n:la utilizaremos en el caso de que no sea posible la redistribuc=
+i=F3n y por=20
+tanto s=F3lo ser=E1 posible unir los nodos junto con la clave que los separ=
+a y se=20
+encuentra en el padre.</li>
+</ol>
+<p>En definitiva,el algoritmo nos queda como sigue:
+</p><ol>
+<li>Localizar el nodo donde se encuentra la clave.</li>.
+<li>Si el nodo localizado no es una hoja,intercambiar el valor de la clave =
+localizada con el=20
+valor de la clave m=E1s a la izquierda del hijo a la derecha.En definitiva =
+colocar la clave=20
+a borrar en una hoja.Hacemos nodo actual igual a esa hoja.</li>
+<li>Borrar la clave.</li>
+<li>Si el nodo actual contiene al menos el m=EDnimo de claves como para seg=
+uir siendo un=20
+B-=E1rbol,fin.</li>
+<li>Si el nodo actual tiene un n=FAmero menor que el m=EDnimo:
+	<ol>
+		<li>Si un hermano tiene m=E1s del m=EDnimo de claves,redistribuci=F3n y=
+=20
+fin.</li>
+		<li>Si ninguno de los hermanos tiene m=E1s del m=EDnimo,uni=F3n de dos=20
+nodos junto con la clave del padre y vuelta al paso 4 para propagar el borr=
+ado de dicha clave(ahora=20
+en el padre).</li>
+	</ol>
+</li>
+</ol>
+<br><h2>3. PRIMITIVAS DE UN B-=C1RBOL.</h2>
+
+<br><br><code><pre><b>AB Crear0(int ne)</b><applet align=3D"RIGHT" codebase=
+=3D"../clases" code=3D"proyec.class" name=3D"proyec" width=3D"150" height=
+=3D"40">
+    	<param name=3D"tipo" value=3D"funcionamiento">
+    	<param name=3D"primi" value=3D"b-crear0">
+   </applet>
+<b>{</b>
+  AB raiz;
+
+  raiz =3D (AB)malloc(sizeof(struct AB));
+  if (raiz =3D=3D NULL)
+    error("Memoria Insuficiente.");
+  raiz-&gt;n_etiquetas =3D ne;
+  for (int i=3D1; i&lt;=3D(ne+1); i++) {
+    raiz-&gt;hijos[i] =3D NULO;
+  }
+  return(raiz);
+<b>}</b>
+
+<b>AB Crear(int ne, int eti[])</b><applet align=3D"RIGHT" codebase=3D"../cl=
+ases" code=3D"proyec.class" name=3D"proyec" width=3D"150" height=3D"40">
+    	<param name=3D"tipo" value=3D"funcionamiento">
+    	<param name=3D"primi" value=3D"b-crear">
+   </applet>
+<b>{</b>
+  AB raiz;
+
+  raiz =3D (AB)malloc(sizeof(struct AB));
+  if (raiz =3D=3D NULL)
+    error("Memoria Insuficiente.");
+  raiz-&gt;n_etiquetas =3D ne;
+  for (int i=3D1; i&lt;=3D(ne+1); i++) {
+    raiz-&gt;hijos[i] =3D NULO;
+  }
+  for (int i=3D1; i&lt;=3Dlenght(eti[]); i++) {
+    raiz-&gt;etiquetas[i] =3D eti[i];
+  }
+  return(raiz);
+<b>}</b>
+
+<b>int Buscar(int eti, int *nod, int *pos)</b><applet align=3D"RIGHT" codeb=
+ase=3D"../clases" code=3D"proyec.class" name=3D"proyec" width=3D"150" heigh=
+t=3D"40">
+    	<param name=3D"tipo" value=3D"funcionamiento">
+    	<param name=3D"primi" value=3D"b-buscar">
+   </applet>
+<b>{</b>
+  int i,l;
+
+  l =3D lenght(nod-&gt;etiquetas[]);
+  for(i=3D0;i<l &&=3D"" eti=3D"">nod-&gt;etiquetas[i];i++)
+    ;
+  *pos =3D i;
+  if(*pos<l &&=3D"" eti=3D"nod-">etiquetas[*pos])
+    return 1;
+  else;
+    return 0;
+<b>}</b>
+
+<b>int BuscarNodo(int eti, int *nod, int *pos)</b><applet align=3D"RIGHT" c=
+odebase=3D"../clases" code=3D"proyec.class" name=3D"proyec" width=3D"150" h=
+eight=3D"40">
+    	<param name=3D"tipo" value=3D"funcionamiento">
+    	<param name=3D"primi" value=3D"b-buscarnodo">
+   </applet>
+<b>{</b>
+  int i=3D0, enc;
+
+  enc =3D Buscar(eti,&amp;nod,&amp;pos);
+  if (enc =3D=3D 1)
+    return 1;
+  do {
+    if (eti<nod->etiquetas[i] &amp;&amp; nod-&gt;hijos[i]!=3DNULO)
+      enc =3D BuscarNodo(eti,&amp;nod-&gt;hijos[i],&amp;pos);
+    else
+    if ((eti<nod->etiquetas[i+1]||nod-&gt;etiquetas[i+1]=3D=3D-1)&amp;&amp;=
+nod-&gt;hijos[i+1]!=3D-1)
+      enc =3D BuscarNodo(eti,&amp;nod-&gt;hijos[i+1],&amp;pos);
+    i++;
+  } while (i<lenght(nod->etiquetas[]) &amp;&amp; enc=3D=3D0);
+  return (enc);
+<b>}</b>
+</lenght(nod-></nod-></nod-></l></l></pre></code><br><br>
+
+
+<br><br><br><hr>
+<b><center><address>
+<h6>Tutor de Estructuras de Datos Interactivo<br>
+<a href=3D"mailto:jexpositoa@nexo.es">Exposito Lopez Daniel</a>, =20
+<a href=3D"mailto:abrahamgs@latinmail.com">Abraham Garc=EDa Soto</a>,
+<a href=3D"mailto:x8110356@turing.ugr.es">Martin Gomez Antonio Jose</a><br>
+Director de proyecto:
+<a href=3D"mailto:J.Fdez-Valdivia@decsai.ugr.es">Joaqu=EDn Fern=E1ndez Vald=
+ivia</a><br>
+5=BA Licenciatura Informatica<br>
+ETSII 99/00 (Universidad de Granada).<br><br></h6>
+</address></center><b>
+
+
+</b></b></body></html>
+------MultipartBoundary--fJ6h23LiNy4hSr5kR9SPP1rBDm85MuZ1sLprT7og9Y----
+Content-Type: image/gif
+Content-Transfer-Encoding: base64
+Content-Location: https://ccia.ugr.es/~jfv/ed1/tedi/cdrom/icons/arb_B7.gif
+
+R0lGODlhnQJmAfcAAAAAAP8AAP//////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////ywAAAAAnQJmAQAI/gAFCBxI
+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
+ho20sDoHOKxc7TOUefSeKdO4zXZms5TLTGY8HRrCkgbvp7fc3TGjV81gpXOp7WzX7PYYTz4ia6j1
+u+VAd2vQ8U1vmUPcYbFquryiCvOIV/1oOUd6SzkGNKn5PB9RL+jJxa5xm9WEZswVWVllWjZ83wvn
+Szu7RP1d9aTf7Go9/9jAyPazlymNaC+zWMb73fS00R2mdlNa0Y4+cZPJa+9K/1nd/sY0rSXca/XO
+xsLUPviKBS6gKANcx90e8re93e9OU7nKiHn1pxe9bnlzvLzXvjWs/gte6BQhuOCpGvnDPQ7sDMNb
+1zdK97jTfCJbUwrXFd80k7etYTPv2eTTtrnMFc1xcp+aV3hVtcuTfedy//jM9GZ3jmc99ZNzG+bu
+FvPHmy3vhkt85q3GOMW56+uad2zNWs/5rKN93ign3NA6F7rUiZ5vnlcc1WUXONjjjV88P3a78lkb
+w43c8X7X+urxDpSJcXXvGzUZTS23u6mx7nYxZ1nK2t51vcHrc53rG+6/BpfK6f74jTM97O2NubH3
+qr067x3Sfqct5b+e+aEjnfAOf/lms0vkF8v9yL63dHjF/u8NG95Rvy9+o/fN4VwTX/laYv6RRX1g
+GBN76W7Gu+RZ/s13iDtdsakfcnEervjIl3zH4i768/tu8faHH71NX3/33V/fBc+Y/ryv/8UpX9vt
+v373sHV+sRdx7zd8s3eA+ZeARoeA4Kd/8Id6Dih/+DeB8Ud8/Zdf/wdpGAZfMeZ66seAFTh/AFiA
+Ech+EjiCJaiAIaiCGkiAKbiA/AeCMiiCENiCLEiDOAh7FGiDD5iDxiZfdueBQnh9/rdhWXWEWFVU
+cjFgSNiEQsVUThiFTmVVUliFQ0WFVpiF70IvJUVKXrhHXfiFYlhEYTiGZvhAZXiGaog9abiGbjg6
+bfiGcqg4cTiHdmg2dXiHesg0ebiHfngyffiHgugwgTiIhlgu/oV4iIr4LIm4iI7IKo34iJJoKJE4
+iZbYJpV4iZroIp/SiZv4iVzYiTgFiqQoJKJYiqjIiJ6YiqzYKrzUirBYKK8Yi7SIibV4i7iYi7q4
+i7zYi774i8AYjMI4jMQoLzpVjMg4Mh6XjMx4SWnXjNAoSM8YjdSoFu9WjdjYRseYjdz4ItvYjeBo
+euE4jiPkU+R4jlv0jegYjuq4jt3Yju6YjfAYj9U4j/QYjfZ4j82Yj/qYjPzYj8X4jwA5jAI5kMFY
+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
+
+------MultipartBoundary--fJ6h23LiNy4hSr5kR9SPP1rBDm85MuZ1sLprT7og9Y----
+Content-Type: image/gif
+Content-Transfer-Encoding: base64
+Content-Location: https://ccia.ugr.es/~jfv/ed1/tedi/cdrom/icons/arb_B6.gif
+
+R0lGODlheQIiAfcAAAAAAP//////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////ywAAAAAeQIiAQAI/gADCBxI
+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
+
+------MultipartBoundary--fJ6h23LiNy4hSr5kR9SPP1rBDm85MuZ1sLprT7og9Y----
+Content-Type: image/gif
+Content-Transfer-Encoding: base64
+Content-Location: https://ccia.ugr.es/~jfv/ed1/tedi/cdrom/icons/arb_B5.gif
+
+R0lGODlhlQK1AfcAAAAAAP8AAP//////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////ywAAAAAlQK1AQAI/gAFCBxI
+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
+AwIAOw==
+
+------MultipartBoundary--fJ6h23LiNy4hSr5kR9SPP1rBDm85MuZ1sLprT7og9Y----
+Content-Type: image/gif
+Content-Transfer-Encoding: base64
+Content-Location: https://ccia.ugr.es/~jfv/ed1/tedi/cdrom/icons/arb_B4.gif
+
+R0lGODlhlwAzAPcAAAAAAP//////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////ywAAAAAlwAzAAAI/gADCBxI
+sKDBgwgTKlzIsKHDhxAjSpxIsaLFixgzatzIsaPHjyA/AgBAcCREkyFTqrQ4kqRAlAxbulxJs2ZM
+mDAb5rTJs2cAmS9nDtw5VKjPoyuB/jS6FCFRpFA9mpzK9GnTqFhFkqRaVOZOq1nD3jSIUmlJpkEV
+gs24tmBbnk/LtiSL9mrCtxPNjhUbd+Zct3Xb4qU42G7Wvl1P1i2q1uvdr4GN5tQblDLbyGcV7z34
+l+hfwE4l+3U5mXThh6elLi6dOLTrzIblwuaYuiNY1oY5i/ZqOi3j2IsrQuZNvLhxzK99L12N/Ddu
+3LSDJ2U+u7Lu5L6fC629+ejt7Wg/vSsHDVt7dY3cN34/3xj16PFypeeVHzr9ePL32zss7dmxaomy
+zScWYfQBWOBv+el0IGC8+WRffqlBp9mAET1oWW4VLpgghbqJJ5yGCnIYFXHnPXidiFBxhZNo0aE4
+4lYwLveZiey5CFeMK+J3EY02soTjezUa2OOLTa3FY3FDJqnkkmcd5ySPTEYp5ZRUVmnllVhmeSOU
+WmIVYJdacgmmlyCOKaKYZnpXZpoDosnmjW9a2WCcdNZp5514ThQQAAA7
+
+------MultipartBoundary--fJ6h23LiNy4hSr5kR9SPP1rBDm85MuZ1sLprT7og9Y----
+Content-Type: image/gif
+Content-Transfer-Encoding: base64
+Content-Location: https://ccia.ugr.es/~jfv/ed1/tedi/cdrom/icons/arb_B3.gif
+
+R0lGODlhkQAmAPcAAAAAAP//////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////ywAAAAAkQAmAAAI/gADCBxI
+sKDBgwgTKlzIsKHDhxAjSpxIsaLFixgzatzIsaPHjyBDBgAAQKRJkSRPkkx5suXGlSVbsnRJE+NM
+hDBjrjx4k2DPmkB9wsQZM+HOoT9/ClQaFOjRokIXzpwKdWTVgUyb0mSZcufSqwWpYtWZs2dWrTLJ
+8gQb9evYsGyZnkWbkSvYpEXFum1rMKtfqHPhXhwqtGxetX2r3tRrVfBao2ytHnZImKJdvi8BT97b
+8C/kzZQjM1wMOjNfxqNFy/WKlyhc0W9jN+YYGOTqy44Tr4Wtm7PG2h9XN279mChv34aPK6SavLnz
+sr11dz0MHXPx5YqVPwTuUbjkq953fKeO/lt7R++VZecu3Pmu+fZaw3u1rl5yaNe033/lTv40f/7r
+BWiTfrhF5Fl9Uuk3VnXf5TSYeaRJBOCADNI1230Ijmfhhhlu996EHKKk4IUhlugSiCamKOGIKrYI
+n4sw5hfjjHWxSOONDc6H44489ujjj0AGKeSQRCoUEAAAOw==
+
+------MultipartBoundary--fJ6h23LiNy4hSr5kR9SPP1rBDm85MuZ1sLprT7og9Y----
+Content-Type: image/gif
+Content-Transfer-Encoding: base64
+Content-Location: https://ccia.ugr.es/~jfv/ed1/tedi/cdrom/icons/arb_B2.gif
+
+R0lGODlhlwAeAPcAAAAAAP//////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////ywAAAAAlwAeAAAI/gADCBxI
+sKDBgwgTKlzIsKHDhxAjSpxIsaLFixgzatzIsaPHjyBDihxJsqTJiAAAEEzpkeVAlyctwgwws6VK
+gTU1wswZU+LOmyFd8swoFGjPikVJshzaMKXRgkufHp0YtaRTqQ6dLrxKUWtQnlytMlXodevYhGU/
+poV6lmPYh21frjWLdeNctnGJqswrty5bmn7/NgX6E21guYDF4jx88O7Km3kd6zybdGRhn0wvD2Ys
+MzNhzp0f2xQNly9VsEZNkyb7VDXDmq6nJl6dVTLE2Chty3YL2jDu0jh3d75a9zdty72F/61q0Dhi
+k86nVo36WS/05MpFMxd8Mfrg7F33JYpvjB2hd7PgwydGbV3k+fRKy+d+C7++/fv48+vfz7+///8P
+BQQAOw==
+
+------MultipartBoundary--fJ6h23LiNy4hSr5kR9SPP1rBDm85MuZ1sLprT7og9Y----
+Content-Type: image/gif
+Content-Transfer-Encoding: base64
+Content-Location: https://ccia.ugr.es/~jfv/ed1/tedi/cdrom/icons/arb_B1.gif
+
+R0lGODlhQAK/APcAAAAAAP//////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////ywAAAAAQAK/AAAI/gADCBxI
+sKDBgwgTKlzIsKHDhxAjSpxIsaLFixgzatzIsaPHjyBDihxJsqTJkyhTqlzJsqXLlzBjypxJs6bN
+mzhz6tzJs6fPn0CDCh1KtKjRo0iTKl3KtKnTp1CjSp1KtarVq1izat3KtavXr2DDih1LtqzZs2jT
+ql3Ltq3bt3Djyp1Lt67du3jz6t3Lt6/fv4ADCx7ME4Dhw4gTK17MuLHjx5AjS55MubLly5gza97M
+ubPnz6BDIyZcEABF0zRRR1R9k7VD1zZhj5U9lPZD24BxK9StkvdB3y2BExTOknhW4zmRlyY9/HRN
+5cpPIo8uPS315xevz42u3SN0ndN3/naPOj6m9vJvuWOXiP5jePDWlZ5nPlB96ontvbMXHz/pfPoB
+2DfTd8ntBx9a+QWXHYABOnefgTi9VyCC8i0IoIAyERghhBtS6J+F9GHIkGHD5afhaqyR2JGE7KWY
+YIJLjaeiQDOa9F+IDr6mWo0anQjRjDz2yCGK9cEIY4UYAXnkbiAyJ+JCKgaZkY+3oSbllEP+aOWR
+SyIl45Yr3ehkjg2ReGWS+J1m2plorlaRmUt2edSXAcqZkJikPbnbYSFRqSObbf74Jp999pcdoWE2
+mSeZIwKq6GtqyskiipIaahGiiV7KoJ53Yrpimvh5+qmbkXZpZ1FfOlqophfeyWSV/nWCRBtu3K0Z
+Z5awqsooWXTqqh+Ur+KIEK1a0mjksMESGat7rv42qLGyerfjtEVWC+21y2b766HYouSbbafyimyy
+jVrL0azkwtrtRuCOG6q551r67LolfdussAbpRlyNvkLq7L3K0htovu62WOK2ZtEJb73+Etyqw+nu
+WVp76AJc7MHxFtycmhOPepbCC48EXMX4bhwxt7vSeHKPojYM8XKytnybvC/1a/KI/5asMs7sylym
+xjC7ByauO7987tCgfpyhz8C6XN+mRgOdJHUk5yySzUVHnXXMb9LsEtZbN33zomNbPCXVUj9NEtjt
+Ws11ymKdutiwnAId7mxBi91z/tdu5/020Q32ffR1dwslt63ahuw0z2qXLNyLaAve+N+AV005qUqv
+jTic1CbtdOFhpTjzipFrPbm0rEpuJ9hh4615rFKyziLoYO0oKOl8m946y4+e7jvvid+eucibyyY7
+h7R/ZfvoR+fu9/M9j1Z52mezvnvo9Rb/W93BJu+VlZhnSH3gHarOn4deJu19V+ALL77k15tndvzy
+oz+ng+tztSbgxY2fP+Om+x8AyyJAIYGqgFjZX/jqpzvytWZ+Dnyg/YyCNgRehW3raaAF4We52Hit
+Nl3bYFVEQ8ISmvCEKEyhClfIwha6MDJQk4oIDcggsj2MPE+ZYQ1xqLMc+nCH/jYMIlR0ODAgCoaI
+TkFixpqiRCPGaExUaSLcnNgXKaZvhD+k4hEJY0UsJVGLXNyiVbq4QDD6hYwgHGMWzZibNl5wjWw8
+oxvV+MU4BgaNPsFjEZFkx7/osTDHgWMf+fLHCSVQkIPUSyHL98Y6JlKOeVlk6pgiyUca8i6VnCIF
+LelHvGRSk6jiJCTt8knPPVGUVSQl+xCJSlXWpZSm5GMrFUkXWMbyQ7Pciy299T1W5rKWctkl/0L5
+S1rGRZhlxGUxIwkXZCbzisv0ZDNr58toHtMtznzm/awpzbZk032n5CYm2fJNcMpSnMBcSzmZR0l0
+dnOCvXSkO9MJz1XKc57b/qmnPZmIT1cmTFz37Oc1CUjQgCanc9lSkrkUii2GJhShDo0oRCe6UIRi
+r6Cu46dAXwnQjrZzo/S8qEfDCdJgxm14Hy2pSUU60nOqND3URClJXwpT5elzmzQdqP4+iNOc1nSn
+N92kT3UaSJ4Kdag/LWpQiYnUpNLRqExtqje1ss7eQVOqU22kWpBZVazSEIvqrKZXMTqVrlq1p2Pd
+6lPVatC0ylSsGU2pW9kqQ2zCda4sbetblYlXqKKVrnLt61KjSs67Cjaeet3rVQ+r2KPaNbGMjWlg
+CwvZyNp0plnVqGUbm8ZpVnaz+/xrZicL2pPy1akuLa1pHetZzaq2pYYL/ilmX5tXpHKVtv/06m1x
+S1beXtK3kgWucIdL3OIm8kpRepxZjctc3LHMes2N7lagu70EzgppUGLa66obPLpRV7oETAzG+NWy
+7wLFvNdC77uAp17wNo+77T0U0pJrrSDFVzzlIW9x8usi9z4Hj/pdFn0Xdl/wiLe+LgqwwLInvfQm
+uL+K829wAAzhASt4wUMcsIA7d6YCl0nDIMYuxiS8tAZvuEQdlp52PzzeoV24u+SpsIsh3LH9ttjB
+I66Th0kcqYbOV8RFshWcUIbjExN4uQG2MI0jbCMZF1lgO+ZxwIys4e5K9FJONvK6ohybLFeZR1wu
+F4KfDOMwS1nMRf6y/vEoOq80cxg2Zh6Ql7H74jDNuVtqPnPN7qyt2LGZY2Puc3mRzGcFxzm7N9ay
+og+tZ+66Gc9rruh2P8ZnLTNaYoFmaJKXK9VNk9nPkiaedSqt4web2FukPnWpG73nRGv6uqG+GqdR
+x8RZq9bTgk5xrC+3HWFemtXZw+qvJw1s+dj6e74+dnOHXexmo0rZzo62tKdN7Wpb+9rYzra2t83t
+bnv72+AOt7jHTe5ym/vc6E63utfN7na7+93wjre8503vetv73vjOt773ze9++/vfAA+4wAdO8IIb
+/OAIT7jCudkYGDc5u3OLUSGpy2wdGWx7B2bxw91Z8U4BquPBrs15/pSINeQuGdMhRyfIO4VoGU58
+5Aa+eL5co6pDr1yRsA4yoTa984zTbeZMLjXND3xhExMdzD6fudF9xnOmJ33VE1v6x32uanglt+o6
+VxKfFKP0kx/Z45jCus5RrPWwm13sR4e2dHK+YTpvyaJsmjrLfWwstwdax6t2aJnffvcaOxjIdYe0
+4PFO5hojqso5vvqCeR7kwes98eDie+ETTfi/373n3s272hl8dMdn+edzB3uDQd33PD80wqT/dKRL
+v3rVez7HVrc70Fmv8aLL3uRPj/3g/b7oz/fe0Y8/Y85xPXnY897Rs+e96YkffCj7PvW/T370iW/l
+57c++i23/euR/m9yylff+9Q3vd+bT8jhW3/LXA896L2r9+VH/Mp1r3rT5X9+6bsf/Ne/eu7Df93O
+617Qizd03Pd2+1d/f+d/zrdrfmR++Ld7DveAEEh7ALh3oVZnE1hzBgh52+d69gd4HeiA/6d9F8h2
+Cdh36id+iqaByUd+usSAEiiC6xeDmMZ/G/hqxjeCN0iDH4iDEqh8sueDILiBPFh8iQN9KBiCS3Z/
+igN/d8R2imd5E4hhEKhrdFd5T2hpbGaBbWeCLfaDKjh9Ngh6h+eBWxiFKkhet2dRXzh7Y4hhIWZ4
+YWiGsXZzLheD6Rd/iMcY6udjESd0UXd2gDhiEnWHf4iG+oKATN8Xe/ZFddpFiGKHh15IdqNhiIuo
+hX3IfoYIcV7niGaXg39Gh7UDS6C4cJw0ikRGiqVliqeIioeVexS0eawYi7I4i7RYi7Z4i9MWEAAA
+Ow==
+
+------MultipartBoundary--fJ6h23LiNy4hSr5kR9SPP1rBDm85MuZ1sLprT7og9Y----
+Content-Type: image/jpeg
+Content-Transfer-Encoding: base64
+Content-Location: https://ccia.ugr.es/~jfv/ed1/tedi/cdrom/docs/anilla02.jpg
+
+/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEP
+ERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4e
+Hh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCAAYBaADASIA
+AhEBAxEB/8QAHAABAAEFAQEAAAAAAAAAAAAAAAcBAwYICQQF/8QANRABAAEDAwECCA8AAAAAAAAA
+AAMBAgQFBhIHERMIITM3U3aStBQWIiMkMUFRUmFjc6HC0v/EABcBAQEBAQAAAAAAAAAAAAAAAAAC
+AQP/xAAZEQEAAwEBAAAAAAAAAAAAAAAAAQISIUH/2gAMAwEAAhEDEQA/ANYuiHnp2N6xaf7zG6yu
+TXRDz07H9YtP95jdYbZY/SUc7s9Xnjyc7Cxr+GRlQx3fdfJ2LOq59mJh1vtli5/uIn1XM72PIz/K
+cOd/sOdrZammle2iqJfB13Lm67hazj5cvOzGntvht/BbfSvi/hLSxUBQAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+5ueD51I0DTc7amz5em+2czPm1WOG7XMnCsyMvlLPThW3tpStlbOVOytK1rTjTxN1fiPpc/lotVk9
+H3kv+bQLJmOvv6ZtubEx+5w/odn6kcUn9WJ63snWJ6SWw1pJ39/CT5v7PaoBiGMp6abJwtn6dPSG
+KL4ZmX2yZV8dPk9tPqtt/KjMQStUBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//2Q==
+
+------MultipartBoundary--fJ6h23LiNy4hSr5kR9SPP1rBDm85MuZ1sLprT7og9Y------
