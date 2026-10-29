@@ -27,10 +27,10 @@ La clase positiva es `is_high_tip = 1`.
 
 ## Archivos
 
-- `enunciado.md`: instrucciones completas de la hoja.
+- `798_ActividadPractica_6_2S2026.md`: instrucciones completas de la hoja.
 - `sql/01_plantilla_ht6.sql`: plantilla que debe completar el estudiante.
 - `sql/99_solucion_referencia.sql`: posible solucion de referencia.
-- `moodle_publicacion.html`: version HTML lista para incrustar en Moodle.
+- `798_ActividadPractica_6_2S2026.html`: version HTML lista para incrustar en Moodle.
 
 ## Requisitos previos
 

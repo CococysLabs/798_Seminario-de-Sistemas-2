@@ -14,3 +14,5 @@ terraform.tfstate.backup
 
 # Material docente incluido en esta copia
 !/infra/terraform/.terraform.lock.hcl
+
+!/798_Ejemplo_4_2S2026.zip

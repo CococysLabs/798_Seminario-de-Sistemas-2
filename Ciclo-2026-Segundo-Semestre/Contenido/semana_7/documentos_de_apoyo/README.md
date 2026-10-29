@@ -4,8 +4,8 @@ El material vigente de esta semana esta alineado al tema **Modelado Analitico co
 
 ## Archivos principales
 
-- `documento_apoyo_semana7.tex`: fuente LaTeX del documento academico.
-- `documento_apoyo_semana7.pdf`: documento compilado para estudiantes.
+- `798_Lectura_7_2S2026.tex`: fuente LaTeX del documento academico.
+- `798_Lectura_7_2S2026.pdf`: documento compilado para estudiantes.
 - `referencias_s7.bib`: bibliografia usada por el documento.
 - `ejemplo_dbt_sgfood/`: ejemplo vigente para clase.
 

@@ -22,7 +22,7 @@ Con estos datos se debe construir una solución analítica gobernada en BigQuery
 
 ## Archivos
 
-- `enunciado.md`: instrucciones completas de la hoja.
+- `798_ActividadPractica_5_2S2026.md`: instrucciones completas de la hoja.
 - `data/`: datos CSV de muestra.
 - `sql/01_crear_fuentes.sql`: creación y carga base.
 - `sql/02_plantilla_ht5.sql`: archivo que el estudiante debe completar.

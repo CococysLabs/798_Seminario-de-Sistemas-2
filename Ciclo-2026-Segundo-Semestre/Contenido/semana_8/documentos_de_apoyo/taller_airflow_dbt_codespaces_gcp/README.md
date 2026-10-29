@@ -63,5 +63,5 @@ Compute Engine: Caddy HTTPS → Airflow + Redis + PostgreSQL
 El despliegue envía un paquete completo con DAGs y fuentes dbt. La VM verifica su SHA-256 y cambia una referencia de forma atómica. Los paquetes previos se conservan para trazabilidad. Los secretos están en Secret Manager y no se publican en GitHub.
 
 - [Ejecutar y probar en local con Docker Compose](local/README.md)
-- [Hoja de trabajo en HTML](docs/hoja_de_trabajo_airflow_dbt.html)
+- [Hoja de trabajo en HTML](docs/798_ActividadPractica_8_2S2026.html)
 - [Acceso y comprobaciones del despliegue](docs/despliegue.md)

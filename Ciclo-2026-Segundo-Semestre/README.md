@@ -10,3 +10,5 @@ Material docente del curso 798.
 - [Tareas](Tareas/)
 
 Los ejemplos, datasets, fuentes LaTeX y bibliografías acompañan a los documentos de su semana, conservando su estructura interna. Se incluyen soluciones y guías docentes presentes en el material original.
+
+- [Nomenclatura de los recursos](NOMENCLATURA.md)

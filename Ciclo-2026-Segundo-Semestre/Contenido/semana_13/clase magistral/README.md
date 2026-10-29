@@ -1,5 +1,3 @@
 # Clase magistral — Semana 13
 
-Presentaciones extraídas del ZIP del curso. Se conserva la semana de la carpeta de origen.
-
-No se encontró una presentación para esta semana en el ZIP proporcionado.
+- [Ciclo de Vida de un Proyecto de Datos](798_Presentacion_S13_2S2026.pptx)

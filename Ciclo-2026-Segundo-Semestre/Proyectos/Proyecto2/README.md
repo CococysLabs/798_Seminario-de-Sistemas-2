@@ -1,6 +1,6 @@
 # Proyecto 2 - Guia de uso de scripts
 
-Este proyecto deja una base reproducible para resolver el `Proyecto_2.docx-2.pdf` usando el dataset publico `bigquery-public-data.new_york_taxi_trips.tlc_yellow_trips_2022` en BigQuery.
+Este proyecto deja una base reproducible para resolver el `798_Proyecto_2_2S2026.pdf` usando el dataset publico `bigquery-public-data.new_york_taxi_trips.tlc_yellow_trips_2022` en BigQuery.
 
 Los archivos en `sql/` ya quedaron listos para copiar y pegar directamente en el editor de BigQuery. Cada archivo tiene un bloque inicial con variables como `project_id`, `dataset_id` y, cuando aplica, rango de fechas. Si prefieres, puedes seguir usando los scripts de PowerShell, pero ya no son obligatorios para ejecutar el flujo.
 
