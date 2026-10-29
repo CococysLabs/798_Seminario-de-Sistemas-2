@@ -1,0 +1,548 @@
+% !TeX program = pdflatex
+\documentclass[12pt]{article}
+
+% Idioma y codificación
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+
+% Página y espaciado (para acercarse a ~15 páginas)
+\usepackage{geometry}
+\geometry{letterpaper, margin=1in}
+\usepackage{setspace}
+\onehalfspacing
+
+% Tipografía y microajustes
+\usepackage{microtype}
+\usepackage{csquotes}
+
+% Tablas
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+
+% Listas
+\usepackage{enumitem}
+
+% Código
+\usepackage{listingsutf8}
+\usepackage{listings}
+\lstset{inputencoding=utf8}
+\lstset{literate=%
+  {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'\i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+  {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+  {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {ü}{{\"u}}1 {Ü}{{\"U}}1
+}
+\usepackage{xcolor}
+\lstdefinestyle{sql}{
+  language=SQL,
+  inputencoding=utf8,
+  basicstyle=\ttfamily\small,
+  numbers=left,
+  numberstyle=\tiny,
+  stepnumber=1,
+  numbersep=8pt,
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=2,
+  frame=single
+}
+\lstdefinestyle{bash}{
+  language=bash,
+  inputencoding=utf8,
+  basicstyle=\ttfamily\small,
+  numbers=left,
+  numberstyle=\tiny,
+  stepnumber=1,
+  numbersep=8pt,
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=2,
+  frame=single
+}
+
+% Hipervínculos
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  urlcolor=blue,
+  citecolor=blue
+}
+
+% Formato académico y paginación por sección
+\usepackage{titlesec}
+\usepackage{etoolbox}
+\titlespacing*{\section}{0pt}{3ex plus 1ex minus .2ex}{2ex}
+\titlespacing*{\subsection}{0pt}{2.5ex plus 0.8ex minus .2ex}{1.2ex}
+\titlespacing*{\subsubsection}{0pt}{2ex plus 0.6ex minus .2ex}{1ex}
+\preto\section{\clearpage} % cada sección inicia en nueva hoja
+
+% Encabezados/pies limpios
+\usepackage{fancyhdr}
+\setlength{\headheight}{15pt}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Documento de apoyo (Sesión 9, Unidad 2)}
+\rhead{BigQuery y BigQuery ML}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Bibliografía (biblatex + biber)
+\usepackage[
+  backend=biber,
+  style=ieee,
+  sorting=nyt,
+  maxbibnames=99
+]{biblatex}
+\addbibresource{referencias_s9.bib}
+
+% Metadatos del documento
+\title{\textbf{Documento de apoyo (Sesión 9, Unidad 2)}\\
+\large Gobierno de Datos y Machine Learning en Entornos Cloud con BigQuery\\
+\normalsize Arquitectura, control de acceso, optimización analítica y modelos predictivos con SQL}
+\author{Javier Andrés Valdez González / Auxiliar \\
+\small Seminario de Sistemas 2 --- Sección P \\
+\small Universidad de San Carlos de Guatemala}
+\date{Abril de 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+BigQuery se ha consolidado como una plataforma analítica \textit{serverless} de referencia para construir soluciones de datos escalables en la nube. Su propuesta combina almacenamiento columnar administrado, motor de consulta distribuido, seguridad integrada y capacidades de aprendizaje automático ejecutadas directamente sobre SQL mediante BigQuery ML. Este documento desarrolla, con enfoque técnico-académico, los fundamentos de BigQuery, su arquitectura, sus esquemas de precios y permisos, y la forma en que los principios de gobierno de datos se aplican en escenarios reales de analítica empresarial. Asimismo, se abordan estrategias de optimización de consultas, uso de vistas y tablas materializadas, creación de modelos predictivos con \texttt{CREATE MODEL}, y exportación de resultados hacia herramientas externas o flujos complementarios de ciencia de datos.
+\end{abstract}
+
+\textbf{Palabras clave:} BigQuery, gobierno de datos, BigQuery ML, Google Cloud, IAM, vistas materializadas, optimización SQL, analítica en la nube.
+
+\newpage
+\tableofcontents
+
+% =========================================================
+\section{Introducción}
+La adopción de plataformas de datos en la nube ha transformado la manera en que las organizaciones diseñan sus procesos analíticos. En lugar de depender exclusivamente de servidores locales, capacidad fija y ciclos largos de aprovisionamiento, los equipos modernos operan con servicios administrados que escalan bajo demanda y permiten integrar almacenamiento, consulta, seguridad y modelado avanzado en una misma plataforma. En este contexto, BigQuery ocupa un lugar central dentro del ecosistema de Google Cloud al ofrecer un almacén analítico totalmente administrado, orientado a consultas masivas y a la construcción de productos de datos listos para análisis y decisión \cite{gcp_bigquery_overview,gcp_storage_overview}.
+
+Sin embargo, la disponibilidad tecnológica no garantiza por sí sola un uso correcto de los datos. A medida que crece el volumen de información, también crece la necesidad de gobernarla: definir quién accede, bajo qué condiciones, con qué trazabilidad y con qué nivel de protección para columnas o registros sensibles. El gobierno de datos en BigQuery no debe entenderse como una capa separada del análisis, sino como un conjunto de prácticas y controles integrados en el diseño del \textit{dataset}, los permisos, las vistas, las etiquetas de política y los mecanismos de auditoría \cite{gcp_bigquery_governance,gcp_bigquery_iam}.
+
+La sesión 9 articula estas dos dimensiones. Por un lado, estudia cómo BigQuery soporta análisis eficientes mediante optimización de consultas, uso de vistas materializadas y separación entre cómputo y almacenamiento. Por otro, incorpora BigQuery ML como extensión natural del análisis, permitiendo crear modelos de clasificación, regresión, segmentación o pronóstico directamente con GoogleSQL, sin salir del entorno analítico \cite{gcp_bqml_create_model,gcp_bqml_intro}. El propósito de este documento es desarrollar esos fundamentos conceptuales y prácticos para que el estudiante comprenda no solo cómo consultar datos en la nube, sino cómo gobernarlos, modelarlos y convertirlos en insumos confiables para decisiones organizacionales.
+
+% =========================================================
+\section{Fundamentos de BigQuery}
+\subsection{¿Qué es BigQuery?}
+BigQuery es una plataforma analítica \textit{serverless} de Google Cloud diseñada para almacenar y consultar grandes volúmenes de datos mediante SQL estándar de Google (\textit{GoogleSQL}) \cite{gcp_bigquery_overview}. Su valor principal radica en abstraer la administración de infraestructura: el usuario no configura servidores, discos, parches ni clústeres, sino que se concentra en cargar datos, definir estructuras y ejecutar cargas o consultas analíticas.
+
+Desde el punto de vista funcional, BigQuery combina varias capacidades que antes solían distribuirse en herramientas separadas:
+
+\begin{itemize}[leftmargin=*]
+\item \textbf{Almacenamiento analítico columnar} para tablas, vistas materializadas, clones y \textit{snapshots}.
+\item \textbf{Motor de ejecución distribuido} capaz de paralelizar operaciones sobre grandes volúmenes.
+\item \textbf{Seguridad y control de acceso} a nivel de proyecto, \textit{dataset}, tabla, columna, fila y vista.
+\item \textbf{Capacidades analíticas avanzadas} como funciones geoespaciales, búsqueda, BI Engine y BigQuery ML.
+\end{itemize}
+
+\subsection{Arquitectura conceptual}
+Uno de los rasgos arquitectónicos más importantes de BigQuery es la separación entre almacenamiento y cómputo. Google documenta que ambos componentes escalan de forma independiente, lo que reduce contención entre carga, lectura y administración \cite{gcp_storage_overview}. De forma simplificada, la arquitectura puede entenderse así:
+
+\begin{enumerate}[label=\textbf{A\arabic*.}, leftmargin=*]
+\item \textbf{Capa de almacenamiento:} conserva tablas en formato optimizado para análisis, con replicación y cifrado administrado.
+\item \textbf{Capa de cómputo:} distribuye la ejecución de consultas en paralelo mediante \textit{workers} y \textit{slots}.
+\item \textbf{Capa de metadatos y gobierno:} administra esquemas, permisos, etiquetas, linaje y catálogos.
+\item \textbf{Capa de consumo:} expone resultados a SQL, APIs, conectores, notebooks y herramientas de visualización.
+\end{enumerate}
+
+Esta separación es especialmente relevante en contextos educativos porque ayuda a distinguir el almacenamiento persistente del costo de procesamiento. En un sistema relacional tradicional suele pensarse en un servidor único; en BigQuery, en cambio, el análisis se paga y administra como capacidad consumida por las consultas, mientras el almacenamiento se factura de forma separada \cite{gcp_bigquery_pricing,gcp_bigquery_editions}.
+
+\subsection{BigQuery dentro de una arquitectura moderna de datos}
+Dentro de una arquitectura analítica, BigQuery puede recibir datos desde archivos, procesos batch, APIs, servicios de transferencia, \textit{streaming} y otras bases de datos. Una vez cargados, estos datos pueden organizarse en modelos tipo \textit{staging}, \textit{core}, \textit{mart} o dominio analítico, y luego ser consumidos por analistas, científicos de datos o tableros empresariales.
+
+\begin{enumerate}[label=\textbf{F\arabic*.}, leftmargin=*]
+\item \textbf{Ingesta:} carga desde Cloud Storage, Data Transfer Service, Storage Write API u otras fuentes.
+\item \textbf{Transformación:} limpieza y modelado con SQL, procedimientos, tablas intermedias o ELT.
+\item \textbf{Gobierno y publicación:} definición de permisos, vistas autorizadas y políticas de acceso.
+\item \textbf{Consumo y modelado:} consultas analíticas, tableros, exportaciones y modelos con BigQuery ML.
+\end{enumerate}
+
+BigQuery, por tanto, no es solo un repositorio. Funciona como motor de análisis, como espacio de gobierno y como plataforma para ejecutar ciertas tareas de aprendizaje automático sin requerir extracción previa hacia otro entorno.
+
+% =========================================================
+\section{Gobierno de datos con BigQuery}
+\subsection{Concepto de gobierno de datos}
+El gobierno de datos puede definirse como el conjunto de políticas, responsabilidades y controles que aseguran que los datos se administren de manera consistente, segura y útil para la organización. En BigQuery, dicho gobierno se implementa mediante una combinación de metadatos, permisos, clasificación, trazabilidad y patrones de compartición de datos \cite{gcp_bigquery_governance}.
+
+Desde una perspectiva práctica, gobernar datos en BigQuery implica responder preguntas como las siguientes:
+
+\begin{itemize}[leftmargin=*]
+\item ¿Qué \textit{dataset} contiene información sensible?
+\item ¿Qué usuarios solo pueden consultar datos agregados y no datos detallados?
+\item ¿Qué columnas deben restringirse por contener PII, montos salariales o identificadores internos?
+\item ¿Qué registros deben filtrarse según región, cliente o unidad de negocio?
+\item ¿Cómo se auditan los cambios en permisos y políticas?
+\end{itemize}
+
+\subsection{Recursos y niveles de control}
+BigQuery aplica controles de acceso sobre distintos niveles de recurso. Esta granularidad es importante porque el principio de mínimo privilegio rara vez se satisface otorgando permisos amplios a todo el proyecto \cite{gcp_bigquery_iam,gcp_bigquery_basic_roles}.
+
+\begin{longtable}{@{}p{0.25\textwidth}p{0.67\textwidth}@{}}
+\toprule
+\textbf{Nivel} & \textbf{Aplicación del control} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Nivel} & \textbf{Aplicación del control} \\
+\midrule
+\endhead
+Proyecto & Habilita capacidades globales como ejecución de \textit{jobs}, administración y visibilidad general. \\
+Dataset & Controla lectura, escritura y propiedad sobre conjuntos de tablas, vistas y rutinas. \\
+Tabla o vista & Permite restringir acceso a objetos concretos sin exponer todo el \textit{dataset}. \\
+Columna & Se protege con \textit{policy tags} para seguridad a nivel de columna. \\
+Fila & Se restringe con \textit{row-level access policies}. \\
+\bottomrule
+\end{longtable}
+
+\subsection{IAM, roles y permisos}
+Google recomienda privilegiar roles predefinidos de IAM en lugar de roles básicos amplios, ya que estos últimos pueden conceder permisos excesivos \cite{gcp_bigquery_basic_roles}. En el trabajo cotidiano con BigQuery suelen intervenir, entre otros, los siguientes roles:
+
+\begin{itemize}[leftmargin=*]
+\item \textbf{\texttt{roles/bigquery.user}:} permite crear \textit{jobs} y trabajar con consultas en el proyecto.
+\item \textbf{\texttt{roles/bigquery.dataViewer}:} lectura de datos y metadatos.
+\item \textbf{\texttt{roles/bigquery.dataEditor}:} modificación de datos dentro de un \textit{dataset}.
+\item \textbf{\texttt{roles/bigquery.dataOwner}:} control amplio sobre objetos y acceso dentro del \textit{dataset}.
+\item \textbf{\texttt{roles/bigquery.admin}:} administración completa del servicio, generalmente a nivel de proyecto.
+\end{itemize}
+
+\subsection{Seguridad a nivel de columna, fila y vista}
+BigQuery ofrece mecanismos diferenciados para controles finos:
+
+\begin{enumerate}[label=\textbf{G\arabic*.}, leftmargin=*]
+\item \textbf{Column-level security:} usa \textit{policy tags} para clasificar columnas y limitar su lectura según permisos \cite{gcp_column_level_security,gcp_policy_tags_best_practices}.
+\item \textbf{Row-level security:} filtra registros según políticas asociadas a usuarios o grupos \cite{gcp_row_level_security}.
+\item \textbf{Authorized views:} comparten subconjuntos de datos sin dar acceso directo a las tablas fuente \cite{gcp_authorized_views}.
+\item \textbf{Authorized datasets:} autorizan conjuntos completos de vistas para acceder a datos de otro \textit{dataset}, simplificando arquitecturas multiusuario \cite{gcp_authorized_datasets}.
+\end{enumerate}
+
+El valor pedagógico de estos mecanismos es que permiten mostrar que la seguridad no es binaria. Un usuario puede ver un agregado por región sin ver el salario individual, o puede acceder únicamente a clientes de su país sin conocer el universo completo de registros.
+
+% =========================================================
+\section{Arquitectura, precios y permisos}
+\subsection{Modelo de precios}
+BigQuery separa el costo de almacenamiento del costo de cómputo. Esta separación es coherente con su arquitectura y obliga a entender el análisis como una actividad medible en términos de datos procesados o capacidad reservada \cite{gcp_bigquery_pricing,gcp_storage_overview}.
+
+De forma general, el precio se organiza en:
+
+\begin{itemize}[leftmargin=*]
+\item \textbf{Almacenamiento:} bytes guardados en tablas, vistas materializadas, clones o \textit{snapshots}.
+\item \textbf{Cómputo por demanda:} cobro según bytes procesados por consultas.
+\item \textbf{Cómputo por capacidad:} uso de reservas y \textit{slots} dentro de ediciones de BigQuery.
+\item \textbf{Operaciones adicionales:} algunos servicios asociados, \textit{streaming}, BI Engine y ciertas tareas de BigQuery ML.
+\end{itemize}
+
+\subsection{On-demand vs.\ capacidad reservada}
+En el esquema \textit{on-demand}, el costo depende de los datos leídos o procesados por la consulta. Esto resulta conveniente para laboratorios, pruebas y cargas analíticas intermitentes. En cambio, cuando la organización necesita costos más predecibles o alta concurrencia, puede adoptar reservas de capacidad (\textit{slots}) bajo ediciones como Standard, Enterprise o Enterprise Plus \cite{gcp_bigquery_editions,gcp_bigquery_pricing}.
+
+Desde la perspectiva docente, esta diferencia es útil para discutir dos ideas:
+
+\begin{enumerate}[label=\textbf{P\arabic*.}, leftmargin=*]
+\item una mala consulta cuesta más en modo \textit{on-demand} porque procesa más datos;
+\item una mala consulta también es problemática en modo capacidad porque consume recursos compartidos y puede afectar concurrencia.
+\end{enumerate}
+
+\subsection{Permisos como parte de la arquitectura}
+En BigQuery, la arquitectura técnica no puede separarse del diseño de permisos. La manera en que se distribuyen \textit{datasets}, tablas y vistas impacta directamente la administración del acceso. Por ejemplo, ubicar tablas sensibles y vistas públicas en el mismo \textit{dataset} suele dificultar la aplicación de privilegios mínimos. Por ello, una práctica frecuente es separar:
+
+\begin{itemize}[leftmargin=*]
+\item \textbf{\textit{datasets} crudos o restringidos,} con acceso muy limitado;
+\item \textbf{\textit{datasets} curados o modelados,} donde trabajan procesos ETL/ELT;
+\item \textbf{\textit{datasets} de consumo,} con vistas, agregados o modelos listos para usuarios finales.
+\end{itemize}
+
+La segmentación por dominio, entorno o sensibilidad simplifica la gobernanza y reduce riesgos de exposición accidental.
+
+% =========================================================
+\section{Aplicación del gobierno de datos en BigQuery}
+\subsection{Diseño por dominios y sensibilidad}
+Aplicar gobierno de datos implica traducir principios abstractos en decisiones concretas de modelado y operación. Una primera práctica consiste en clasificar los activos por sensibilidad y por dominio de negocio. Por ejemplo, ventas, recursos humanos y finanzas pueden estar en \textit{datasets} distintos, no solo por orden lógico, sino porque sus reglas de acceso son diferentes.
+
+En un proyecto académico o empresarial se recomienda:
+
+\begin{enumerate}[label=\textbf{D\arabic*.}, leftmargin=*]
+\item identificar tablas con datos públicos, internos, confidenciales o sensibles;
+\item separar \textit{datasets} según entorno: \textit{dev}, \textit{test}, \textit{prod};
+\item aplicar \textit{policy tags} a columnas de identificación personal o financiera;
+\item publicar vistas para consumo cuando los usuarios no necesitan ver la tabla completa.
+\end{enumerate}
+
+\subsection{Principio de mínimo privilegio}
+El principio de mínimo privilegio implica conceder solo los permisos estrictamente necesarios para una función concreta. En BigQuery, esto se traduce en evitar el uso indiscriminado de \texttt{Owner}, \texttt{Editor} o \texttt{bigquery.admin} cuando bastan roles más acotados \cite{gcp_bigquery_basic_roles,gcp_bigquery_iam}.
+
+Un patrón razonable podría ser:
+
+\begin{itemize}[leftmargin=*]
+\item analistas con acceso de lectura a vistas o tablas curadas;
+\item ingenieros de datos con permisos de escritura en zonas de transformación;
+\item administradores con capacidad para crear políticas, taxonomías y monitorear auditoría;
+\item cuentas de servicio con permisos delimitados al \textit{pipeline} que ejecutan.
+\end{itemize}
+
+\subsection{Compartición controlada con vistas}
+Las vistas autorizadas son particularmente valiosas en entornos educativos porque muestran cómo compartir datos sin duplicarlos. En vez de crear múltiples tablas derivadas para cada audiencia, puede definirse una vista que excluya columnas sensibles o que filtre registros por regla de negocio \cite{gcp_authorized_views}.
+
+Por ejemplo, una universidad podría exponer una vista con métricas agregadas de rendimiento académico para coordinación, mientras conserva los expedientes detallados en una tabla restringida. Esta aproximación favorece consistencia, reduce redundancia y centraliza las reglas de exposición.
+
+\subsection{Trazabilidad y auditoría}
+Un gobierno serio no termina al definir permisos. También requiere rastrear quién cambió una política, quién ejecutó consultas sensibles o qué procesos modificaron datos. BigQuery se integra con capacidades de auditoría y con el ecosistema de monitoreo de Google Cloud, lo que permite analizar eventos relacionados con acceso, \textit{jobs} y políticas sobre etiquetas \cite{gcp_policy_tags_audit}.
+
+En un laboratorio, esta dimensión puede discutirse como parte de la responsabilidad profesional: un modelo predictivo o un \textit{dashboard} puede influir en decisiones reales, por lo que su origen, permisos y trazabilidad deben quedar documentados.
+
+% =========================================================
+\section{Optimización de consultas en BigQuery}
+\subsection{Principio general: consultar menos datos}
+Google resume la optimización de BigQuery con una idea central: las consultas que hacen menos trabajo suelen ser más rápidas y más baratas \cite{gcp_optimize_queries_overview,gcp_optimize_queries_compute}. En consecuencia, optimizar no significa únicamente escribir SQL ``correcto'', sino reducir bytes leídos, operaciones de mezcla, materialización intermedia y resultados innecesarios.
+
+\subsection{Buenas prácticas fundamentales}
+Entre las prácticas más importantes se encuentran:
+
+\begin{itemize}[leftmargin=*]
+\item evitar \texttt{SELECT *} cuando no se necesitan todas las columnas;
+\item filtrar temprano con \texttt{WHERE};
+\item usar particionamiento temporal o por rangos en lugar de fragmentar tablas por fecha;
+\item evitar \textit{oversharding};
+\item preagregar antes de ciertos \texttt{JOIN};
+\item materializar transformaciones costosas cuando se reutilizan muchas veces;
+\item revisar el plan de ejecución y los detalles del \textit{job}.
+\end{itemize}
+
+La optimización en BigQuery tiene un impacto dual: reduce latencia y también reduce costo en modelos \textit{on-demand}. Por ello, el rigor técnico pedido en la sesión se vincula directamente con el diseño de consultas eficientes.
+
+\subsection{Ejemplo de optimización}
+Considérese una tabla de eventos particionada por fecha. Una consulta poco rigurosa podría leer datos de todo el historial:
+
+\begin{lstlisting}[style=sql, caption={Consulta poco eficiente}]
+SELECT user_id, event_type, event_timestamp
+FROM `proyecto.analytics.eventos`
+WHERE event_type = 'purchase';
+\end{lstlisting}
+
+Si el análisis corresponde únicamente al mes de marzo de 2026, conviene restringir la partición y proyectar solo las columnas necesarias:
+
+\begin{lstlisting}[style=sql, caption={Consulta optimizada con filtro y proyección}]
+SELECT user_id, event_timestamp
+FROM `proyecto.analytics.eventos`
+WHERE event_type = 'purchase'
+  AND DATE(event_timestamp) BETWEEN '2026-03-01' AND '2026-03-31';
+\end{lstlisting}
+
+\subsection{Materialización de transformaciones}
+La documentación de BigQuery advierte que algunas expresiones, CTE o transformaciones complejas pueden reevaluarse varias veces dentro de una consulta \cite{gcp_optimize_queries_compute}. En escenarios ETL o analíticos recurrentes, puede ser más adecuado persistir resultados intermedios en tablas destino, tablas temporales o vistas materializadas.
+
+Este criterio es importante cuando se aplican expresiones regulares, limpiezas repetidas, \texttt{JOIN} costosos o cálculos agregados que alimentan múltiples reportes.
+
+% =========================================================
+\section{Tablas materializadas y vistas}
+\subsection{Vistas lógicas}
+Una vista lógica en BigQuery es una consulta almacenada que se ejecuta sobre tablas base cuando se consulta. Su ventaja principal es encapsular lógica analítica, exponer nombres de negocio y simplificar el acceso para usuarios finales. También puede utilizarse para ocultar columnas, aplicar filtros y presentar una capa semántica controlada.
+
+\subsection{Vistas materializadas}
+Las vistas materializadas son resultados precomputados que BigQuery mantiene y actualiza en segundo plano, reduciendo el costo de recalcular consultas repetitivas \cite{gcp_materialized_views_intro}. Pueden ser consultadas directamente o utilizadas por el optimizador para acelerar consultas sobre tablas base.
+
+Su utilidad es alta cuando:
+
+\begin{itemize}[leftmargin=*]
+\item existen agregaciones recurrentes sobre grandes volúmenes;
+\item las consultas se repiten con frecuencia;
+\item se necesita reducir tiempo de respuesta en tableros o reportes;
+\item el costo de refresco es menor que el costo acumulado de recalcular.
+\end{itemize}
+
+\subsection{Authorized materialized views}
+BigQuery también permite vistas materializadas autorizadas, con lo cual se combina rendimiento con compartición segura de subconjuntos de información \cite{gcp_materialized_views_intro,gcp_authorized_views}. Esto resulta útil cuando un equipo requiere acceso rápido a indicadores agregados, pero no debe ver el detalle completo de la fuente.
+
+\subsection{Ejemplo de vista materializada}
+\begin{lstlisting}[style=sql, caption={Vista materializada para ventas diarias}]
+CREATE MATERIALIZED VIEW `proyecto.mart.mv_ventas_diarias` AS
+SELECT
+  DATE(fecha_venta) AS fecha,
+  region,
+  SUM(monto) AS ventas_totales,
+  COUNT(*) AS transacciones
+FROM `proyecto.core.ventas`
+GROUP BY fecha, region;
+\end{lstlisting}
+
+Este patrón es adecuado para paneles ejecutivos que consultan permanentemente ventas por fecha y región. En lugar de recalcular la suma completa cada vez, BigQuery mantiene el resultado precomputado sujeto a las restricciones propias de las vistas materializadas.
+
+% =========================================================
+\section{BigQuery ML}
+\subsection{¿Qué es BigQuery ML?}
+BigQuery ML extiende GoogleSQL con sentencias para crear, entrenar, evaluar y usar modelos de aprendizaje automático directamente dentro de BigQuery \cite{gcp_bqml_intro,gcp_bqml_create_model}. Su aporte pedagógico es significativo porque acerca el modelado predictivo a estudiantes que ya dominan SQL, sin exigirles migrar inmediatamente a otro ecosistema de programación.
+
+Con BigQuery ML es posible entrenar, entre otros, modelos de:
+
+\begin{itemize}[leftmargin=*]
+\item regresión lineal;
+\item regresión logística;
+\item \textit{k-means} para segmentación;
+\item pronóstico de series de tiempo;
+\item bosques aleatorios y árboles potenciados en ciertos escenarios.
+\end{itemize}
+
+\subsection{Flujo general de trabajo}
+Un flujo mínimo con BigQuery ML suele incluir:
+
+\begin{enumerate}[label=\textbf{M\arabic*.}, leftmargin=*]
+\item preparar una tabla o consulta de entrenamiento;
+\item crear el modelo con \texttt{CREATE MODEL};
+\item revisar métricas con \texttt{ML.EVALUATE};
+\item generar predicciones con \texttt{ML.PREDICT};
+\item documentar supuestos, limitaciones y audiencia del modelo.
+\end{enumerate}
+
+\subsection{Ejemplo básico de clasificación}
+Supóngase un escenario donde se quiere predecir abandono de clientes a partir de variables de uso y facturación:
+
+\begin{lstlisting}[style=sql, caption={Creación de un modelo de regresión logística}]
+CREATE OR REPLACE MODEL `proyecto.ml.modelo_churn`
+OPTIONS(
+  model_type='LOGISTIC_REG',
+  input_label_cols=['abandono']
+) AS
+SELECT
+  antiguedad_meses,
+  consumo_promedio,
+  incidencias_soporte,
+  monto_mensual,
+  abandono
+FROM `proyecto.mart.clientes_entrenamiento`;
+\end{lstlisting}
+
+Una vez creado el modelo, puede evaluarse así:
+
+\begin{lstlisting}[style=sql, caption={Evaluación del modelo}]
+SELECT *
+FROM ML.EVALUATE(MODEL `proyecto.ml.modelo_churn`);
+\end{lstlisting}
+
+Y luego aplicarse a nuevos registros:
+
+\begin{lstlisting}[style=sql, caption={Predicción sobre nuevos clientes}]
+SELECT *
+FROM ML.PREDICT(
+  MODEL `proyecto.ml.modelo_churn`,
+  (
+    SELECT
+      antiguedad_meses,
+      consumo_promedio,
+      incidencias_soporte,
+      monto_mensual
+    FROM `proyecto.mart.clientes_scoring`
+  )
+);
+\end{lstlisting}
+
+\subsection{Interpretación crítica de resultados}
+El uso de BigQuery ML no exime al analista de reflexionar sobre calidad de datos, sesgos, clases desbalanceadas, fuga de información o pertinencia del modelo. Pensamiento crítico, en esta sesión, significa no reducir el aprendizaje automático a ejecutar una sentencia exitosa, sino evaluar si las variables explican realmente el fenómeno y si las predicciones son apropiadas para el problema.
+
+Un buen cierre analítico debería responder:
+
+\begin{itemize}[leftmargin=*]
+\item qué variable objetivo se modeló;
+\item con qué datos y periodo se entrenó;
+\item qué métricas de evaluación se revisaron;
+\item qué limitaciones tiene el modelo;
+\item qué riesgo existe al usar sus resultados para decisiones reales o simuladas.
+\end{itemize}
+
+% =========================================================
+\section{Exportación a herramientas externas}
+\subsection{Exportación de datos}
+Aunque BigQuery permite cubrir una gran parte del ciclo analítico, es común que ciertos resultados se consuman fuera de la plataforma. BigQuery soporta exportaciones hacia Cloud Storage mediante \texttt{EXPORT DATA}, además de integraciones con herramientas de visualización, notebooks y conectores externos \cite{gcp_export_data}.
+
+Un ejemplo simple de exportación tabular es el siguiente:
+
+\begin{lstlisting}[style=sql, caption={Exportación de resultados a Cloud Storage}]
+EXPORT DATA OPTIONS(
+  uri='gs://mi-bucket/reportes/ventas_*.csv',
+  format='CSV',
+  overwrite=true,
+  header=true
+) AS
+SELECT *
+FROM `proyecto.mart.ventas_mensuales`;
+\end{lstlisting}
+
+\subsection{Exportación de modelos}
+Los modelos creados en BigQuery ML también pueden exportarse para ser reutilizados en otros entornos, por ejemplo cuando se desea integrar inferencia en otro flujo o profundizar el análisis en Python \cite{gcp_export_models,gcp_export_model_statement}.
+
+\begin{lstlisting}[style=sql, caption={Exportación de un modelo BigQuery ML}]
+EXPORT MODEL `proyecto.ml.modelo_churn`
+OPTIONS(
+  uri='gs://mi-bucket/modelos/modelo_churn/'
+);
+\end{lstlisting}
+
+\subsection{Herramientas de consumo habituales}
+En la práctica, los resultados de BigQuery suelen consumirse desde:
+
+\begin{itemize}[leftmargin=*]
+\item Looker o Looker Studio para visualización;
+\item notebooks de Python para análisis complementario;
+\item procesos ETL/ELT posteriores;
+\item aplicaciones que leen tablas, vistas o artefactos exportados;
+\item flujos de ciencia de datos que continúan fuera de BigQuery.
+\end{itemize}
+
+La idea clave es que BigQuery puede ser tanto un punto de llegada de datos como un punto de salida de productos analíticos.
+
+% =========================================================
+\section{Caso práctico integrador}
+Para articular los subtemas de la sesión, considérese el siguiente caso: una empresa de comercio electrónico almacena ventas, clientes y eventos de navegación en BigQuery. El objetivo es construir un flujo gobernado que permita analizar ventas, restringir acceso a información sensible y entrenar un modelo de predicción de abandono.
+
+\subsection{Diseño propuesto}
+\begin{enumerate}[label=\textbf{C\arabic*.}, leftmargin=*]
+\item Cargar datos crudos en un \textit{dataset} de \textit{landing}.
+\item Transformarlos hacia un \textit{dataset} \texttt{core} con tablas limpias y tipadas.
+\item Aplicar \textit{policy tags} a columnas como correo, teléfono o identificador fiscal.
+\item Crear vistas autorizadas para usuarios de negocio.
+\item Construir una vista materializada con indicadores de ventas por día y región.
+\item Entrenar un modelo de abandono con BigQuery ML.
+\item Exportar resultados agregados a una herramienta externa para visualización.
+\end{enumerate}
+
+\subsection{Consulta agregada de soporte al modelo}
+\begin{lstlisting}[style=sql, caption={Construcción de una tabla analítica para ML}]
+CREATE OR REPLACE TABLE `proyecto.mart.clientes_entrenamiento` AS
+SELECT
+  c.cliente_id,
+  c.antiguedad_meses,
+  AVG(v.monto) AS monto_mensual,
+  COUNTIF(s.tipo_ticket = 'reclamo') AS incidencias_soporte,
+  AVG(e.sesiones_mes) AS consumo_promedio,
+  c.abandono
+FROM `proyecto.core.clientes` c
+LEFT JOIN `proyecto.core.ventas` v
+  ON c.cliente_id = v.cliente_id
+LEFT JOIN `proyecto.core.soporte` s
+  ON c.cliente_id = s.cliente_id
+LEFT JOIN `proyecto.core.eventos_resumen` e
+  ON c.cliente_id = e.cliente_id
+GROUP BY
+  c.cliente_id,
+  c.antiguedad_meses,
+  c.abandono;
+\end{lstlisting}
+
+En este ejemplo convergen varios principios de la sesión: optimización razonable del SQL, construcción de una capa analítica reutilizable, separación de datos sensibles y uso posterior para un modelo predictivo.
+
+% =========================================================
+\section{Conclusiones}
+BigQuery representa una evolución importante del análisis de datos en la nube porque integra escalabilidad, administración simplificada, seguridad granular y capacidades analíticas avanzadas en una sola plataforma. Su diseño \textit{serverless} no elimina la necesidad de disciplina técnica; al contrario, exige comprender cómo se factura el cómputo, cómo se gobiernan los accesos y cómo se diseñan consultas eficientes.
+
+Desde la perspectiva de gobierno de datos, la plataforma ofrece mecanismos suficientes para implementar políticas serias de control: roles de IAM, separación por \textit{datasets}, vistas autorizadas, seguridad por fila y por columna, y trazabilidad de eventos. Estas capacidades permiten publicar información con mayor seguridad y con mejor alineación al principio de mínimo privilegio.
+
+Finalmente, BigQuery ML amplía el alcance del análisis al permitir que el estudiante construya modelos predictivos directamente con SQL. Esto fortalece la innovación aplicada, pero también demanda pensamiento crítico para interpretar resultados y rigor técnico para validar tanto el \textit{pipeline} como el modelo. En conjunto, la sesión 9 muestra que el valor real de una plataforma analítica en la nube no está únicamente en consultar grandes volúmenes de datos, sino en hacerlo con gobierno, eficiencia y responsabilidad.
+
+\newpage
+\printbibliography
+
+\end{document}

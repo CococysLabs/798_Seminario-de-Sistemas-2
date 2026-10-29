@@ -1,0 +1,8 @@
+.venv/
+.dbt/
+.ss2/
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+*.log
+*.zip

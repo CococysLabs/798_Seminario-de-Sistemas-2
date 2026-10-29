@@ -1,0 +1,35 @@
+name: ss2_sgfood_workshop
+version: "1.0.0"
+config-version: 2
+
+profile: ss2_sgfood_workshop
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+
+clean-targets:
+  - target
+  - dbt_packages
+  - logs
+
+models:
+  ss2_sgfood_workshop:
+    staging:
+      +schema: staging
+      +materialized: view
+    intermediate:
+      +schema: intermediate
+      +materialized: view
+    marts:
+      +schema: marts
+      +materialized: table
+
+seeds:
+  ss2_sgfood_workshop:
+    raw:
+      +schema: raw
+      +quote_columns: false
+

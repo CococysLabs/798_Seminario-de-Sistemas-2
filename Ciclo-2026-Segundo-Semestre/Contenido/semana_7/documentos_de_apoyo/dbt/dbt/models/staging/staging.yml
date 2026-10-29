@@ -1,0 +1,55 @@
+version: 2
+
+models:
+  - name: stg_sgfood__clientes
+    description: Modelo staging de clientes con nombres normalizados y tipos consistentes.
+    columns:
+      - name: cliente_id
+        description: Identificador unico del cliente.
+        tests:
+          - not_null
+          - unique
+      - name: segmento_cliente
+        tests:
+          - accepted_values:
+              values: ['restaurante', 'tienda', 'supermercado', 'hotel']
+
+  - name: stg_sgfood__productos
+    description: Modelo staging de productos con costos, precios y margen de lista.
+    columns:
+      - name: producto_id
+        tests:
+          - not_null
+          - unique
+
+  - name: stg_sgfood__sucursales
+    description: Modelo staging de sucursales.
+    columns:
+      - name: sucursal_id
+        tests:
+          - not_null
+          - unique
+
+  - name: stg_sgfood__ventas
+    description: Modelo staging de ventas a granularidad de linea de venta.
+    columns:
+      - name: venta_id
+        tests:
+          - not_null
+          - unique
+      - name: cliente_id
+        tests:
+          - relationships:
+              to: ref('stg_sgfood__clientes')
+              field: cliente_id
+      - name: producto_id
+        tests:
+          - relationships:
+              to: ref('stg_sgfood__productos')
+              field: producto_id
+      - name: sucursal_id
+        tests:
+          - relationships:
+              to: ref('stg_sgfood__sucursales')
+              field: sucursal_id
+

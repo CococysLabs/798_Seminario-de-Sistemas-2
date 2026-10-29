@@ -1,0 +1,691 @@
+﻿% !TeX program = pdflatex
+\documentclass[12pt]{article}
+
+% Idioma y codificación
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+
+% Página y espaciado (para acercarse a ~15 páginas)
+\usepackage{geometry}
+\geometry{letterpaper, margin=1in}
+\usepackage{setspace}
+\onehalfspacing
+
+% Tipografía y microajustes
+\usepackage{microtype}
+\usepackage{csquotes}
+
+% Tablas
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+
+% Listas
+\usepackage{enumitem}
+
+% Código
+\usepackage{listingsutf8}
+\usepackage{listings}
+\lstset{inputencoding=utf8}
+\lstset{literate=%
+  {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'\i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+  {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+  {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {ü}{{\"u}}1 {Ü}{{\"U}}1
+}
+\usepackage{xcolor}
+\lstdefinestyle{python}{
+  language=Python,
+  inputencoding=utf8,
+  basicstyle=\ttfamily\small,
+  numbers=left,
+  numberstyle=\tiny,
+  stepnumber=1,
+  numbersep=8pt,
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=2,
+  frame=single
+}
+\lstdefinestyle{sql}{
+  language=SQL,
+  inputencoding=utf8,
+  basicstyle=\ttfamily\small,
+  numbers=left,
+  numberstyle=\tiny,
+  stepnumber=1,
+  numbersep=8pt,
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=2,
+  frame=single
+}
+
+% Hipervínculos
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  urlcolor=blue,
+  citecolor=blue
+}
+
+% Formato académico y paginación por sección
+\usepackage{titlesec}
+\usepackage{etoolbox}
+\titlespacing*{\section}{0pt}{3ex plus 1ex minus .2ex}{2ex}
+\titlespacing*{\subsection}{0pt}{2.5ex plus 0.8ex minus .2ex}{1.2ex}
+\titlespacing*{\subsubsection}{0pt}{2ex plus 0.6ex minus .2ex}{1ex}
+\preto\section{\clearpage} % cada sección inicia en nueva hoja
+
+% Encabezados/pies limpios
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Documento de apoyo (Sesión 3, Unidad 2)}
+\rhead{Procesos ETL y OLAP}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Bibliografía (biblatex + biber)
+\usepackage[
+  backend=biber,
+  style=ieee,
+  sorting=nyt,
+  maxbibnames=99
+]{biblatex}
+\addbibresource{referencias.bib}
+
+% Metadatos del documento
+\title{\textbf{Documento de apoyo (Sesión 3, Unidad 2)}\\
+\large Procesos ETL y Modelado de Datos para Análisis OLAP\\
+\normalsize Fundamentos del proceso ETL y su aplicación en OLAP}
+\author{Javier Andrés Valdez González / Auxiliar \\
+\small Seminario de Sistemas 2 — Sección P \\
+\small Universidad de San Carlos de Guatemala}
+\date{Febrero de 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+El proceso ETL (Extract, Transform, Load) constituye el mecanismo operativo central para consolidar datos procedentes de sistemas heterogéneos hacia repositorios analíticos, como bodegas de datos (Data Warehouses) y estructuras multidimensionales destinadas a OLAP (Online Analytical Processing). Este documento desarrolla, con enfoque técnico--académico, la definición de ETL, sus fases, las actividades de extracción, transformación y carga, sus características esperables y su rol específico en la construcción y mantenimiento de modelos OLAP. Asimismo, se discuten desafíos recurrentes (calidad de datos, cargas incrementales, evolución de esquemas, ventanas de carga y observabilidad) y se presenta un caso práctico con ejemplos en Python (pandas) para cargar datos en un esquema dimensional sobre Microsoft SQL Server.
+\end{abstract}
+
+\textbf{Palabras clave:} ETL, OLAP, Data Warehouse, SQL Server, pandas, CDC, calidad de datos, trazabilidad.
+
+\newpage
+\tableofcontents
+
+% =========================================================
+\section{Introducción}
+Las organizaciones modernas generan datos en múltiples aplicaciones operacionales: ventas, inventario, contabilidad, logística, atención al cliente y canales digitales. Estos sistemas transaccionales están optimizados para registrar eventos con integridad (ACID), baja latencia y reglas específicas del proceso operativo. Sin embargo, la toma de decisiones gerencial requiere consolidar información a través de áreas, comparar periodos, evaluar tendencias y analizar métricas a diferentes niveles de detalle (por ejemplo, por día, por mes, por región o por categoría de producto). Esta diferencia entre necesidades operacionales y analíticas obliga a construir una arquitectura que integre, estandarice y preserve el significado corporativo de los datos.
+
+El proceso ETL (Extract, Transform, Load) se utiliza para integrar datos desde fuentes heterogéneas hacia un repositorio analítico unificado. En su definición general, ETL extrae datos, los transforma (limpieza, estandarización, integración, enriquecimiento) y los carga en un destino, comúnmente una bodega de datos o un data mart \cite{ibm_etl}. Desde la perspectiva de arquitectura de bodegas de datos, ETL es crítico porque materializa reglas de negocio en transformaciones repetibles, establece la granularidad de los hechos, construye claves sustitutas y conforma dimensiones \cite{kimball_etl_toolkit}.
+
+En el contexto de OLAP, ETL cobra relevancia adicional: OLAP se fundamenta en el análisis multidimensional y en la agregación consistente (sumarizabilidad). Un modelo OLAP (cubo multidimensional o tabular) depende de datos conformados y consistentes para producir resultados confiables en operaciones como \textit{slice}, \textit{dice}, \textit{drill-down} y \textit{roll-up} \cite{ibm_olap,codd_olap}. Por ello, el objetivo de este documento es presentar un marco conceptual y práctico de ETL orientado a análisis OLAP y a un flujo reproducible apoyado en SQL Server como destino analítico y en Python (pandas) como herramienta de extracción, transformación y carga. \cite{ibm_etl,kimball_etl_toolkit,pandas_to_sql}
+
+% =========================================================
+\section{Fundamentos del proceso ETL y su aplicación en OLAP}
+\subsection{¿Qué es ETL?}
+ETL es un proceso de integración de datos compuesto por tres actividades esenciales: extracción, transformación y carga. En términos funcionales, (i) la extracción obtiene datos desde sistemas fuente; (ii) la transformación aplica reglas de negocio, limpieza, estandarización e integración; y (iii) la carga inserta o actualiza datos transformados en un repositorio objetivo para consumo analítico \cite{ibm_etl}. En una bodega de datos, ETL no debe entenderse como un mero \textit{pipeline} técnico, sino como el mecanismo por el cual se construye consistencia corporativa: al definir catálogos, jerarquías y métricas, el ETL formaliza el significado de los datos \cite{kimball_etl_toolkit}.
+
+\subsection{OLAP y su relación con ETL}
+OLAP (Online Analytical Processing) describe tecnologías y enfoques para consultas analíticas de alta velocidad y análisis multidimensional sobre grandes volúmenes de datos \cite{ibm_olap}. Codd et al.\ propusieron criterios y componentes para la categoría OLAP, enfatizando la perspectiva de los usuarios analistas y el enfoque multidimensional \cite{codd_olap}. En OLAP, una métrica (por ejemplo, ventas netas) se analiza a través de dimensiones (tiempo, producto, geografía, canal). El ETL es el responsable de garantizar que dichas dimensiones estén conformadas, que las claves sean consistentes y que las métricas se calculen bajo reglas reproducibles \cite{kimball_etl_toolkit}.
+
+\subsection{ETL vs.\ ELT (contexto arquitectónico)}
+En arquitecturas modernas, también existe ELT (Extract, Load, Transform), donde los datos se cargan primero al destino y las transformaciones se ejecutan principalmente allí. IBM distingue ETL de ELT, señalando que difieren en el orden operativo y en el aprovechamiento del motor de destino \cite{ibm_elt}. En entornos SQL Server, ambos patrones pueden coexistir: el staging puede cargarse de forma temprana (L) y las transformaciones pesadas pueden implementarse como procedimientos T-SQL (T), manteniendo trazabilidad y control. En cursos OLAP, la elección debe justificarse con base en rendimiento, gobernanza, control de calidad y capacidades del motor analítico \cite{kimball_etl_toolkit}.
+
+% =========================================================
+\section{Fases del proceso ETL}
+Aunque cada organización adapta su implementación, un ETL robusto suele estructurarse en fases (o subprocesos) que facilitan control, auditoría y operación:
+
+\begin{enumerate}[label=\textbf{F\arabic*.}, leftmargin=*]
+\item \textbf{Planeación y análisis de fuentes:} inventario, diccionario de datos, perfiles de calidad, definición de reglas de negocio y granularidad \cite{kimball_etl_toolkit}.
+\item \textbf{Extracción:} conectividad a fuentes, definición de cargas completas vs.\ incrementales, manejo de ventanas y control de marcas de agua \cite{ibm_etl,ms_cdc_overview}.
+\item \textbf{Staging:} aterrizaje temporal que desacopla fuentes del destino, facilita re-procesos y auditoría \cite{kimball_etl_toolkit}.
+\item \textbf{Transformación:} limpieza, estandarización, deduplicación, conformado, validaciones y enriquecimiento; manejo de errores por fila y cuarentena de registros inválidos \cite{kimball_etl_toolkit}.
+\item \textbf{Carga al modelo dimensional:} inserción/actualización de dimensiones y hechos, gestión de historización y consistencia de claves \cite{kimball_etl_toolkit}.
+\item \textbf{Auditoría y monitoreo:} bitácoras de ejecución, métricas operacionales, reconciliación, alertas y orquestación con calendarización \cite{kimball_etl_toolkit}.
+\end{enumerate}
+
+En una implementación reproducible orientada a laboratorio, estas fases pueden implementarse con scripts de Python (pandas) y procedimientos SQL, manteniendo parametrización, bitácoras y controles de calidad.
+
+% =========================================================
+\section{Extracción, Transformación y Carga}
+\subsection{Extracción}
+La extracción se centra en obtener datos desde fuentes sin afectar la operación. Sus estrategias comunes incluyen:
+
+\begin{itemize}[leftmargin=*]
+\item \textbf{Extracción completa (Full Load):} replica el conjunto total; útil para dimensiones pequeñas o fuentes sin mecanismos de cambios \cite{ibm_etl}.
+\item \textbf{Extracción incremental:} obtiene solo cambios desde la última ejecución (por timestamp, identificadores crecientes o CDC) \cite{ibm_etl}.
+\item \textbf{CDC (Change Data Capture) en SQL Server:} captura inserciones, actualizaciones y eliminaciones, exponiéndolas en tablas de cambios que se consultan en formato relacional \cite{ms_cdc_overview}.
+\end{itemize}
+
+Un diseño incremental confiable requiere \textit{marcas de agua}, ventanas temporales y consistencia en re-ejecuciones. Por ejemplo, si se extrae por timestamp, se debe considerar latencia de escritura, zonas horarias, y el caso de registros atrasados (\textit{late arriving data}) \cite{kimball_etl_toolkit}.
+
+\subsection{Transformación}
+La transformación es el componente semántico del ETL: es donde se materializan reglas de negocio y se construye consistencia corporativa. Entre tareas típicas se incluyen:
+
+\begin{enumerate}[label=\textbf{T\arabic*.}, leftmargin=*]
+\item \textbf{Limpieza y estandarización:} normalización de tipos, formatos, unidades y codificaciones (p.\ ej., fechas ISO, moneda, mayúsculas/minúsculas) \cite{kimball_etl_toolkit}.
+\item \textbf{Validación de dominio:} rangos permitidos, obligatoriedad de campos críticos, integridad de catálogos \cite{kimball_etl_toolkit}.
+\item \textbf{Deduplicación y resolución de entidades:} consolidación de registros duplicados con reglas reproducibles \cite{kimball_etl_toolkit}.
+\item \textbf{Conformado de dimensiones:} mapeo de códigos distintos a un catálogo común, construcción de jerarquías coherentes \cite{kimball_etl_toolkit}.
+\item \textbf{Manejo de errores por fila:} separar fallos recuperables (datos sucios) de fallos no recuperables (infraestructura), registrando el detalle del error y redirigiendo los registros inválidos a tablas de cuarentena para su corrección \cite{kimball_etl_toolkit}.
+\end{enumerate}
+
+Desde una perspectiva OLAP, la transformación debe asegurar sumarizabilidad: que los totales agregados sean coherentes al cambiar niveles jerárquicos.\ formalizan el operador \textit{cube} como generalización N-dimensional de agregaciones, subrayando la importancia de agregaciones consistentes \cite{gray_cube}.
+
+\subsection{Carga}
+La carga inserta o actualiza datos transformados en el destino analítico. Patrones de carga:
+
+\begin{itemize}[leftmargin=*]
+\item \textbf{Append:} insertar nuevos hechos; útil si los hechos no se corrigen retroactivamente.
+\item \textbf{Upsert:} insertar/actualizar; típico en dimensiones y en hechos con correcciones.
+\item \textbf{Full refresh:} reemplazo total; útil en catálogos pequeños o snapshots.
+\end{itemize}
+
+En cuanto a historización, el enfoque dimensional suele usar SCD. Adicionalmente, SQL Server ofrece tablas temporales con versionado de sistema para mantener historial de cambios y habilitar consultas \textit{point-in-time} \cite{ms_temporal_tables}.
+
+% =========================================================
+\section{Características del ETL (orientado a OLAP)}
+Un ETL orientado a OLAP debería exhibir las siguientes características:
+
+\subsection{Reproducibilidad e idempotencia}
+El pipeline debe poder re-ejecutarse sin duplicar hechos ni distorsionar dimensiones. Esto implica controles de llaves, staging persistente y reglas deterministas \cite{kimball_etl_toolkit}.
+
+\subsection{Trazabilidad, auditoría y observabilidad}
+La observabilidad del ETL se apoya en bitácoras de ejecución (inicio/fin, duración), conteos por etapa, marcas de agua y registros de error por lote o por fila. Estas prácticas habilitan auditoría, troubleshooting y re-ejecución controlada \cite{kimball_etl_toolkit}.
+
+\subsection{Manejo explícito de errores}
+En un enfoque con Python/pandas, estas decisiones se implementan mediante validaciones previas, conversión controlada de tipos y escritura de registros fallidos a tablas de cuarentena con el motivo y la columna causante \cite{kimball_etl_toolkit}.
+
+\subsection{Escalabilidad y rendimiento}
+Se recomiendan cargas por lotes, paralelismo controlado, índices adecuados en staging, y técnicas de carga masiva cuando sea necesario \cite{kimball_etl_toolkit}.
+
+\subsection{Seguridad y conectividad}
+La conectividad segura hacia SQL Server depende de drivers y configuraciones. Microsoft documenta el ODBC Driver para SQL Server y su descarga/uso como base de conectividad estándar para aplicaciones \cite{ms_odbc_driver,ms_odbc_download}.
+
+% =========================================================
+\section{Rol del ETL en OLAP}
+\subsection{Definición de OLAP y cubos}
+IBM define OLAP como tecnología para consultas complejas de alta velocidad o análisis multidimensional sobre grandes volúmenes de datos \cite{ibm_olap}. Establecieron criterios y componentes para la categoría OLAP, describiendo arquitectura habilitadora y criterios de evaluación \cite{codd_olap}.
+
+\subsection{Cómo ETL habilita OLAP}
+ETL es condición necesaria para un OLAP confiable porque:
+
+\begin{itemize}[leftmargin=*]
+\item \textbf{Establece granularidad:} define exactamente qué representa una fila de hechos.
+\item \textbf{Construye dimensiones conformadas:} evita comparaciones inconsistentes entre áreas o periodos.
+\item \textbf{Asegura sumarizabilidad:} previene dobles conteos, jerarquías rotas y agregaciones contradictorias \cite{gray_cube}.
+\end{itemize}
+
+\subsection{Procesamiento de cubos como fase final}
+
+
+En un flujo ETL orientado a OLAP, la carga de dimensiones y hechos no suele ser el último paso operativo. Para que el \textit{cubo} (entendido aquí como la estructura que habilita análisis multidimensional) quede listo para consulta, se requiere una fase de \textbf{procesamiento} que actualice estructuras analíticas derivadas: agregaciones, índices, particiones y validaciones de consistencia.
+
+Desde el punto de vista conceptual, el cubo se apoya en agregaciones a múltiples niveles (por ejemplo, ventas por día/mes, por producto/categoría, por tienda/región). El operador \textit{cube} formaliza este tipo de agregación N-dimensional como una generalización del \textit{group-by} relacional, lo que sustenta el uso de agregados precomputados para acelerar consultas OLAP. \cite{gray_cube,ibm_olap}
+
+\subsubsection{Objetivos del procesamiento}
+La fase de procesamiento persigue cuatro objetivos principales:
+\begin{enumerate}[label=\textbf{P\arabic*.}, leftmargin=*]
+\item \textbf{Actualizar dimensiones:} incorporar cambios en atributos y jerarquías (p.\ ej., nuevos productos o tiendas, recategorizaciones) para que el análisis por filtros y niveles jerárquicos sea coherente.
+\item \textbf{Sincronizar hechos:} incorporar nuevas transacciones y, cuando aplique, correcciones retroactivas sin duplicar eventos.
+\item \textbf{Materializar estructuras de acceso rápido:} (re)construir agregaciones e índices (y, si se utiliza, particionamiento temporal) para reducir el costo de consulta.
+\item \textbf{Verificar consistencia:} asegurar sumarizabilidad (totales consistentes entre niveles) y ausencia de llaves huérfanas o duplicidades. \cite{kimball_etl_toolkit,gray_cube}
+\end{enumerate}
+
+% =========================================================
+\section{Desafíos del proceso ETL}
+Esta sección resume desafíos frecuentes y sus implicaciones en OLAP.
+
+\subsection{Calidad de datos y heterogeneidad semántica}
+Las fuentes no comparten necesariamente definiciones ni catálogos. Un mismo concepto (``cliente'', ``venta neta'') puede variar entre sistemas. ETL debe transformar dicha heterogeneidad en reglas explícitas y versionadas \cite{kimball_etl_toolkit,ibm_etl}.
+
+\subsection{Cargas incrementales y captura de cambios}
+Las cargas completas pueden ser inviables por volumen. CDC facilita incrementales en SQL Server al registrar cambios y exponerlos en tablas/funciones para consumo \cite{ms_cdc_overview}. Aun así, hay retos: retención de cambios, reconciliación, reintentos y consistencia temporal \cite{kimball_etl_toolkit}.
+
+\subsection{Evolución de esquemas (schema drift)}
+Cambios en columnas, tipos o códigos rompen pipelines si no hay contratos y validaciones. Se recomiendan pruebas automatizadas, versionado y monitoreo de esquema \cite{kimball_etl_toolkit}.
+
+\subsection{Ventanas de carga y rendimiento}
+Se deben cumplir ventanas operativas. En grandes volúmenes, la estrategia incluye micro-batches, particionamiento, bulk loads y paralelismo controlado \cite{kimball_etl_toolkit}.
+
+\subsection{Observabilidad y recuperación ante fallos}
+Los fallos son inevitables. Un pipeline reproducible debe aislar errores por fila (calidad) y por infraestructura, y registrar evidencias para re-procesar sin duplicar datos \cite{kimball_etl_toolkit}.
+
+\subsection{Orquestación y calendarización}
+La dependencia dims $\rightarrow$ facts $\rightarrow$ cubo debe automatizarse mediante un planificador (épocas de carga, reintentos, alertas) respetando el orden de dependencias y verificaciones posteriores \cite{kimball_etl_toolkit}.
+
+% =========================================================
+% =========================================================
+\section{Caso práctico: hoja de trabajo 3 (SQL Server + Python)}
+\subsection{Modelo dimensional de referencia (esquema estrella)}
+Se propone un ejemplo minimalista para OLAP:
+
+\begin{itemize}[leftmargin=*]
+\item \textbf{DimFecha(FechaKey, Fecha, Anio, Mes, Dia, Trimestre)}
+\item \textbf{DimProducto(ProductoKey, SKU, Nombre, Categoria)}
+\item \textbf{DimTienda(TiendaKey, Codigo, Nombre, Region)}
+\item \textbf{FactVentas(FechaKey, ProductoKey, TiendaKey, Cantidad, PrecioUnitario, Descuento, TotalNeto)}
+\end{itemize}
+
+Separar dimensiones (atributos descriptivos) de hechos (medidas) facilita agregaciones coherentes y mejora el rendimiento analítico \cite{kimball_etl_toolkit}.
+
+\subsection{DDL (SQL Server) para dimensiones y hechos}
+\begin{lstlisting}[style=sql, caption={DDL simplificado para un esquema estrella}]
+CREATE SCHEMA dwh;
+GO
+
+CREATE TABLE dwh.DimFecha (
+  FechaKey     INT        NOT NULL PRIMARY KEY,
+  Fecha        DATE       NOT NULL,
+  Anio         SMALLINT   NOT NULL,
+  Mes          TINYINT    NOT NULL,
+  Dia          TINYINT    NOT NULL,
+  Trimestre    TINYINT    NOT NULL
+);
+
+CREATE TABLE dwh.DimProducto (
+  ProductoKey  INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+  SKU          VARCHAR(50) NOT NULL UNIQUE,
+  Nombre       NVARCHAR(200) NOT NULL,
+  Categoria    NVARCHAR(100) NULL
+);
+
+CREATE TABLE dwh.DimTienda (
+  TiendaKey    INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+  Codigo       VARCHAR(50) NOT NULL UNIQUE,
+  Nombre       NVARCHAR(200) NOT NULL,
+  Region       NVARCHAR(100) NULL
+);
+
+CREATE TABLE dwh.FactVentas (
+  FechaKey       INT NOT NULL,
+  ProductoKey    INT NOT NULL,
+  TiendaKey      INT NOT NULL,
+  Cantidad       INT NOT NULL,
+  PrecioUnitario DECIMAL(18,2) NOT NULL,
+  Descuento      DECIMAL(18,2) NOT NULL DEFAULT(0),
+  TotalNeto      AS (Cantidad * PrecioUnitario - Descuento) PERSISTED,
+  CONSTRAINT PK_FactVentas PRIMARY KEY (FechaKey, ProductoKey, TiendaKey),
+  CONSTRAINT FK_FactVentas_Fecha  FOREIGN KEY (FechaKey) REFERENCES dwh.DimFecha(FechaKey),
+  CONSTRAINT FK_FactVentas_Prod   FOREIGN KEY (ProductoKey) REFERENCES dwh.DimProducto(ProductoKey),
+  CONSTRAINT FK_FactVentas_Tienda FOREIGN KEY (TiendaKey) REFERENCES dwh.DimTienda(TiendaKey)
+);
+GO
+\end{lstlisting}
+
+
+
+\subsection{Instrucciones para reproducibilidad del ejemplo}
+Para que el ejemplo en Python sea \textbf{ejecutable de extremo a extremo} (sin depender de objetos previos), se recomienda la siguiente secuencia:
+
+\begin{enumerate}[leftmargin=*]
+\item Ejecutar el script DDL completo \texttt{ddl\_reproducible\_dwh.sql} en SQL Server (SSMS o Azure Data Studio). Este script:
+  \begin{itemize}
+    \item crea (opcionalmente) la base de datos \texttt{SGFoodDW},
+    \item crea el esquema \texttt{dwh},
+    \item crea las tablas \texttt{DimFecha}, \texttt{DimProducto}, \texttt{DimTienda}, \texttt{FactVentas},
+    \item crea la vista analítica \texttt{dwh.v\_CuboVentas} (base relacional para cubo/modelo tabular),
+    \item crea índices recomendados.
+  \end{itemize}
+\item Verificar conectividad (ODBC Driver 18) y credenciales.
+\item Ejecutar el script \texttt{cargar\_ejemplo\_reproducible.py}. Si el archivo \texttt{ventas\_sample.csv} no existe, el script genera uno automáticamente con semilla fija para reproducibilidad.
+\end{enumerate}
+
+\subsection{DDL completo reproducible (SQL Server)}
+El siguiente script consolida el DDL necesario para reproducir el ejemplo completo (incluye base de datos opcional, esquema, tablas, vista y índices):
+
+\begin{lstlisting}[style=sql, caption={DDL reproducible: SGFoodDW + esquema estrella + vista analítica + índices}]
+/*
+  DDL reproducible para el ejemplo ETL -> OLAP (SQL Server)
+  Objetivo:
+   1) Crear (opcional) la base de datos SGFoodDW
+   2) Crear el esquema dwh
+   3) Crear DimFecha, DimProducto, DimTienda, FactVentas
+   4) Crear una vista analítica dwh.v_CuboVentas (base para cubo / modelo tabular)
+   5) Crear índices sugeridos para acelerar agregaciones
+
+  Nota:
+   - Si ya existe SGFoodDW, se reutiliza.
+   - Si tu usuario no tiene permisos para CREATE DATABASE, crea la BD manualmente y ejecuta desde USE SGFoodDW.
+*/
+
+-- 1) Crear base de datos (opcional)
+IF DB_ID(N'SGFoodDW') IS NULL
+BEGIN
+  CREATE DATABASE SGFoodDW;
+END
+GO
+
+USE SGFoodDW;
+GO
+
+-- 2) Crear esquema
+IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = N'dwh')
+  EXEC(N'CREATE SCHEMA dwh');
+GO
+
+-- 3) Tablas Dimensionales
+IF OBJECT_ID(N'dwh.DimFecha', N'U') IS NULL
+BEGIN
+  CREATE TABLE dwh.DimFecha (
+    FechaKey     INT        NOT NULL PRIMARY KEY,   -- formato YYYYMMDD
+    Fecha        DATE       NOT NULL,
+    Anio         SMALLINT   NOT NULL,
+    Mes          TINYINT    NOT NULL,
+    Dia          TINYINT    NOT NULL,
+    Trimestre    TINYINT    NOT NULL,
+    CONSTRAINT CK_DimFecha_Mes CHECK (Mes BETWEEN 1 AND 12),
+    CONSTRAINT CK_DimFecha_Dia CHECK (Dia BETWEEN 1 AND 31),
+    CONSTRAINT CK_DimFecha_Trimestre CHECK (Trimestre BETWEEN 1 AND 4)
+  );
+END
+GO
+
+IF OBJECT_ID(N'dwh.DimProducto', N'U') IS NULL
+BEGIN
+  CREATE TABLE dwh.DimProducto (
+    ProductoKey  INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    SKU          VARCHAR(50)       NOT NULL,
+    Nombre       NVARCHAR(200)     NOT NULL,
+    Categoria    NVARCHAR(100)     NULL,
+    CONSTRAINT UQ_DimProducto_SKU UNIQUE (SKU)
+  );
+END
+GO
+
+IF OBJECT_ID(N'dwh.DimTienda', N'U') IS NULL
+BEGIN
+  CREATE TABLE dwh.DimTienda (
+    TiendaKey    INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    Codigo       VARCHAR(50)       NOT NULL,
+    Nombre       NVARCHAR(200)     NOT NULL,
+    Region       NVARCHAR(100)     NULL,
+    CONSTRAINT UQ_DimTienda_Codigo UNIQUE (Codigo)
+  );
+END
+GO
+
+-- 4) Tabla de hechos
+IF OBJECT_ID(N'dwh.FactVentas', N'U') IS NULL
+BEGIN
+  CREATE TABLE dwh.FactVentas (
+    FechaKey       INT           NOT NULL,
+    ProductoKey    INT           NOT NULL,
+    TiendaKey      INT           NOT NULL,
+    Cantidad       INT           NOT NULL,
+    PrecioUnitario DECIMAL(18,2) NOT NULL,
+    Descuento      DECIMAL(18,2) NOT NULL CONSTRAINT DF_FactVentas_Descuento DEFAULT(0),
+    TotalNeto      AS (Cantidad * PrecioUnitario - Descuento) PERSISTED,
+
+    CONSTRAINT PK_FactVentas PRIMARY KEY (FechaKey, ProductoKey, TiendaKey),
+    CONSTRAINT FK_FactVentas_Fecha   FOREIGN KEY (FechaKey)    REFERENCES dwh.DimFecha(FechaKey),
+    CONSTRAINT FK_FactVentas_Prod    FOREIGN KEY (ProductoKey) REFERENCES dwh.DimProducto(ProductoKey),
+    CONSTRAINT FK_FactVentas_Tienda  FOREIGN KEY (TiendaKey)   REFERENCES dwh.DimTienda(TiendaKey),
+
+    CONSTRAINT CK_FactVentas_Cantidad CHECK (Cantidad >= 0),
+    CONSTRAINT CK_FactVentas_PrecioUnitario CHECK (PrecioUnitario >= 0),
+    CONSTRAINT CK_FactVentas_Descuento CHECK (Descuento >= 0)
+  );
+END
+GO
+
+-- 5) Vista analítica (base relacional para cubo / modelo tabular)
+IF OBJECT_ID(N'dwh.v_CuboVentas', N'V') IS NOT NULL
+  DROP VIEW dwh.v_CuboVentas;
+GO
+
+CREATE VIEW dwh.v_CuboVentas
+AS
+SELECT
+  f.FechaKey,
+  df.Fecha,
+  df.Anio,
+  df.Mes,
+  df.Dia,
+  df.Trimestre,
+  f.ProductoKey,
+  dp.SKU,
+  dp.Nombre     AS ProductoNombre,
+  dp.Categoria  AS ProductoCategoria,
+  f.TiendaKey,
+  dt.Codigo     AS TiendaCodigo,
+  dt.Nombre     AS TiendaNombre,
+  dt.Region     AS TiendaRegion,
+  f.Cantidad,
+  f.PrecioUnitario,
+  f.Descuento,
+  f.TotalNeto
+FROM dwh.FactVentas AS f
+JOIN dwh.DimFecha    AS df ON f.FechaKey    = df.FechaKey
+JOIN dwh.DimProducto AS dp ON f.ProductoKey = dp.ProductoKey
+JOIN dwh.DimTienda   AS dt ON f.TiendaKey   = dt.TiendaKey;
+GO
+
+-- 6) Índices sugeridos
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_FactVentas_Fecha' AND object_id = OBJECT_ID(N'dwh.FactVentas'))
+BEGIN
+  CREATE NONCLUSTERED INDEX IX_FactVentas_Fecha
+    ON dwh.FactVentas(FechaKey)
+    INCLUDE (Cantidad, TotalNeto);
+END
+GO
+
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_FactVentas_Producto' AND object_id = OBJECT_ID(N'dwh.FactVentas'))
+BEGIN
+  CREATE NONCLUSTERED INDEX IX_FactVentas_Producto
+    ON dwh.FactVentas(ProductoKey)
+    INCLUDE (Cantidad, TotalNeto);
+END
+GO
+
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_FactVentas_Tienda' AND object_id = OBJECT_ID(N'dwh.FactVentas'))
+BEGIN
+  CREATE NONCLUSTERED INDEX IX_FactVentas_Tienda
+    ON dwh.FactVentas(TiendaKey)
+    INCLUDE (Cantidad, TotalNeto);
+END
+GO
+
+-- 7) Consulta de validación
+-- SELECT TOP (20) * FROM dwh.v_CuboVentas ORDER BY Fecha DESC;
+
+\end{lstlisting}
+
+% =========================================================
+\section{Ejemplos en Python (pandas) para cargar datos y actualizar un cubo SQL Server}
+\subsection{Conectividad a SQL Server (ODBC / mssql-python)}
+Para Python, dos enfoques comunes:
+
+\begin{itemize}[leftmargin=*]
+\item \textbf{ODBC + SQLAlchemy (pyodbc):} requiere el ODBC Driver de Microsoft \cite{ms_odbc_download,ms_odbc_driver}.
+\item \textbf{mssql-python:} driver promovido por Microsoft con DDBC y DB-API 2.0 \cite{ms_mssql_python,ms_mssql_python_quickstart}.
+\end{itemize}
+
+pandas permite leer y escribir con \texttt{read\_sql} y \texttt{DataFrame.to\_sql} \cite{pandas_read_sql,pandas_to_sql}.
+
+\subsection{Ejemplo 1: extracción y transformación mínima con pandas}
+{\raggedright
+Supóngase un CSV \texttt{ventas.csv} con columnas: \texttt{fecha, sku, tienda\_codigo, cantidad, precio\_unit, descuento}. El siguiente fragmento ilustra lectura y limpieza.\par}
+
+\begin{lstlisting}[style=python, caption={Extracción y transformación mínima (pandas)}]
+import pandas as pd
+
+df = pd.read_csv("ventas.csv")
+
+# Tipos y limpieza básica
+df["fecha"] = pd.to_datetime(df["fecha"], errors="coerce").dt.date
+df["sku"] = df["sku"].astype(str).str.strip()
+df["tienda_codigo"] = df["tienda_codigo"].astype(str).str.strip()
+
+for c in ["cantidad", "precio_unit", "descuento"]:
+    df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0)
+
+# Reglas de dominio (ejemplo): fecha no nula y cantidad no negativa
+df = df[(df["fecha"].notna()) & (df["cantidad"] >= 0)].copy()
+
+# Métrica derivada
+df["total_neto"] = df["cantidad"] * df["precio_unit"] - df["descuento"]
+\end{lstlisting}
+
+\subsection{Ejemplo 2: conexión a SQL Server con ODBC Driver 18}
+\begin{lstlisting}[style=python, caption={Conexión con SQLAlchemy + ODBC Driver 18}]
+import urllib
+from sqlalchemy import create_engine
+
+server = "MI_SERVIDOR"
+database = "MI_BD"
+username = "MI_USUARIO"
+password = "MI_PASSWORD"
+
+params = urllib.parse.quote_plus(
+    "DRIVER={ODBC Driver 18 for SQL Server};"
+    f"SERVER={server};DATABASE={database};UID={username};PWD={password};"
+    "Encrypt=yes;TrustServerCertificate=yes;"
+)
+
+engine = create_engine(f"mssql+pyodbc:///?odbc_connect={params}")
+\end{lstlisting}
+
+\subsection{Ejemplo 3: carga de dimensiones (incremental simple) y hechos}
+Este ejemplo didáctico inserta solo nuevos SKUs y tiendas, construye DimFecha y luego carga hechos resolviendo claves sustitutas.
+
+\begin{lstlisting}[style=python, caption={Carga de DimProducto, DimTienda, DimFecha y FactVentas}]
+import pandas as pd
+
+# --- DimProducto y DimTienda: insertar solo nuevos valores ---
+dim_prod = df[["sku"]].drop_duplicates().rename(columns={"sku":"SKU"})
+dim_prod["Nombre"] = dim_prod["SKU"]   # placeholder
+dim_prod["Categoria"] = None
+
+dim_tienda = df[["tienda_codigo"]].drop_duplicates().rename(columns={"tienda_codigo":"Codigo"})
+dim_tienda["Nombre"] = dim_tienda["Codigo"]  # placeholder
+dim_tienda["Region"] = None
+
+prod_exist = pd.read_sql("SELECT SKU FROM dwh.DimProducto", engine)
+tienda_exist = pd.read_sql("SELECT Codigo FROM dwh.DimTienda", engine)
+
+dim_prod_new = dim_prod[~dim_prod["SKU"].isin(prod_exist["SKU"])]
+dim_tienda_new = dim_tienda[~dim_tienda["Codigo"].isin(tienda_exist["Codigo"])]
+
+if not dim_prod_new.empty:
+    dim_prod_new.to_sql("DimProducto", engine, schema="dwh", if_exists="append", index=False)
+
+if not dim_tienda_new.empty:
+    dim_tienda_new.to_sql("DimTienda", engine, schema="dwh", if_exists="append", index=False)
+
+# --- DimFecha: generar para el rango observado ---
+fechas = pd.Series(pd.to_datetime(df["fecha"]).unique()).sort_values()
+cal = pd.DataFrame({"Fecha": pd.to_datetime(fechas)})
+cal["FechaKey"] = cal["Fecha"].dt.strftime("%Y%m%d").astype(int)
+cal["Anio"] = cal["Fecha"].dt.year.astype(int)
+cal["Mes"] = cal["Fecha"].dt.month.astype(int)
+cal["Dia"] = cal["Fecha"].dt.day.astype(int)
+cal["Trimestre"] = cal["Fecha"].dt.quarter.astype(int)
+cal["Fecha"] = cal["Fecha"].dt.date
+
+exist = pd.read_sql("SELECT FechaKey FROM dwh.DimFecha", engine)
+cal_new = cal[~cal["FechaKey"].isin(exist["FechaKey"])]
+
+if not cal_new.empty:
+    cal_new[["FechaKey","Fecha","Anio","Mes","Dia","Trimestre"]].to_sql(
+        "DimFecha", engine, schema="dwh", if_exists="append", index=False
+    )
+
+# --- Hechos: resolver claves sustitutas y cargar ---
+dim_prod_map = pd.read_sql("SELECT ProductoKey, SKU FROM dwh.DimProducto", engine)
+dim_tienda_map = pd.read_sql("SELECT TiendaKey, Codigo FROM dwh.DimTienda", engine)
+
+fact = df.copy()
+fact["FechaKey"] = pd.to_datetime(fact["fecha"]).dt.strftime("%Y%m%d").astype(int)
+
+fact = fact.merge(dim_prod_map, left_on="sku", right_on="SKU", how="left")
+fact = fact.merge(dim_tienda_map, left_on="tienda_codigo", right_on="Codigo", how="left")
+
+# Validación: no permitir llaves faltantes
+if fact["ProductoKey"].isna().any() or fact["TiendaKey"].isna().any():
+    missing = fact[fact["ProductoKey"].isna() | fact["TiendaKey"].isna()]
+    raise ValueError(f"Existen llaves faltantes. Ejemplo:\n{missing.head()}")
+
+fact_out = fact[["FechaKey","ProductoKey","TiendaKey","cantidad","precio_unit","descuento"]].rename(
+    columns={"cantidad":"Cantidad","precio_unit":"PrecioUnitario","descuento":"Descuento"}
+)
+
+fact_out.to_sql("FactVentas", engine, schema="dwh", if_exists="append", index=False)
+\end{lstlisting}
+
+\subsection{Ejemplo 4: consumo incremental con CDC (conceptual)}
+CDC en SQL Server captura cambios y los expone en funciones/tablas de cambios \cite{ms_cdc_overview,ms_cdc_functions}. Un consumo conceptual:
+
+\begin{lstlisting}[style=sql, caption={Consulta conceptual a CDC (rango de LSN)}]
+DECLARE @from_lsn binary(10) = sys.fn_cdc_get_min_lsn('dbo_Ventas');
+DECLARE @to_lsn   binary(10) = sys.fn_cdc_get_max_lsn();
+
+SELECT *
+FROM cdc.fn_cdc_get_all_changes_dbo_Ventas(@from_lsn, @to_lsn, 'all');
+\end{lstlisting}
+
+\begin{lstlisting}[style=python, caption={Lectura del delta CDC con pandas.read\_sql (conceptual)}]
+import pandas as pd
+
+sql = """
+DECLARE @from_lsn binary(10) = sys.fn_cdc_get_min_lsn('dbo_Ventas');
+DECLARE @to_lsn   binary(10) = sys.fn_cdc_get_max_lsn();
+SELECT *
+FROM cdc.fn_cdc_get_all_changes_dbo_Ventas(@from_lsn, @to_lsn, 'all');
+"""
+delta = pd.read_sql(sql, engine)
+
+# delta suele incluir metadata (p.ej., __$operation) para aplicar lógica de upsert/delete
+print(delta.head())
+\end{lstlisting}
+
+\section{Tabla de síntesis: desafíos y mitigaciones}
+\begin{longtable}{@{}p{0.27\textwidth}p{0.33\textwidth}p{0.34\textwidth}@{}}
+\toprule
+\textbf{Desafío} & \textbf{Riesgo en OLAP} & \textbf{Mitigación recomendada} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Desafío} & \textbf{Riesgo en OLAP} & \textbf{Mitigación recomendada} \\
+\midrule
+\endhead
+
+Calidad de datos heterogénea \cite{ibm_etl} &
+Métricas inconsistentes, jerarquías rotas &
+Perfilamiento, reglas explícitas, cuarentena de errores, auditoría \cite{kimball_etl_toolkit} \\
+
+Cargas incrementales \cite{ms_cdc_overview} &
+Latencia alta o duplicación de hechos &
+CDC / marcas de agua, idempotencia, reconciliación, monitoreo \cite{ms_track_changes} \\
+
+Evolución de esquemas &
+Fallos de carga, columnas inesperadas &
+Versionado, validación previa, contratos de datos, pruebas automatizadas \cite{kimball_etl_toolkit} \\
+
+Ventanas de carga &
+No disponibilidad del cubo o retraso &
+Particiones, micro-batches, bulk loads, paralelismo controlado \cite{kimball_etl_toolkit} \\
+
+Observabilidad insuficiente \cite{kimball_etl_toolkit} &
+Difícil detectar fallos y causas &
+Logging, métricas operacionales, alertas, bitácoras por etapa \cite{kimball_etl_toolkit} \\
+
+\bottomrule
+\end{longtable}
+
+% =========================================================
+\section{Conclusiones}
+ETL es el componente operativo que transforma datos dispersos en un repositorio analítico confiable. Su importancia en OLAP radica en que define granularidad, conforma dimensiones, asegura sumarizabilidad y formaliza reglas de negocio de forma reproducible \cite{kimball_etl_toolkit,gray_cube}. En un entorno basado en SQL Server, mecanismos incrementales como CDC pueden apoyar la detección de cambios para alimentar el modelo analítico, mientras que Python/pandas puede implementarse como capa reproducible de extracción, transformación y carga \cite{ms_cdc_overview,pandas_to_sql}.
+
+Los ejemplos en Python con pandas ilustran una alternativa práctica para prototipos, automatizaciones complementarias o cargas ligeras: se extraen datos, se aplican transformaciones mínimas y se cargan dimensiones y hechos con \texttt{to\_sql}. En un entorno productivo, se recomienda fortalecer el pipeline con staging persistente, auditoría, pruebas automatizadas, seguridad y orquestación robusta; no obstante, el flujo conceptual se mantiene: \textit{extraer} $\rightarrow$ \textit{transformar} $\rightarrow$ \textit{cargar} $\rightarrow$ \textit{validar}.
+
+\newpage
+\printbibliography
+\end{document}

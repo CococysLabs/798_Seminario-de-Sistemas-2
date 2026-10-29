@@ -1,0 +1,304 @@
+﻿% !TeX program = pdflatex
+\documentclass[12pt]{article}
+
+% Idioma y codificación
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+
+% Página y espaciado (para acercarse a ~15 páginas)
+\usepackage{geometry}
+\geometry{letterpaper, margin=1in}
+\usepackage{setspace}
+\onehalfspacing
+
+% Tipografía y microajustes
+\usepackage{microtype}
+\usepackage{csquotes}
+
+% Tablas
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+
+% Listas
+\usepackage{enumitem}
+
+% Código
+\usepackage{listingsutf8}
+\usepackage{listings}
+\lstset{inputencoding=utf8}
+\lstset{literate=%
+  {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'\i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+  {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+  {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {ü}{{\"u}}1 {Ü}{{\"U}}1
+}
+\usepackage{xcolor}
+\lstdefinestyle{python}{
+  language=Python,
+  inputencoding=utf8,
+  basicstyle=\ttfamily\small,
+  numbers=left,
+  numberstyle=\tiny,
+  stepnumber=1,
+  numbersep=8pt,
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=2,
+  frame=single
+}
+\lstdefinestyle{sql}{
+  language=SQL,
+  inputencoding=utf8,
+  basicstyle=\ttfamily\small,
+  numbers=left,
+  numberstyle=\tiny,
+  stepnumber=1,
+  numbersep=8pt,
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=2,
+  frame=single
+}
+
+% Hipervínculos
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  urlcolor=blue,
+  citecolor=blue
+}
+
+% Formato académico y paginación por sección
+\usepackage{titlesec}
+\usepackage{etoolbox}
+\titlespacing*{\section}{0pt}{3ex plus 1ex minus .2ex}{2ex}
+\titlespacing*{\subsection}{0pt}{2.5ex plus 0.8ex minus .2ex}{1.2ex}
+\titlespacing*{\subsubsection}{0pt}{2ex plus 0.6ex minus .2ex}{1ex}
+\preto\section{\clearpage} % cada sección inicia en nueva hoja
+
+% Encabezados/pies limpios
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Documento de apoyo (Sesión 2, Unidad 2)}
+\rhead{Procesos ETL y Modelado OLAP}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Bibliografía (biblatex + biber)
+\usepackage[
+  backend=biber,
+  style=ieee,
+  sorting=nyt,
+  maxbibnames=99
+]{biblatex}
+\addbibresource{referencias_semana2.bib}
+
+% Metadatos del documento
+\title{\textbf{Documento de apoyo (Sesión 2, Unidad 2)}\\
+\large Procesos ETL y Modelado de Datos para Análisis OLAP\\
+\normalsize Diseño y optimización de cubos multidimensionales}
+\author{Javier Andrés Valdez González / Auxiliar \\\\
+\small Seminario de Sistemas 2 — Sección P \\
+\small Universidad de San Carlos de Guatemala}
+\date{Fecha: 04 de febrero de 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Un cubo OLAP es una estructura lógica que permite analizar indicadores desde múltiples perspectivas (por ejemplo: tiempo, producto, región). Para que el análisis sea confiable y rápido, el cubo se alimenta de un modelo dimensional (hechos y dimensiones) construido a partir de procesos ETL/ELT: extracción, limpieza, transformación, integración y carga. Este documento describe los elementos de un cubo multidimensional, el diseño de dimensiones y jerarquías (incluyendo dimensiones normalizadas tipo copo de nieve), el manejo de cambios mediante Slowly Changing Dimensions (SCD), y la correcta definición de medidas y reglas de agregación. Además, compara los modelos dimensionales (estrella, copo de nieve y constelación) y resume un proceso práctico de diseño, junto con técnicas básicas de optimización como granularidad, agregaciones y particionamiento.
+\end{abstract}
+
+\section{Panorama general}
+Un cubo OLAP es la estructura lógica que permite analizar indicadores desde múltiples perspectivas (por ejemplo: tiempo, producto, región). Para que el análisis sea confiable y rápido, el cubo se alimenta de un modelo dimensional (hechos y dimensiones) construido a partir de procesos ETL/ELT: extracción, limpieza, transformación, integración y carga.
+
+\subsection*{Objetivos de la sesión}
+\begin{itemize}[leftmargin=*, itemsep=0.25em]
+  \item Comprender qué es un cubo multidimensional y cómo se relaciona con un modelo dimensional.
+  \item Identificar dimensiones, jerarquías y medidas para responder preguntas de negocio.
+  \item Comparar modelos estrella, copo de nieve y constelación para distintos escenarios.
+  \item Aplicar principios básicos de optimización: granularidad, agregaciones y particiones.
+\end{itemize}
+
+\noindent\textbf{Fuentes:} \cite{kimball_toolkit, mslearn_cubes_multidimensional, mslearn_ssas_intro}.
+
+\section{Definición de cubo multidimensional}
+Un cubo multidimensional modela un conjunto de hechos (medidas numéricas) organizados por dimensiones. En la práctica, el ``cubo'' puede materializarse como un modelo tabular (columnar) o como un modelo multidimensional clásico; lo importante es que permita consultas por niveles (jerarquías) y agregaciones consistentes.
+
+\subsection*{Elementos básicos}
+\begin{itemize}[leftmargin=*, itemsep=0.25em]
+  \item \textbf{Grupo de medidas:} conjunto de métricas relacionadas (p.\ ej., Ventas, Costos, Margen).
+  \item \textbf{Dimensiones:} ejes de análisis (Tiempo, Producto, Cliente, Región, Canal).
+  \item \textbf{Jerarquías:} niveles que permiten navegar de lo general a lo específico (Año \(\rightarrow\) Mes \(\rightarrow\) Día).
+  \item \textbf{Granularidad:} nivel de detalle al que se registra el hecho (por ticket, por día, por línea de factura).
+\end{itemize}
+
+\noindent\textbf{Regla práctica:} antes de pensar en herramientas, define la pregunta de negocio y la granularidad. Esto evita modelos sobredimensionados o medidas incoherentes.
+
+\noindent\textbf{Fuentes:} \cite{mslearn_cubes_multidimensional, mslearn_ssas_intro, kimballgroup_star_olap}.
+
+\section{Dimensiones y jerarquías}
+Las dimensiones describen el contexto de un hecho. Su diseño impacta directamente la experiencia de análisis: si la dimensión no refleja el lenguaje del negocio, el cubo será difícil de usar.
+
+\subsection*{Buenas prácticas de diseño}
+\begin{itemize}[leftmargin=*, itemsep=0.25em]
+  \item Definir claves sustitutas (\textit{surrogate keys}) para dimensiones, separando la llave técnica de la llave de negocio.
+  \item Mantener dimensiones conformadas (\textit{conformed}) cuando se reutilizan entre áreas (ventas, inventario, devoluciones).
+  \item Modelar jerarquías naturales: Tiempo (Año \(\rightarrow\) Trimestre \(\rightarrow\) Mes \(\rightarrow\) Día), Geografía (País \(\rightarrow\) Depto.\ \(\rightarrow\) Ciudad).
+  \item Evitar muchos atributos ``libres'' sin propósito: cada atributo debe soportar filtros o segmentaciones reales.
+\end{itemize}
+
+\subsection*{Jerarquías: ventajas}
+\begin{itemize}[leftmargin=*, itemsep=0.25em]
+  \item Permiten \textit{drill-down} y \textit{roll-up} sin redefinir reportes.
+  \item Reducen errores al estandarizar niveles de agregación.
+  \item Mejoran rendimiento cuando el motor usa agregaciones por nivel.
+\end{itemize}
+
+\noindent\textbf{Fuentes:} \cite{kimballgroup_star_olap, ibm_what_is_olap}.
+
+\subsection*{Dimensiones \textit{snowflaked} (Normalizadas / Copo de Nieve)}
+Una dimensión \textit{snowflaked} se normaliza en varias tablas relacionadas (subdimensiones). Es típica del esquema copo de nieve.
+
+\subsubsection*{Ejemplo}
+Dimensión Producto separada en: \textit{Producto}, \textit{Subcategoría}, \textit{Categoría} y \textit{Marca}.
+
+\subsubsection*{Ventajas}
+\begin{itemize}[leftmargin=*, itemsep=0.25em]
+  \item Menor redundancia de datos.
+  \item Puede facilitar mantenimiento de catálogos muy jerárquicos.
+\end{itemize}
+
+\subsubsection*{Desventajas}
+\begin{itemize}[leftmargin=*, itemsep=0.25em]
+  \item Consultas más complejas (más \textit{joins}).
+  \item A veces reduce desempeño frente al esquema estrella.
+\end{itemize}
+
+\section{Dimensiones de cambio lento (Slowly Changing Dimensions, SCD)}
+Las SCD manejan cambios en atributos de dimensión a través del tiempo (por ejemplo, un cliente cambia de ciudad o un producto cambia de categoría). La elección del tipo SCD determina cómo se conserva el historial.
+
+\subsection*{SCD Tipo 0 (Sin cambios)}
+Los atributos no se actualizan. Se conserva el valor original siempre. \textbf{Uso:} valores ``congelados'' o definidos al alta.
+
+\subsection*{SCD Tipo 1 (Sobrescritura)}
+Se actualiza el atributo y se pierde el valor anterior (sin historial). \textbf{Uso:} correcciones de errores, datos que no requieren historial (ej.\ corregir ortografía).
+
+\subsection*{SCD Tipo 2 (Histórico completo)}
+Se inserta un nuevo registro de la dimensión cuando hay cambios y se conserva el anterior, usualmente con:
+\begin{itemize}[leftmargin=*, itemsep=0.25em]
+  \item FechaInicio / FechaFin
+  \item IndicadorActual (\textit{CurrentFlag})
+  \item Nueva \textit{surrogate key}
+\end{itemize}
+\noindent\textbf{Uso:} cuando se necesita analizar ``como era'' el cliente/producto en el momento del evento.
+
+\subsection*{SCD Tipo 3 (Historial limitado)}
+Se guarda el valor anterior en otra columna (ej.\ \textit{CiudadActual} y \textit{CiudadAnterior}). \textbf{Uso:} se requiere sólo ``último cambio'' o historial corto.
+
+\section{Medidas y agregaciones}
+Las medidas son valores numéricos que se resumen (agregan) al consultar el cubo. Elegir mal la función de agregación genera resultados incorrectos (por ejemplo, sumar porcentajes).
+
+\subsection*{Tipos de medidas (según su comportamiento de agregación)}
+\begin{table}[h]
+\centering
+\begin{tabular}{@{}p{3cm}p{5.5cm}p{5.5cm}@{}}
+\toprule
+\textbf{Tipo} & \textbf{Ejemplo} & \textbf{Agregación típica} \\
+\midrule
+Aditiva & Ventas, unidades & SUM \\
+Semi-aditiva & Saldo de cuenta & SUM por algunas dimensiones; LAST por tiempo \\
+No aditiva & Tasa, \% margen & Promedio ponderado / medida calculada \\
+\bottomrule
+\end{tabular}
+\caption{Tipos de medidas y reglas típicas de agregación.}
+\end{table}
+
+\subsection*{Recomendaciones rápidas}
+\begin{itemize}[leftmargin=*, itemsep=0.25em]
+  \item Definir medidas base (atómicas) y derivar KPIs como medidas calculadas.
+  \item Evitar duplicidad de medidas; documentar definición y unidad (Q, \$, \%, etc.).
+\end{itemize}
+
+\noindent\textbf{Fuentes:} \cite{kimballgroup_star_olap, mslearn_star_schema_powerbi}.
+
+\section{Modelos dimensionales: estrella, copo de nieve y constelación}
+El modelo dimensional organiza tablas para análisis. La elección depende del equilibrio entre simplicidad (uso) y normalización (mantenimiento).
+
+\subsection*{Descripción breve}
+\begin{itemize}[leftmargin=*, itemsep=0.25em]
+  \item \textbf{Modelo estrella:} una tabla de hechos central conectada a dimensiones desnormalizadas. Suele ser el recomendado para autoservicio en BI (p.\ ej., Power BI) por su simplicidad y desempeño.
+  \item \textbf{Copo de nieve:} dimensiones normalizadas en subtablas (más \textit{joins}), con menor redundancia pero mayor complejidad.
+  \item \textbf{Constelación:} múltiples tablas de hechos que comparten dimensiones conformadas (útil cuando existen varios procesos: ventas, devoluciones, compras, etc.).
+\end{itemize}
+
+\subsection*{Comparativa rápida}
+\begin{table}[h]
+\centering
+\begin{tabular}{@{}p{2.3cm}p{4.1cm}p{4.1cm}p{4.1cm}@{}}
+\toprule
+\textbf{Modelo} & \textbf{Ventaja} & \textbf{Desventaja} & \textbf{Cuándo usar} \\
+\midrule
+Estrella & Simple y rápido para consultar & Puede repetir atributos & Autoservicio, reporting, tabular \\
+Copo de nieve & Menos redundancia & Más joins; más complejo & Catálogos grandes y jerarquías formales \\
+Constelación & Reutiliza dimensiones entre varios hechos & Mayor diseño/validación & Múltiples procesos (ventas, devol.) \\
+\bottomrule
+\end{tabular}
+\caption{Comparación entre estrella, copo de nieve y constelación.}
+\end{table}
+
+\noindent\textbf{Fuentes:} \cite{kimballgroup_star_olap, ibm_what_is_olap, kimball_bus_architecture}.
+
+\section{Proceso recomendado para diseñar un cubo}
+Una secuencia práctica (de negocio a modelo):
+\begin{enumerate}[leftmargin=*, itemsep=0.25em]
+  \item Definir preguntas de negocio y KPI (qué decisión se quiere apoyar).
+  \item Elegir el proceso de negocio (ventas, inventario, devoluciones) y su granularidad.
+  \item Diseñar la tabla de hechos (medidas atómicas) y asegurar claves a dimensiones.
+  \item Diseñar dimensiones con atributos y jerarquías (conformadas cuando aplique).
+  \item Probar con consultas y ajustar el modelo.
+\end{enumerate}
+
+\noindent\textbf{Fuentes:} \cite{kimballgroup_star_olap, mslearn_star_schema_powerbi}.
+
+\section{Optimización de cubos multidimensionales}
+La optimización busca reducir tiempos de refresco y mejorar la respuesta a consultas. En general, se gana más optimizando el modelo y los datos que ``forzando'' la herramienta.
+
+\subsection*{Técnicas comunes}
+\begin{itemize}[leftmargin=*, itemsep=0.25em]
+  \item \textbf{Granularidad adecuada:} evita cargar detalle innecesario si el negocio consulta a nivel agregado.
+  \item \textbf{Particionamiento:} separar hechos por periodos (p.\ ej., por año o mes) para refrescos incrementales.
+  \item \textbf{Índices y claves:} claves enteras y ordenadas mejoran \textit{joins} y compresión.
+  \item \textbf{Columnas y cardinalidad:} evitar columnas de alta cardinalidad como texto libre en dimensiones.
+  \item \textbf{Control de refresco:} incremental cuando sea posible; validar cambios de dimensiones (SCD).
+\end{itemize}
+
+\subsection*{Señales de alerta (para revisar antes de ``subir hardware'')}
+\begin{itemize}[leftmargin=*, itemsep=0.25em]
+  \item Tablas de hechos con campos de texto o llaves no numéricas.
+  \item Dimensiones con atributos duplicados, o sin jerarquías claras.
+  \item Medidas no aditivas calculadas como SUM (resultados incorrectos).
+\end{itemize}
+
+\noindent\textbf{Fuentes:} \cite{kimballgroup_star_olap, mslearn_star_schema_powerbi, mslearn_tabular_performance}.
+
+\section{Cierre y bibliografía}
+Un buen cubo OLAP no se mide por la cantidad de tablas o columnas, sino por su capacidad de responder preguntas del negocio de forma consistente y con buen rendimiento. La base es un modelo dimensional claro (hechos + dimensiones), alimentado por ETL confiable y con medidas correctamente definidas.
+
+\subsection*{Checklist rápido para validar tu diseño}
+\begin{itemize}[leftmargin=*, itemsep=0.25em]
+  \item ¿La granularidad del hecho está claramente definida y documentada?
+  \item ¿Las dimensiones reflejan el lenguaje del negocio y tienen jerarquías útiles?
+  \item ¿Cada medida tiene una definición (fórmula), unidad y regla de agregación?
+  \item ¿El modelo es estrella (o justifica por qué no) y evita relaciones ambiguas?
+\end{itemize}
+
+\nocite{*}
+\printbibliography
+
+\end{document}

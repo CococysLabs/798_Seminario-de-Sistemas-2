@@ -1,0 +1,393 @@
+% !TeX program = pdflatex
+\documentclass[12pt]{article}
+
+% =========================================================
+% Estilo base (alineado al documento de apoyo de la Semana 3)
+% =========================================================
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+
+\usepackage{geometry}
+\geometry{letterpaper, margin=1in}
+\usepackage{setspace}
+\onehalfspacing
+
+\usepackage{microtype}
+\usepackage{csquotes}
+
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+
+\usepackage{enumitem}
+
+\usepackage{listingsutf8}
+\usepackage{listings}
+\lstset{inputencoding=utf8}
+\lstset{literate=%
+  {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'\i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+  {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+  {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {ü}{{\"u}}1 {Ü}{{\"U}}1
+}
+\usepackage{xcolor}
+\lstdefinestyle{text}{
+  basicstyle=\ttfamily\small,
+  numbers=left,
+  numberstyle=\tiny,
+  stepnumber=1,
+  numbersep=8pt,
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=2,
+  frame=single
+}
+
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  urlcolor=blue,
+  citecolor=blue
+}
+
+\usepackage{titlesec}
+\usepackage{etoolbox}
+\titlespacing*{\section}{0pt}{3ex plus 1ex minus .2ex}{2ex}
+\titlespacing*{\subsection}{0pt}{2.5ex plus 0.8ex minus .2ex}{1.2ex}
+\titlespacing*{\subsubsection}{0pt}{2ex plus 0.6ex minus .2ex}{1ex}
+\preto\section{\clearpage}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Documento de apoyo (Sesión 5, Unidad 2)}
+\rhead{Visualización Analítica, KPI y Scorecards}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% =========================================================
+% Metadatos
+% =========================================================
+\title{\textbf{Documento de apoyo (Sesión 5, Unidad 2)}\\
+\large Visualización Analítica, KPI y Scorecards en Plataformas BI\\
+\normalsize Modelos tabulares, Balanced Scorecard, Power BI, MDX y DAX}
+\author{Javier Andrés Valdez González / Auxiliar \\
+\small Seminario de Sistemas 2 --- Sección P \\
+\small Universidad de San Carlos de Guatemala}
+\date{Marzo de 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+La visualización analítica representa la capa donde los datos dejan de ser únicamente registros almacenados y se convierten en insumos para la interpretación, el seguimiento del desempeño y la toma de decisiones. En plataformas de inteligencia de negocios, este proceso se articula mediante indicadores clave de desempeño (KPI), scorecards ejecutivos, filtros interactivos, reglas de visualización condicional y modelos semánticos que permiten explorar métricas desde múltiples perspectivas. El presente documento desarrolla la relación entre estrategia, medición y analítica en entornos BI, con énfasis en modelos tabulares, Balanced Scorecard, semáforos de cumplimiento, reportes parametrizables, Rolling Forecast, análisis presupuestario y el uso de Power BI con expresiones DAX y consultas MDX. Además, se vinculan estos temas con el componente actitudinal del curso, destacando pensamiento estratégico, rigor analítico, responsabilidad e innovación aplicada como competencias indispensables para diseñar reportes ejecutivos confiables.
+\end{abstract}
+
+\textbf{Palabras clave:} inteligencia de negocios, KPI, scorecard, Power BI, DAX, MDX, Balanced Scorecard, modelos tabulares, análisis presupuestario.
+
+\newpage
+\tableofcontents
+
+% =========================================================
+\section{Introducción}
+En una organización moderna no basta con almacenar datos ni con presentar tablas extensas de resultados. La dirección requiere mecanismos de síntesis que permitan observar tendencias, identificar desviaciones respecto a metas y anticipar decisiones correctivas. En ese contexto, la visualización analítica actúa como una interfaz entre el modelo de datos y la estrategia empresarial. Su propósito no es solamente embellecer información, sino traducir hechos cuantificables en señales ejecutivas comprensibles y accionables.
+
+Las plataformas BI cumplen este papel mediante paneles, scorecards, gráficos interactivos, segmentadores, filtros, alertas visuales y métricas calculadas. Sin embargo, la calidad de una solución BI no depende exclusivamente del software utilizado. Depende también de la calidad del modelo semántico, de la precisión de los cálculos, de la claridad de las reglas de negocio y de la alineación entre indicadores y objetivos estratégicos. Un indicador técnicamente correcto pero estratégicamente irrelevante aporta poco valor; de la misma forma, una meta estratégica sin traducción cuantitativa difícilmente puede monitorearse de manera consistente.
+
+Por esta razón, la sesión se enfoca en la construcción de KPI y scorecards dentro de plataformas BI, particularmente en Power BI y en ecosistemas compatibles con modelos tabulares, DAX y MDX. El estudiante debe comprender cómo estructurar indicadores, cómo modelar medidas y dimensiones para consumo analítico, y cómo representar visualmente estados de cumplimiento mediante semáforos, reglas de color y reportes configurables. A esto se suma la importancia del análisis presupuestario y del Rolling Forecast, donde los reportes dejan de ser descriptivos y pasan a cumplir una función de seguimiento financiero y de planeación continua \cite{ms_budget_comparison,oracle_rolling_forecast}.
+
+Desde la perspectiva formativa, esta semana también tiene un componente actitudinal explícito. Diseñar un KPI exige pensamiento estratégico; validar una medida DAX exige rigor analítico; tratar datos financieros o de desempeño exige responsabilidad; y automatizar reportes útiles para la toma de decisiones refleja innovación aplicada. En consecuencia, el estudio técnico y el desarrollo del saber ser no aparecen separados, sino integrados dentro de la práctica profesional de la inteligencia de negocios.
+
+% =========================================================
+\section{Área actitudinal (Saber ser) en la visualización analítica}
+\subsection{Pensamiento estratégico}
+El pensamiento estratégico se manifiesta cuando el estudiante deja de ver los datos como una colección de campos aislados y empieza a relacionarlos con objetivos organizacionales. Un KPI no se diseña únicamente a partir de lo que está disponible en la base de datos, sino a partir de lo que la organización necesita vigilar: rentabilidad, crecimiento, calidad de servicio, cumplimiento de presupuesto, eficiencia operativa o fidelización de clientes. Esto implica seleccionar medidas relevantes, definir metas comparables y construir una representación visual que facilite comprender el estado del negocio.
+
+En el contexto de un scorecard, el pensamiento estratégico obliga a priorizar. No todos los indicadores merecen estar en la portada de un reporte ejecutivo. Un tablero saturado de métricas puede ocultar lo verdaderamente importante. Por ello, la construcción de scorecards requiere identificar relaciones entre objetivos, procesos y resultados. El enfoque Balanced Scorecard formaliza precisamente esta idea: traducir la estrategia en objetivos e indicadores distribuidos en distintas perspectivas organizacionales \cite{kaplan1992measures,kaplan1996bsc}.
+
+\subsection{Rigor analítico}
+El rigor analítico se refuerza cuando las medidas dejan de ser agregaciones simples y pasan a depender de contexto, granularidad, periodos comparativos y reglas de negocio. En Power BI, esto ocurre constantemente con DAX. Una medida puede cambiar según filtros activos, relaciones entre tablas, columnas de fecha o condiciones de segmentación. Un cálculo mal definido puede producir resultados aparentemente plausibles pero conceptualmente incorrectos. Por eso, el estudiante debe justificar cada fórmula y entender qué responde exactamente cada medida.
+
+El mismo principio aplica a MDX en entornos multidimensionales. Las consultas MDX operan sobre cubos, jerarquías y miembros, lo que exige precisión al definir ejes, conjuntos y medidas. Tanto en DAX como en MDX, la sintaxis es solo una parte del trabajo; la parte central es la lógica analítica que sostiene la consulta \cite{ms_dax_overview,ms_mdx_basic_query}.
+
+\subsection{Responsabilidad}
+Los reportes BI suelen consumir información sensible: ventas, costos, presupuesto, desempeño de áreas, cumplimiento de metas, márgenes o productividad. Una decisión ejecutiva basada en datos erróneos puede afectar asignación de recursos, evaluación de personal o priorización de proyectos. En consecuencia, trabajar con información analítica demanda responsabilidad profesional. Esto incluye verificar fuentes, validar totales, documentar definiciones de indicadores y evitar representaciones engañosas.
+
+La responsabilidad también implica reconocer límites del dato. Un tablero no reemplaza el criterio gerencial ni resuelve por sí solo problemas estructurales. El analista debe presentar información confiable, indicar supuestos y evitar sobreinterpretaciones. El uso correcto de filtros, comparaciones presupuestarias y proyecciones forma parte de esa responsabilidad.
+
+\subsection{Innovación aplicada}
+La innovación aplicada aparece cuando el estudiante utiliza las capacidades de la plataforma para reducir trabajo manual y mejorar la comunicación ejecutiva. Automatizar actualizaciones, parametrizar reportes, construir alertas visuales y reutilizar medidas son prácticas que convierten la inteligencia de negocios en una herramienta operativa sostenible. Innovar en BI no significa únicamente usar efectos visuales avanzados, sino diseñar soluciones que agilicen el flujo de información y mejoren la capacidad de reacción del negocio.
+
+% =========================================================
+\section{Fundamentos de visualización analítica en plataformas BI}
+\subsection{Visualizar no es solo graficar}
+Un error frecuente en entornos académicos y profesionales consiste en reducir la visualización analítica a la elección de gráficos. En realidad, visualizar implica decidir qué métrica se observa, en qué contexto temporal o dimensional, respecto a qué meta se compara y qué acción se espera del usuario. Un gráfico de barras puede ser adecuado para comparar categorías, pero no necesariamente para evaluar cumplimiento contra un objetivo. En cambio, un KPI, un medidor, una tarjeta con variación o una tabla con formato condicional pueden comunicar mejor el estado de desempeño.
+
+\subsection{Del dato al indicador}
+Para construir una visualización analítica útil se suele recorrer una secuencia conceptual:
+\begin{enumerate}[label=\textbf{V\arabic*.}, leftmargin=*]
+\item \textbf{Definir el objetivo de negocio:} por ejemplo, mejorar la ejecución presupuestaria o incrementar ventas por canal.
+\item \textbf{Seleccionar la medida principal:} ingreso, margen, unidades, costo, cumplimiento porcentual, desviación, entre otros.
+\item \textbf{Definir la meta o referencia:} presupuesto, forecast, valor objetivo, promedio histórico o benchmark.
+\item \textbf{Elegir dimensiones de análisis:} tiempo, región, producto, cliente, unidad organizacional.
+\item \textbf{Diseñar la representación visual:} KPI, scorecard, tarjeta, matriz, gráfico de tendencia o semáforo.
+\end{enumerate}
+
+Cuando este proceso se ejecuta correctamente, el tablero resultante no solo informa sino orienta. Permite ver si existe desviación, dónde ocurre y qué segmento requiere atención.
+
+\subsection{KPIs y scorecards en el ciclo de decisión}
+Los KPI permiten resumir el estado de una métrica frente a una meta, mientras que los scorecards agrupan varios indicadores dentro de una estructura coherente para seguimiento. En Power BI, un visual KPI requiere una medida base, una medida objetivo y un eje de tendencia para contextualizar el comportamiento en el tiempo \cite{ms_kpi_visual}. Esta lógica es especialmente útil cuando el usuario necesita ver no solo un valor actual, sino también si el desempeño mejora o empeora.
+
+% =========================================================
+\section{Modelos tabulares como base de la analítica}
+\subsection{Papel del modelo semántico}
+Las visualizaciones ejecutivas no deben construirse directamente sobre tablas operacionales desordenadas. Un reporte analítico robusto necesita un modelo semántico que represente entidades, relaciones, medidas y jerarquías con lógica de negocio consistente. En el ecosistema Microsoft, los modelos tabulares cumplen esta función y permiten trabajar con tablas relacionadas, columnas calculadas, medidas DAX y estructuras de consumo analítico de alto rendimiento \cite{ms_tabular_models}.
+
+\subsection{Relación entre modelo tabular y calidad de KPI}
+La calidad de un KPI depende de la calidad del modelo tabular que lo sostiene. Si existen relaciones ambiguas, dimensiones incompletas o fechas mal configuradas, el indicador puede mostrar resultados inconsistentes. Por ejemplo, un cálculo de ejecución presupuestaria depende de que el modelo distinga adecuadamente entre valores reales, presupuesto, forecast y calendario fiscal. Del mismo modo, indicadores de crecimiento requieren series temporales válidas y medidas definidas con contexto correcto.
+
+\subsection{Buenas prácticas de modelado para scorecards}
+En términos prácticos, un modelo tabular orientado a scorecards debería procurar:
+\begin{itemize}[leftmargin=*]
+\item una tabla de fechas bien definida para inteligencia de tiempo;
+\item dimensiones limpias y estables para navegación por categorías;
+\item medidas reutilizables para valor actual, meta, variación y porcentaje de cumplimiento;
+\item nomenclatura clara para que el scorecard sea mantenible;
+\item separación entre columnas descriptivas y medidas analíticas.
+\end{itemize}
+
+Estas decisiones simplifican el diseño posterior de visualizaciones y reducen errores de interpretación.
+
+% =========================================================
+\section{Balanced Scorecard y alineación estratégica}
+\subsection{Marco conceptual}
+El Balanced Scorecard, propuesto por Kaplan y Norton, busca traducir la estrategia organizacional en un conjunto balanceado de objetivos e indicadores, evitando depender exclusivamente de métricas financieras \cite{kaplan1992measures,kaplan1996bsc}. Tradicionalmente se organiza en cuatro perspectivas: financiera, clientes, procesos internos, y aprendizaje y crecimiento. Esta estructura permite relacionar resultados con impulsores de desempeño.
+
+\subsection{Aplicación en plataformas BI}
+En una plataforma BI, el Balanced Scorecard puede implementarse como un conjunto de páginas o visuales donde cada perspectiva contiene objetivos, KPI asociados, metas, semáforos y tendencias. El valor del enfoque no radica en replicar un formato clásico de tabla, sino en mostrar cómo las métricas se conectan con la ejecución de la estrategia. Por ejemplo, una caída en satisfacción del cliente puede vincularse con demoras operativas; estas, a su vez, pueden asociarse con cuellos de botella o escasez de capacitación.
+
+\subsection{Diseño de scorecards efectivos}
+Un scorecard eficaz debe:
+\begin{enumerate}[label=\textbf{S\arabic*.}, leftmargin=*]
+\item asociar cada indicador con un objetivo explícito;
+\item mostrar valor actual, meta y desviación;
+\item facilitar lectura rápida mediante formato condicional;
+\item permitir profundizar por dimensión o periodo;
+\item conservar consistencia semántica entre áreas de la organización.
+\end{enumerate}
+
+Cuando estas condiciones se cumplen, el scorecard deja de ser una tabla decorativa y se convierte en una herramienta de gobernanza del desempeño.
+
+% =========================================================
+\section{Semáforos y visualizaciones condicionales}
+\subsection{Lógica de los semáforos}
+Los semáforos constituyen una forma sintética de comunicar cumplimiento. Usualmente emplean colores como verde, amarillo y rojo para señalar si un indicador cumple, está en riesgo o se encuentra fuera de objetivo. Aunque parecen elementos simples, requieren una definición rigurosa de umbrales. Un porcentaje de cumplimiento del 92\% puede ser aceptable en un proceso y crítico en otro. Por ello, el diseño de semáforos debe basarse en reglas de negocio, no en criterios arbitrarios.
+
+\subsection{Formato condicional en Power BI}
+Power BI permite aplicar formato condicional por gradiente, reglas o valores de campo, tanto en tablas y matrices como en otros visuales \cite{ms_conditional_formatting}. Esta capacidad es central para construir scorecards ejecutivos, ya que convierte números en señales visuales de lectura inmediata. Además de colores, se pueden usar iconos, barras de datos y títulos dinámicos para reforzar el significado del reporte.
+
+\subsection{Riesgos de una mala codificación visual}
+El uso indiscriminado de colores puede generar ruido o incluso interpretaciones erróneas. Si demasiados elementos compiten por atención, el usuario no identifica prioridades. También es problemático cuando colores similares representan significados distintos entre páginas del mismo reporte. En consecuencia, se recomienda una semántica visual estable: el mismo color debe significar el mismo estado dentro de toda la solución analítica.
+
+% =========================================================
+\section{Reportes con parámetros y filtros}
+\subsection{Interactividad como apoyo al análisis}
+Un reporte ejecutivo no debe quedarse en una vista rígida. Los usuarios necesitan segmentar información por periodo, región, unidad de negocio, producto o escenario. Los filtros permiten esta personalización sin alterar el modelo subyacente. En Power BI, existen filtros a nivel visual, página, reporte y mecanismos de drillthrough, además de interacciones entre visuales y paneles de filtrado \cite{ms_filters_highlighting}.
+
+\subsection{Parámetros y personalización controlada}
+Los parámetros permiten que un mismo reporte responda a distintos contextos de decisión. Por ejemplo, un tablero financiero puede cambiar entre escenarios de presupuesto, forecast y real; un scorecard comercial puede ajustarse por zona o gerente regional; un panel operativo puede analizar periodos relativos como mes actual, trimestre o acumulado anual. Esta flexibilidad incrementa el valor de la solución BI porque evita duplicar reportes para cada usuario o área.
+
+\subsection{Filtros como parte del mensaje analítico}
+El filtro no debe entenderse solo como una herramienta técnica, sino como parte del mensaje del tablero. Un buen diseño deja claro qué filtros están activos, qué nivel de análisis se observa y qué universo de datos se está comparando. Cuando esto no se comunica bien, el usuario puede sacar conclusiones incorrectas. Incluso los filtros por URL o por parámetros de navegación pueden utilizarse para dirigir al lector a contextos analíticos específicos \cite{ms_url_filters}.
+
+% =========================================================
+\section{Rolling Forecast y análisis presupuestario}
+\subsection{De presupuesto estático a planeación continua}
+El análisis presupuestario tradicional compara resultados reales contra un presupuesto fijo aprobado para un periodo determinado. Aunque esta práctica sigue siendo útil, en entornos cambiantes puede resultar insuficiente. El Rolling Forecast introduce una visión continua, donde el horizonte de planeación se actualiza periódicamente, manteniendo una ventana prospectiva móvil de 12, 18 o 24 meses \cite{oracle_rolling_forecast}.
+
+\subsection{Indicadores presupuestarios en BI}
+Dentro de una plataforma BI, el análisis presupuestario suele incluir medidas como:
+\begin{itemize}[leftmargin=*]
+\item valor real;
+\item presupuesto aprobado;
+\item forecast actualizado;
+\item variación absoluta;
+\item variación porcentual;
+\item cumplimiento contra meta;
+\item tendencia acumulada.
+\end{itemize}
+
+Estos indicadores permiten identificar desviaciones, evaluar eficiencia de ejecución y anticipar decisiones de ajuste. Microsoft documenta reportes de comparación presupuestaria donde se analizan net change, budget amount, variance to budget y variance percentage \cite{ms_budget_comparison}. Aunque el ejemplo pertenece a un contexto específico, ilustra el tipo de lectura que un entorno BI debe ofrecer al área financiera.
+
+\subsection{Utilidad gerencial del Rolling Forecast}
+El Rolling Forecast no sustituye por completo al presupuesto, pero lo complementa con una visión más adaptable. Desde BI, su valor radica en integrar datos históricos, supuestos de negocio y seguimiento continuo en un mismo entorno visual. Esto facilita evaluar escenarios y responder más rápido a cambios de mercado, costos o demanda.
+
+% =========================================================
+\section{Power BI como plataforma de visualización analítica}
+\subsection{Capacidades relevantes}
+Power BI integra modelado, cálculo, visualización y publicación de reportes en una misma plataforma. Su ventaja pedagógica y profesional radica en que permite recorrer todo el ciclo analítico: cargar datos, modelarlos, crear medidas, diseñar tableros y compartir hallazgos. Para la temática de esta semana, destacan tres capacidades:
+\begin{enumerate}[label=\textbf{P\arabic*.}, leftmargin=*]
+\item \textbf{Modelo tabular y medidas DAX} para construir indicadores robustos.
+\item \textbf{Visuales KPI, tablas, matrices y segmentadores} para scorecards ejecutivos.
+\item \textbf{Formato condicional, filtros y navegación} para experiencia analítica interactiva.
+\end{enumerate}
+
+\subsection{Diseño de dashboards ejecutivos}
+Un dashboard ejecutivo en Power BI debe privilegiar claridad, síntesis y jerarquía visual. La parte superior suele reservarse para indicadores clave; la zona media para tendencias y comparaciones; y la parte inferior para desagregaciones o causas. Esta distribución no es obligatoria, pero refleja una lógica de lectura orientada a decisiones. Cuando el tablero incorpora demasiados elementos sin jerarquía, pierde efectividad.
+
+\subsection{Consideraciones de gobernanza}
+Publicar un reporte no equivale a resolver la necesidad analítica. También deben considerarse permisos, actualización de datos, consistencia entre versiones y definición institucional de métricas. En soluciones empresariales, el mayor riesgo no suele ser la ausencia de gráficos, sino la coexistencia de múltiples versiones de la verdad.
+
+% =========================================================
+\section{Consultas y fórmulas analíticas con DAX y MDX}
+\subsection{DAX como lenguaje de medidas}
+DAX es el lenguaje principal para definir medidas y cálculos en modelos tabulares de Power BI, Power Pivot y Analysis Services Tabular \cite{ms_dax_overview}. Su potencia reside en que permite construir medidas sensibles al contexto de filtro, cálculos temporales y agregaciones condicionadas. Esto lo vuelve indispensable para KPI que dependen de comparaciones entre actual, objetivo, acumulado o periodo anterior.
+
+Ejemplos típicos de uso en scorecards incluyen:
+\begin{itemize}[leftmargin=*]
+\item porcentaje de cumplimiento contra meta;
+\item variación presupuesto vs.\ real;
+\item crecimiento intermensual o interanual;
+\item acumulados YTD;
+\item indicadores que cambian según filtros activos.
+\end{itemize}
+
+\subsection{MDX en modelos multidimensionales}
+MDX continúa siendo relevante cuando el análisis se apoya en cubos multidimensionales y jerarquías formales en Analysis Services. Microsoft documenta la estructura de consultas MDX para recuperar miembros, medidas y subconjuntos del cubo \cite{ms_mdx_basic_query}. En contextos académicos, MDX es importante porque ayuda a comprender el análisis multidimensional clásico y la lógica de navegación por jerarquías.
+
+\subsection{Diferencias analíticas}
+En términos generales, DAX está más asociado con modelos tabulares y cálculos dentro del contexto de filtro, mientras que MDX se vincula con consultas sobre estructuras multidimensionales y navegación por miembros. Ambos pueden convivir en el ecosistema BI, y su estudio fortalece la capacidad del estudiante para entender distintas formas de modelar y consultar información analítica.
+
+% =========================================================
+\section{Metodología sugerida para construir KPI y scorecards}
+Para fines académicos y de laboratorio, una metodología útil de construcción puede organizarse en siete pasos:
+
+\begin{enumerate}[label=\textbf{M\arabic*.}, leftmargin=*]
+\item \textbf{Definir el objetivo de negocio.} Determinar qué pregunta debe responder el tablero.
+\item \textbf{Modelar los datos.} Construir tablas de hechos y dimensiones o un modelo tabular equivalente.
+\item \textbf{Diseñar las medidas.} Crear indicadores base, metas, variaciones y semáforos.
+\item \textbf{Validar con casos manuales.} Verificar que las fórmulas respondan correctamente en ejemplos controlados.
+\item \textbf{Diseñar la visualización.} Elegir KPI, scorecards, matrices o tendencias según el propósito.
+\item \textbf{Agregar filtros y parámetros.} Permitir exploración sin perder consistencia.
+\item \textbf{Revisar con criterio estratégico.} Confirmar que el reporte realmente ayuda a decidir.
+\end{enumerate}
+
+Esta metodología refuerza la idea de que un tablero ejecutivo no se improvisa. Requiere diseño conceptual, modelado técnico y validación rigurosa.
+
+% =========================================================
+\section{Caso de aplicación: tablero de desempeño financiero y operativo}
+Supóngase una organización que desea monitorear ventas, margen, ejecución presupuestaria y cumplimiento de servicio. Un tablero inicial podría contener:
+\begin{itemize}[leftmargin=*]
+\item KPI de ventas reales contra meta mensual;
+\item KPI de margen operativo contra forecast;
+\item scorecard por región con semáforos de cumplimiento;
+\item gráfico de tendencia con Rolling Forecast de 12 meses;
+\item matriz con variación presupuesto vs.\ real por centro de costo;
+\item filtros por mes, región, unidad de negocio y canal.
+\end{itemize}
+
+En este escenario, el modelo tabular debe integrar hechos financieros y operativos, además de dimensiones consistentes de tiempo, región y producto. Las medidas DAX calcularían cumplimiento, variaciones y acumulados. El formato condicional resaltaría unidades críticas, mientras que filtros y navegación permitirían explorar causas de desviación. Este ejemplo resume cómo los temas de la semana convergen en una solución BI coherente.
+
+% =========================================================
+\section{Recomendaciones de diseño y errores frecuentes}
+\subsection{Recomendaciones}
+\begin{itemize}[leftmargin=*]
+\item Priorizar indicadores vinculados con decisiones reales.
+\item Usar pocas métricas principales por página para evitar saturación.
+\item Mantener una semántica visual consistente en colores y estados.
+\item Documentar fórmulas DAX y definiciones de KPI.
+\item Validar cifras con usuarios del negocio antes de publicar.
+\end{itemize}
+
+\subsection{Errores frecuentes}
+\begin{itemize}[leftmargin=*]
+\item confundir volumen de visuales con calidad analítica;
+\item mezclar métricas operativas y estratégicas sin jerarquía;
+\item crear semáforos sin umbrales definidos por negocio;
+\item no considerar contexto temporal en medidas;
+\item permitir filtros ambiguos que alteran la interpretación del reporte.
+\end{itemize}
+
+Reconocer estos errores es parte del aprendizaje, ya que el objetivo del BI no es producir dashboards vistosos, sino reportes confiables, útiles y sostenibles.
+
+% =========================================================
+\section{Conclusiones}
+La visualización analítica, los KPI y los scorecards constituyen una capa decisiva dentro de las plataformas BI porque conectan el dato procesado con la gestión organizacional. A través de modelos tabulares, medidas DAX, consultas MDX, reglas de formato condicional y mecanismos de filtrado, es posible traducir grandes volúmenes de información en señales ejecutivas claras.
+
+La sesión también evidencia que el valor de un tablero depende de su fundamento conceptual. Sin pensamiento estratégico, los KPI pierden relevancia; sin rigor analítico, las fórmulas pueden inducir errores; sin responsabilidad, los reportes comprometen decisiones críticas; y sin innovación aplicada, la información sigue atrapada en procesos manuales y lentos. En consecuencia, aprender BI implica tanto desarrollar competencias técnicas como consolidar criterios profesionales de diseño, validación y comunicación.
+
+En términos prácticos, el estudiante debe comprender que Power BI y herramientas afines no son solo plataformas de gráficos, sino entornos completos de modelado y análisis. El uso correcto de Balanced Scorecard, semáforos, scorecards financieros, reportes parametrizados y Rolling Forecast permite construir soluciones orientadas a seguimiento estratégico y presupuestario. Este es el punto donde la inteligencia de negocios se vuelve verdaderamente útil para la organización.
+
+\newpage
+\begin{thebibliography}{99}
+
+\bibitem{kaplan1996bsc}
+Kaplan, R. S., y Norton, D. P.
+\textit{The Balanced Scorecard: Translating Strategy into Action}.
+Harvard Business School Press, 1996.
+
+\bibitem{kaplan1992measures}
+Kaplan, R. S., y Norton, D. P.
+``The Balanced Scorecard: Measures That Drive Performance''.
+\textit{Harvard Business Review}, vol. 70, no. 1, pp. 71--79, 1992.
+
+\bibitem{ms_dax_overview}
+Microsoft.
+\textit{DAX overview}.
+Disponible en: \url{https://learn.microsoft.com/dax/dax-overview}
+Acceso: 3 de marzo de 2026.
+
+\bibitem{ms_mdx_basic_query}
+Microsoft.
+\textit{MDX Query Fundamentals (Analysis Services)}.
+Disponible en: \url{https://learn.microsoft.com/en-us/analysis-services/multidimensional-models/mdx/mdx-query-the-basic-query}
+Acceso: 3 de marzo de 2026.
+
+\bibitem{ms_kpi_visual}
+Microsoft.
+\textit{Create key performance indicator (KPI) visualizations}.
+Disponible en: \url{https://learn.microsoft.com/en-us/power-bi/visuals/power-bi-visualization-kpi}
+Acceso: 3 de marzo de 2026.
+
+\bibitem{ms_conditional_formatting}
+Microsoft.
+\textit{Conditional formatting in Power BI visuals}.
+Disponible en: \url{https://learn.microsoft.com/en-us/power-bi/visuals/power-bi-visualization-conditional-formatting}
+Acceso: 3 de marzo de 2026.
+
+\bibitem{ms_filters_highlighting}
+Microsoft.
+\textit{Filters and highlighting in Power BI reports}.
+Disponible en: \url{https://learn.microsoft.com/en-us/power-bi/create-reports/power-bi-reports-filters-and-highlighting}
+Acceso: 3 de marzo de 2026.
+
+\bibitem{ms_url_filters}
+Microsoft.
+\textit{Filter a report using query string parameters in the URL}.
+Disponible en: \url{https://learn.microsoft.com/en-us/power-bi/collaborate-share/service-url-filters}
+Acceso: 3 de marzo de 2026.
+
+\bibitem{ms_budget_comparison}
+Microsoft.
+\textit{Budget Comparison (Power BI report)}.
+Disponible en: \url{https://learn.microsoft.com/en-us/dynamics365/business-central/finance-powerbi-budget-comparison}
+Acceso: 3 de marzo de 2026.
+
+\bibitem{oracle_rolling_forecast}
+Oracle.
+\textit{About Rolling Forecasts}.
+Disponible en: \url{https://docs.oracle.com/en/cloud/saas/freeform/freef/about_rolling_forecasts.html}
+Acceso: 3 de marzo de 2026.
+
+\bibitem{ms_tabular_models}
+Microsoft.
+\textit{Tabular models in Analysis Services}.
+Disponible en: \url{https://learn.microsoft.com/en-us/analysis-services/tabular-models/tabular-models-ssas}
+Acceso: 3 de marzo de 2026.
+
+\end{thebibliography}
+
+\end{document}

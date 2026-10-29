@@ -1,0 +1,465 @@
+% !TeX program = pdflatex
+% Compilación recomendada (por la bibliografía):
+%   pdflatex documento_apoyo_airflow3.tex
+%   biber documento_apoyo_airflow3
+%   pdflatex documento_apoyo_airflow3.tex
+%   pdflatex documento_apoyo_airflow3.tex
+
+\begin{filecontents*}{referencias_airflow3.bib}
+@online{airflow_docs,
+  title        = {Documentation | Apache Airflow},
+  organization = {Apache Software Foundation},
+  url          = {https://airflow.apache.org/docs/},
+  urldate      = {2026-02-17}
+}
+
+@online{airflow_release_notes_3,
+  title        = {Release Notes — Airflow Documentation (Airflow 3.0.0 Highlights)},
+  organization = {Apache Software Foundation},
+  url          = {https://airflow.apache.org/docs/apache-airflow/stable/release_notes.html},
+  urldate      = {2026-02-17}
+}
+
+@online{airflow_upgrading_3_stable,
+  title        = {Upgrading to Airflow 3 — Airflow Documentation},
+  organization = {Apache Software Foundation},
+  url          = {https://airflow.apache.org/docs/apache-airflow/stable/installation/upgrading_to_airflow3.html},
+  urldate      = {2026-02-17}
+}
+
+@online{airflow_public_interface,
+  title        = {Public Interface for Airflow 3.0+ — Airflow Documentation},
+  organization = {Apache Software Foundation},
+  url          = {https://airflow.apache.org/docs/apache-airflow/stable/public-airflow-interface.html},
+  urldate      = {2026-02-17}
+}
+
+@online{airflow_blog_3_ga,
+  title        = {Apache Airflow® 3 is Generally Available!},
+  organization = {Apache Software Foundation},
+  url          = {https://airflow.apache.org/blog/airflow-three-point-oh-is-here/},
+  urldate      = {2026-02-17}
+}
+
+@online{airflow_upgrade_3_breaking,
+  title        = {Upgrading to Airflow 3 (Airflow 3.0.0) — Breaking Changes},
+  organization = {Apache Software Foundation},
+  url          = {https://airflow.apache.org/docs/apache-airflow/3.0.0/installation/upgrading_to_airflow3.html},
+  urldate      = {2026-02-17}
+}
+
+@online{airflow_standard_provider_bash,
+  title        = {BashOperator — apache-airflow-providers-standard Documentation},
+  organization = {Apache Software Foundation},
+  url          = {https://airflow.apache.org/docs/apache-airflow-providers-standard/stable/operators/bash.html},
+  urldate      = {2026-02-17}
+}
+
+@online{airflow_standard_provider_python_api,
+  title        = {airflow.providers.standard.operators.python — API Reference},
+  organization = {Apache Software Foundation},
+  url          = {https://airflow.apache.org/docs/apache-airflow-providers-standard/stable/_api/airflow/providers/standard/operators/python/index.html},
+  urldate      = {2026-02-17}
+}
+\end{filecontents*}
+
+\documentclass[12pt]{article}
+
+% Idioma y codificación
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+
+% Página y espaciado
+\usepackage{geometry}
+\geometry{letterpaper, margin=1in}
+\usepackage{setspace}
+\onehalfspacing
+
+% Tipografía y microajustes
+\usepackage{microtype}
+\usepackage{csquotes}
+
+% Figuras (opcional) y tablas
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+
+% Listas
+\usepackage{enumitem}
+
+% Código
+\usepackage{listingsutf8}
+\usepackage{listings}
+\lstset{inputencoding=utf8}
+\lstset{literate=%
+  {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'\i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+  {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+  {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {ü}{{\"u}}1 {Ü}{{\"U}}1
+}
+\usepackage{xcolor}
+\lstdefinestyle{python}{%
+  language=Python,
+  inputencoding=utf8,
+  basicstyle=\ttfamily\small,
+  numbers=left,
+  numberstyle=\tiny,
+  stepnumber=1,
+  numbersep=8pt,
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=2,
+  frame=single
+}
+\lstdefinestyle{bash}{%
+  language=bash,
+  inputencoding=utf8,
+  basicstyle=\ttfamily\small,
+  numbers=left,
+  numberstyle=\tiny,
+  stepnumber=1,
+  numbersep=8pt,
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=2,
+  frame=single
+}
+
+% Hipervínculos
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  urlcolor=blue,
+  citecolor=blue
+}
+
+% Formato académico
+\usepackage{titlesec}
+\usepackage{etoolbox}
+\titlespacing*{\section}{0pt}{3ex plus 1ex minus .2ex}{2ex}
+\titlespacing*{\subsection}{0pt}{2.5ex plus 1ex minus .2ex}{1.5ex}
+\titlespacing*{\subsubsection}{0pt}{2ex plus 1ex minus .2ex}{1ex}
+\preto\section{\clearpage}
+
+% Encabezados y pies
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Documento de apoyo (Airflow 3.x)}
+\rhead{Orquestación de pipelines}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Bibliografía (biblatex + biber)
+\usepackage[
+  backend=biber,
+  style=ieee,
+  sorting=nyt,
+  maxbibnames=99
+]{biblatex}
+\addbibresource{referencias_airflow3.bib}
+
+\title{\textbf{Documento de apoyo (Sesión 4, Unidad 2)}\\
+\large Orquestación de pipelines de datos con Apache Airflow 3.x\\
+\normalsize Teoría práctica para entender y usar Airflow en flujos ETL/ELT}
+\author{Javier Andrés Valdez González / Auxiliar \\
+\small Seminario de Sistemas 2 — Sección P \\
+\small Universidad de San Carlos de Guatemala}
+\date{Febrero de 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Este documento complementa el material de la Sesión 3 (ETL y su rol en OLAP) enfocándose en el \textit{cómo operar} un flujo de datos de forma confiable: \textbf{orquestación}. Apache Airflow 3.x es un orquestador de workflows que permite describir procesos como un grafo acíclico dirigido (DAG), ejecutar tareas con control de dependencias, reintentos, observabilidad y gobierno operativo. El énfasis aquí no es redefinir ETL, sino explicar los conceptos, componentes y patrones necesarios para \textbf{autoría, ejecución y operación} de DAGs en Airflow 3.x, considerando los cambios arquitectónicos y de interfaz pública introducidos en la versión 3.
+\end{abstract}
+
+\section{Introducción: de ``transformar datos'' a ``operar procesos''}
+En un curso de inteligencia de negocios, la construcción de un pipeline rara vez falla por la idea conceptual (extraer--transformar--cargar), sino por su operación diaria: dependencias entre pasos, ejecuciones parciales, reintentos, \textit{backfills}, credenciales, auditoría, trazabilidad, alertas y recuperación ante errores. Airflow se sitúa en ese plano operativo: define \textbf{qué} se ejecuta, \textbf{cuándo} se ejecuta y \textbf{bajo qué condiciones} se considera exitoso.
+
+Airflow 3.0 marca un punto de inflexión al adoptar una arquitectura \textit{service-oriented} y una \textbf{interfaz pública estable} para autores de DAGs basada en \texttt{airflow.sdk} \cite{airflow_release_notes_3,airflow_public_interface}. Por tanto, aprender Airflow 3.x implica dominar: (i) el modelo mental DAG--Task--Run, (ii) la planificación (scheduling) y control de concurrencia, y (iii) prácticas de autoría que sean robustas frente a cambios de versión.
+
+\section{Conceptos esenciales}
+\subsection{DAG, tarea y ejecución}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{DAG (Directed Acyclic Graph):} definición del workflow. Describe tareas y dependencias; no ejecuta por sí mismo.
+  \item \textbf{Task:} unidad mínima de trabajo dentro del DAG. En Airflow, una \textit{task} se materializa mediante un \textbf{Operator} (plantilla ejecutable) o mediante la \textbf{TaskFlow API} (\texttt{@task}).
+  \item \textbf{DagRun:} una instancia de ejecución del DAG (por horario, manual o evento).
+  \item \textbf{TaskInstance:} ejecución específica de una tarea dentro de un \textit{DagRun}. Es lo que realmente ``corre'' y produce logs/estado.
+\end{itemize}
+En producción, lo importante es separar \textit{definición} (DAG) de \textit{instanciación} (DagRun) y de \textit{ejecución} (TaskInstance). Esta separación explica por qué un DAG puede existir sin ejecutarse, y por qué un mismo DAG genera muchas ejecuciones históricas.
+
+\subsection{Operators, Sensors, Hooks y Providers}
+Airflow integra con sistemas externos a través de \textbf{providers} (paquetes versionados de forma independiente del core). Un provider aporta:
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Operators:} realizan acciones (ejecutar SQL, disparar un job, invocar una API).
+  \item \textbf{Sensors:} esperan condiciones (archivo disponible, partición creada). En versiones modernas, muchos sensores pueden ser \textit{deferrable} (no consumen un worker durante la espera).
+  \item \textbf{Hooks:} encapsulan conectividad (credenciales, clientes, sesiones) hacia el sistema externo.
+\end{itemize}
+En Airflow 3, varios operadores comunes se movieron a \texttt{apache-airflow-providers-standard} (por ejemplo \texttt{BashOperator} y \texttt{PythonOperator}), por lo que su importación típica se realiza desde \texttt{airflow.providers.standard...} \cite{airflow_upgrade_3_breaking,airflow_standard_provider_bash}.
+
+\subsection{Comunicación y configuración: XComs, Variables y Connections}
+\textbf{XCom} es el mecanismo de comunicación entre tareas para pasar valores pequeños (metadatos, rutas, IDs). No está pensado para transportar dataframes o datasets completos.
+\textbf{Variable} y \textbf{Connection} representan configuración y credenciales administradas por Airflow. En Airflow 3 se recomienda acceder a estos recursos mediante el \textbf{Task SDK} (\texttt{airflow.sdk}) o mediante el contexto de tarea \cite{airflow_public_interface}.
+
+\section{Arquitectura de Airflow 3.x (qué corre y por qué importa)}
+Airflow 3.x introduce un cambio clave: \textbf{las tareas ya no deben acceder directamente a la base de metadatos}. En su lugar, el \textbf{API server} actúa como punto de acceso central para tareas y workers \cite{airflow_upgrading_3_stable}. Esto reduce riesgos de seguridad (código de usuario con acceso total a metadatos) y mejora escalabilidad (menos conexiones directas al DB).
+
+\subsection{Componentes principales}
+\begin{longtable}{p{0.22\textwidth}p{0.74\textwidth}}
+\toprule
+\textbf{Componente} & \textbf{Responsabilidad operativa}\\
+\midrule
+\endhead
+\textbf{Scheduler} & Decide qué \textit{TaskInstances} están listas (dependencias satisfechas), aplica reglas de concurrencia, encola ejecución y coordina \textit{backfills}. Airflow 3 incluye mejoras relevantes en \textit{backfills} administrados por scheduler \cite{airflow_blog_3_ga,airflow_release_notes_3}.\\
+\textbf{DAG Processor} & Proceso dedicado a parsear DAGs. Separa la ``lectura de código'' del resto del sistema, mejorando estabilidad; implica que el \textit{código a nivel de módulo} debe ser liviano. \cite{airflow_upgrade_3_breaking}\\
+\textbf{API Server (UI/REST)} & Expone la UI modernizada y la API REST. En Airflow 3, el comando \texttt{airflow api-server} reemplaza al webserver tradicional \cite{airflow_upgrade_3_breaking}.\\
+\textbf{Executor / Workers} & Ejecutan las tareas. Airflow soporta distintos ejecutores (Local, Celery, Kubernetes, Edge) y en Airflow 3 se refuerza una \textit{Task Execution API} que permite mayor aislamiento y ejecución remota \cite{airflow_release_notes_3}.\\
+\textbf{Metadata DB} & Persistencia de estado (DAGs, runs, tasks, logs referenciados, conexiones/variables en algunos despliegues). En Airflow 3 se busca minimizar acceso directo desde tareas \cite{airflow_upgrading_3_stable}.\\
+\bottomrule
+\end{longtable}
+
+\subsection{Implicaciones prácticas para autores de DAGs}
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{No asumir acceso a modelos internos} (SQLAlchemy, sesiones, tablas de Airflow). Está restringido \cite{airflow_upgrading_3_stable}.
+  \item \textbf{Usar la interfaz pública estable:} \texttt{airflow.sdk} para DAGs/tareas y utilidades públicas \cite{airflow_public_interface}.
+  \item \textbf{Minimizar trabajo en tiempo de parseo:} evitar consultas, lectura de archivos grandes o llamadas de red en el nivel superior del archivo DAG.
+\end{enumerate}
+
+\section{Autoría de DAGs en Airflow 3: interfaz estable con \texttt{airflow.sdk}}
+\subsection{Imports recomendados}
+Airflow 3 formaliza \texttt{airflow.sdk} como interfaz primaria para autores de DAGs: \texttt{dag()}, \texttt{task()}, \texttt{TaskGroup}, \texttt{Asset}, \texttt{Variable}, \texttt{Connection}, y acceso al contexto con \texttt{get\_current\_context()} \cite{airflow_public_interface}.
+
+\begin{lstlisting}[style=python,caption={Estructura mínima de un DAG con TaskFlow API (Airflow 3.x)}]
+from datetime import datetime
+from airflow.sdk import dag, task
+
+@dag(
+    dag_id="ejemplo_minimo_taskflow",
+    start_date=datetime(2025, 1, 1),
+    schedule="0 2 * * *",
+    catchup=False,
+    tags=["demo", "airflow3"]
+)
+def pipeline():
+    @task
+    def paso_a():
+        return "ok"
+
+    @task
+    def paso_b(msg: str):
+        print(f"Mensaje: {msg}")
+
+    paso_b(paso_a())
+
+pipeline()
+\end{lstlisting}
+
+\subsection{Acceso a Variables y Connections (sin DB directo)}
+Airflow 3 recomienda acceder a variables y conexiones vía \textbf{contexto} o directamente desde el SDK \cite{airflow_public_interface}.
+
+\begin{lstlisting}[style=python,caption={Acceso a Variable/Connection usando el contexto de tarea (recomendado)}]
+from airflow.sdk import task, get_current_context
+
+@task
+def usa_configuracion():
+    ctx = get_current_context()
+    conn = ctx["conn"].get("mi_conn_id")   # Connection administrada por Airflow
+    umbral = int(ctx["var"].value.get("umbral_calidad", "0"))  # Variable
+
+    # Ejemplo: usar credenciales para conectar a un servicio externo
+    print(conn.host, conn.login, umbral)
+\end{lstlisting}
+
+\begin{lstlisting}[style=python,caption={Acceso directo (SDK) a Connection/Variable}]
+from airflow.sdk import Connection, Variable
+
+mi_conn = Connection.get("mi_conn_id")
+umbral = Variable.get("umbral_calidad", default_var="0")
+\end{lstlisting}
+
+\subsection{Operadores del ``standard provider''}
+En Airflow 3, para operadores comunes se requiere instalar \texttt{apache-airflow-providers-standard} y usar sus rutas de importación \cite{airflow_upgrade_3_breaking,airflow_standard_provider_bash,airflow_standard_provider_python_api}.
+
+\begin{lstlisting}[style=python,caption={Ejemplo de uso de BashOperator desde el provider estándar}]
+from datetime import datetime
+from airflow.sdk import dag
+from airflow.providers.standard.operators.bash import BashOperator
+
+@dag(dag_id="ejemplo_bash", start_date=datetime(2025, 1, 1), schedule=None, catchup=False)
+def ejemplo():
+    BashOperator(
+        task_id="listar",
+        bash_command="ls -la"
+    )
+
+ejemplo()
+\end{lstlisting}
+
+\section{Planificación: horarios, data intervals, catchup y backfill}
+\subsection{Schedule vs. ejecución real}
+El atributo \texttt{schedule} define la intención (cron, @daily, o un \textit{timetable}). El scheduler determina cuándo crear \textit{DagRuns}. En Airflow 3, \texttt{catchup} es \textbf{False por defecto}, reduciendo ejecuciones masivas no deseadas al desplegar un DAG nuevo \cite{airflow_upgrade_3_breaking}.
+
+\subsection{Backfills administrados por scheduler}
+El \textit{backfill} es la re-ejecución histórica para intervalos pasados (por ejemplo, rehacer particiones faltantes). Airflow 3 mejora el soporte de backfills al administrarlos desde el scheduler, con monitoreo vía UI/API \cite{airflow_blog_3_ga,airflow_release_notes_3}. Operativamente, esto facilita:
+\begin{itemize}[leftmargin=*]
+  \item control centralizado de concurrencia,
+  \item diagnósticos consistentes,
+  \item ejecución segura sin scripts manuales externos.
+\end{itemize}
+
+\subsection{Versionado de DAG}
+Airflow 3 incorpora \textbf{DAG Versioning}: un \textit{DagRun} se completa usando la versión del DAG con la que inició, incluso si se despliega una nueva versión a mitad de ejecución \cite{airflow_blog_3_ga}. Esto reduce resultados inconsistentes por cambios de código durante un run activo, y mejora trazabilidad (código, estructura y logs asociados a una versión).
+
+\section{Control de flujo y confiabilidad (patrones operativos)}
+\subsection{Reintentos, timeouts y reglas de disparo}
+A nivel de tarea, se recomienda definir parámetros como:
+\begin{itemize}[leftmargin=*]
+  \item \texttt{retries} y \texttt{retry\_delay}: para fallas transitorias (red, rate limits).
+  \item \texttt{execution\_timeout}: evita tareas colgadas.
+  \item \texttt{trigger\_rule}: controla cómo se comporta una tarea cuando hay upstream fallando o saltado (\textit{skipped}).
+\end{itemize}
+Estas configuraciones son parte del diseño de confiabilidad: un pipeline robusto asume fallas parciales y define qué significa ``completo'' de forma explícita.
+
+\subsection{Branching y ShortCircuit}
+Para rutas condicionales (por ejemplo, \textit{si no hay nuevos datos, no cargar}), se usa branching (por ejemplo \texttt{BranchPythonOperator}) o \texttt{ShortCircuitOperator}. En Airflow 3 estos operadores están disponibles vía el provider estándar \cite{airflow_standard_provider_python_api}.
+
+\subsection{TaskGroup y legibilidad}
+Los DAGs crecen rápido. \texttt{TaskGroup} permite agrupar tareas y mantener legibilidad sin recurrir a SubDAGs (removidos) \cite{airflow_upgrade_3_breaking,airflow_public_interface}.
+
+\subsection{Dynamic Task Mapping (map) como patrón de paralelismo}
+Cuando existe una lista de particiones/archivos, es común mapear una tarea sobre esa lista (p.\,ej., un task por archivo). El valor práctico es: paralelismo controlado + observabilidad por partición (cada mapeo es una TaskInstance con \texttt{map\_index}).
+
+\section{Orquestación orientada a datos: Assets y scheduling por eventos}
+Airflow 3 refuerza un estilo \textit{data-aware}: en lugar de pensar ``ejecuta a las 2am'', se puede pensar ``ejecuta cuando el dataset X se actualice'' \cite{airflow_blog_3_ga,airflow_release_notes_3}. Este enfoque es útil cuando:
+\begin{itemize}[leftmargin=*]
+  \item los orígenes publican eventos (colas, almacenamiento, CDC),
+  \item el horario fijo no garantiza disponibilidad de datos,
+  \item se desea encadenar pipelines por producción/consumo de \textit{assets}.
+\end{itemize}
+
+\begin{lstlisting}[style=python,caption={Ejemplo conceptual de asset como contrato de datos (Airflow 3.x)}]
+from datetime import datetime
+from airflow.sdk import dag, task, asset, Asset
+
+ventas_diarias = Asset("warehouse://dw/fact_ventas_diarias")
+
+@dag(dag_id="producer_ventas", start_date=datetime(2025, 1, 1), schedule="0 2 * * *", catchup=False)
+def producer():
+    @task(outlets=[ventas_diarias])
+    def construir_fact():
+        # construir partición y publicarla como asset
+        pass
+    construir_fact()
+
+@dag(dag_id="consumer_kpis", start_date=datetime(2025, 1, 1), schedule=[ventas_diarias], catchup=False)
+def consumer():
+    @task
+    def recalcular_kpis():
+        pass
+    recalcular_kpis()
+
+producer()
+consumer()
+\end{lstlisting}
+El ejemplo ilustra el contrato: el productor declara que \textit{produce} un asset (\texttt{outlets}) y el consumidor se agenda cuando el asset está disponible (en lugar de por cron).
+
+\section{Observabilidad: UI, logs y trazabilidad}
+Airflow 3 moderniza la UI (React) y mejora la navegación entre vistas \textit{task-centric} y \textit{asset-centric} \cite{airflow_blog_3_ga}. En operación, la observabilidad suele reducirse a tres preguntas:
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{¿Qué falló y dónde?} (estado de TaskInstances, logs, stacktrace).
+  \item \textbf{¿Desde cuándo y con qué impacto?} (runs históricos, backfills, retrasos).
+  \item \textbf{¿Qué cambió?} (versionado de DAG, cambios de código, parámetros).
+\end{enumerate}
+A nivel de diseño, conviene que cada tarea sea \textbf{idempotente} (re-ejecutable), con logs útiles y validaciones explícitas (por ejemplo conteos, checksums o pruebas de calidad).
+
+\section{Despliegue y operación}
+Aunque el despliegue suele ser responsabilidad del equipo de plataforma, el autor de DAG debe comprender restricciones básicas:
+
+\subsection{Ejecución local vs. producción}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Local:} útil para aprender. Se puede usar el \textit{Docker stack} oficial o un executor local.
+  \item \textbf{Producción:} suele requerir múltiples componentes (scheduler, api-server, dag-processor, workers) y un DB robusto. El Helm Chart oficial es una vía común en Kubernetes \cite{airflow_docs}.
+\end{itemize}
+
+\subsection{CLI y ``airflowctl''}
+Airflow 3 introduce \texttt{airflowctl} como CLI que interactúa exclusivamente con la API REST, evitando acceso directo a la base de metadatos y facilitando trazabilidad y auditoría \cite{airflow_docs}.
+
+\subsection{Cambio de procesos de arranque}
+En Airflow 3, el webserver pasa a ser un API server genérico y el DAG processor se inicia por separado (aun en setups de desarrollo) \cite{airflow_upgrade_3_breaking}. Esto explica por qué ``antes funcionaba con un solo comando'' y ahora hay más procesos: es parte del rediseño arquitectónico.
+
+\section{Mini-caso: envolver un pipeline ETL existente con Airflow (sin redefinir ETL)}
+Asumiendo que ya existe un script o librería Python que hace (i) extraer, (ii) transformar y (iii) cargar, el valor de Airflow es \textbf{operar el ciclo completo} con control de errores y auditabilidad. Un patrón típico es:
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Preparación}: validar parámetros, verificar conectividad.
+  \item \textbf{Ejecución}: correr la carga (por partición, por fecha, por archivo).
+  \item \textbf{Calidad}: checks (conteos, nulos, umbrales).
+  \item \textbf{Publicación}: marcar un asset/listo, o notificar.
+\end{enumerate}
+
+\begin{lstlisting}[style=python,caption={Esqueleto de DAG para orquestar un script ETL existente por fecha}]
+from datetime import datetime
+from airflow.sdk import dag, task, get_current_context
+
+@dag(
+    dag_id="orquesta_etl_por_fecha",
+    start_date=datetime(2025, 1, 1),
+    schedule="0 2 * * *",
+    catchup=False,
+    tags=["etl", "orquestacion"]
+)
+def orquesta():
+    @task
+    def parametros():
+        ctx = get_current_context()
+        # En Airflow, la fecha lógica del run sirve como partición de negocio
+        logical_date = ctx["logical_date"]  # datetime
+        return {"fecha": logical_date.strftime("%Y-%m-%d")}
+
+    @task(retries=2)
+    def ejecutar_etl(params: dict):
+        fecha = params["fecha"]
+        # Llamar librería interna o script (ej: subprocess, import, etc.)
+        # run_pipeline(fecha=fecha)
+        print(f"Ejecutando ETL para {fecha}")
+
+    @task
+    def checks(params: dict):
+        fecha = params["fecha"]
+        # checks de calidad y auditoría: conteos, duplicados, nulos, etc.
+        print(f"Checks de calidad para {fecha}")
+
+    p = parametros()
+    ejecutar_etl(p) >> checks(p)
+
+orquesta()
+\end{lstlisting}
+El ejemplo enfatiza una idea: \textbf{la partición (fecha lógica) vive en el run}, y las tareas son idempotentes y re-ejecutables. Esto habilita reintentos, backfills y diagnósticos de forma natural.
+
+\section{Buenas prácticas y anti-patrones}
+\begin{longtable}{p{0.48\textwidth}p{0.48\textwidth}}
+\toprule
+\textbf{Buena práctica} & \textbf{Anti-patrón típico}\\
+\midrule
+\endhead
+Tareas idempotentes y con efectos controlados. & Tareas que ``acumulan'' datos sin control cuando se reintentan.\\
+Usar \texttt{airflow.sdk} y providers; evitar imports internos. & Importar modelos internos o sesiones del metadata DB (bloqueado en Airflow 3).\\
+XCom solo para metadatos (rutas, IDs, banderas). & Enviar grandes datasets por XCom.\\
+Validar dependencias y credenciales como paso inicial. & Descubrir que falta una librería/permiso en el último paso del pipeline.\\
+Minimizar trabajo en parseo del DAG. & Consultas o llamadas API a nivel global del archivo DAG.\\
+Usar TaskGroup / mapping para legibilidad y escalabilidad. & DAGs monolíticos con decenas de tareas sin estructura.\\
+\bottomrule
+\end{longtable}
+
+\section{Conclusiones}
+Airflow 3.x no es ``otra herramienta ETL'', sino una plataforma para \textbf{operar workflows} con disciplina: planificación, dependencias, reintentos, trazabilidad y control de ejecuciones históricas. La versión 3 introduce cambios relevantes (API server, DAG processor independiente, Task Execution API y \texttt{airflow.sdk} como interfaz estable) que influyen directamente en cómo se escriben DAGs, cómo se accede a configuración (Variables/Connections) y cómo se mantiene seguridad del sistema \cite{airflow_release_notes_3,airflow_upgrading_3_stable,airflow_public_interface}.
+
+Como siguiente paso práctico (en laboratorio), la recomendación es tomar un pipeline ya construido en Python, envolverlo en un DAG con particionamiento por fecha, agregar checks de calidad y practicar backfills controlados. Esta transición del ``script que corre'' al ``proceso que se opera'' es el objetivo central de aprender Airflow.
+
+\newpage
+\printbibliography
+\end{document}

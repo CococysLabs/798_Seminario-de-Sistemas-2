@@ -1,0 +1,319 @@
+﻿% !TeX program = pdflatex
+\documentclass[12pt]{article}
+
+% Idioma y codificación
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+
+% Página y espaciado (para acercarse a ~15 páginas)
+\usepackage{geometry}
+\geometry{letterpaper, margin=1in}
+\usepackage{setspace}
+\onehalfspacing
+
+% Tipografía y microajustes
+\usepackage{microtype}
+\usepackage{csquotes}
+
+% Tablas
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+
+% Listas
+\usepackage{enumitem}
+
+% Código
+\usepackage{listingsutf8}
+\usepackage{listings}
+\lstset{inputencoding=utf8}
+\lstset{literate=%
+  {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'\i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+  {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+  {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {ü}{{\"u}}1 {Ü}{{\"U}}1
+}
+\usepackage{xcolor}
+\lstdefinestyle{python}{
+  language=Python,
+  inputencoding=utf8,
+  basicstyle=\ttfamily\small,
+  numbers=left,
+  numberstyle=\tiny,
+  stepnumber=1,
+  numbersep=8pt,
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=2,
+  frame=single
+}
+\lstdefinestyle{sql}{
+  language=SQL,
+  inputencoding=utf8,
+  basicstyle=\ttfamily\small,
+  numbers=left,
+  numberstyle=\tiny,
+  stepnumber=1,
+  numbersep=8pt,
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=2,
+  frame=single
+}
+
+% Hipervínculos
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  urlcolor=blue,
+  citecolor=blue
+}
+
+% Formato académico y paginación por sección
+\usepackage{titlesec}
+\usepackage{etoolbox}
+\titlespacing*{\section}{0pt}{3ex plus 1ex minus .2ex}{2ex}
+\titlespacing*{\subsection}{0pt}{2.5ex plus 0.8ex minus .2ex}{1.2ex}
+\titlespacing*{\subsubsection}{0pt}{2ex plus 0.6ex minus .2ex}{1ex}
+\preto\section{\clearpage} % cada sección inicia en nueva hoja
+
+% Encabezados/pies limpios
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Documento de apoyo (Sesión 1, Unidad 1)}
+\rhead{Fundamentos de BI y OLAP}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Bibliografía (biblatex + biber)
+\usepackage[
+  backend=biber,
+  style=ieee,
+  sorting=nyt,
+  maxbibnames=99
+]{biblatex}
+\addbibresource{referencias_semana1.bib}
+
+% Metadatos del documento
+\title{\textbf{Documento de apoyo (Sesión 1, Unidad 1)}\\
+\large Fundamentos de BI y Análisis Multidimensional\\
+\normalsize Introducción a Business Intelligence y OLAP}
+\author{Javier Andrés Valdez González / Auxiliar \\\\
+\small Seminario de Sistemas 2 — Sección P \\
+\small Universidad de San Carlos de Guatemala}
+\date{28 de enero de 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Business Intelligence (BI) reúne procesos, tecnologías y buenas prácticas para convertir datos en información útil, generar análisis y apoyar decisiones. En este contexto, OLAP (Online Analytical Processing) es una tecnología para análisis multidimensional orientada a explorar indicadores desde múltiples perspectivas (por ejemplo: tiempo, región y producto). Este documento introduce los fundamentos de BI y OLAP, distingue tipos de información por estructura y propósito, resume niveles de madurez analítica (descriptivo, diagnóstico, predictivo y prescriptivo), y explica el rol de la calidad, trazabilidad y gobernanza de datos en la toma de decisiones. Finalmente, se describen dimensiones, medidas y operaciones OLAP (drill-down, roll-up, slice, dice y pivot), así como las ventajas del análisis multidimensional para el autoservicio y la consistencia de KPI.
+\end{abstract}
+
+\textbf{Palabras clave:} Business Intelligence, OLAP, análisis multidimensional, Data Warehouse, KPI, DIKW, madurez analítica.
+
+\newpage
+\tableofcontents
+
+% =========================================================
+\section{Panorama general: BI + OLAP}
+Business Intelligence (BI) reúne procesos, tecnologías y buenas prácticas para convertir datos en información útil, generar análisis y apoyar decisiones. OLAP (Online Analytical Processing) es una de las tecnologías clásicas para el análisis multidimensional, muy usada para explorar indicadores por diferentes perspectivas (por ejemplo: tiempo, región, producto).
+
+\subsection*{Objetivos de la unidad}
+\begin{itemize}[leftmargin=*, itemsep=0.25em]
+  \item Reconocer qué es BI y cómo se integra con el análisis de datos.
+  \item Distinguir tipos de información (estructura, propósito y nivel de detalle).
+  \item Identificar niveles de madurez analítica y el valor de cada uno.
+  \item Comprender cómo los datos apoyan la toma de decisiones y el control del desempeño.
+  \item Introducir OLAP y el análisis multidimensional (dimensiones y medidas).
+\end{itemize}
+
+\subsection*{Arquitectura conceptual (alto nivel)}
+A nivel conceptual, una solución BI suele integrar: (i) fuentes de datos operacionales y externas; (ii) un proceso de integración (ETL/ELT) para limpieza y reglas de negocio; (iii) un repositorio analítico (por ejemplo, \textit{Data Warehouse} o \textit{lakehouse}) que preserva histórico; (iv) una capa de modelado semántico (esquemas dimensionales y/o cubos); y (v) mecanismos de consumo como reportes, tableros y consultas \textit{ad-hoc}.
+
+\begin{quote}\small
+Nota: En implementaciones modernas, el DWH puede convivir con un \textit{data lake} o un \textit{lakehouse} y con herramientas de autoservicio.
+\end{quote}
+
+\noindent\textbf{Fuentes:} \cite{gartner_abi, ibm_bi, oracle_bi, gartner_bi_platforms}.
+
+% =========================================================
+\section{¿Qué es Business Intelligence?}
+Business Intelligence (BI) se refiere al conjunto de capacidades que permiten acceder, integrar y analizar información para mejorar el desempeño y optimizar decisiones. BI no es una sola herramienta: incluye integración de datos, almacenamiento analítico, modelado semántico, métricas (KPI) y formas de entrega (reportes, tableros, analítica).
+
+\subsection*{Elementos típicos de una solución BI}
+\begin{itemize}[leftmargin=*, itemsep=0.25em]
+  \item \textbf{Datos:} fuentes internas y externas (transaccionales y no estructuradas).
+  \item \textbf{Integración:} ETL/ELT, limpieza, reglas de negocio, catalogación.
+  \item \textbf{Almacenamiento:} Data Warehouse, data marts o lakehouse, con historia.
+  \item \textbf{Modelos analíticos:} esquemas dimensionales, cubos OLAP, capa semántica.
+  \item \textbf{Consumo:} reportes, dashboards, consultas \textit{ad-hoc} y analítica avanzada.
+\end{itemize}
+
+\subsection*{Beneficios}
+Decisiones más rápidas, consistencia de indicadores, mayor visibilidad del negocio, detección de oportunidades y control de riesgos.
+
+\noindent\textbf{Fuentes:} \cite{gartner_abi, ibm_bi, oracle_bi}.
+
+% =========================================================
+\section{Tipos de información}
+Para BI es clave entender que no todos los datos son iguales. Existen diferencias por su estructura, origen y propósito (operacional vs.\ analítico). Además, BI suele trabajar con información agregada y contextualizada (no solo registros aislados).
+
+\subsection*{Por estructura}
+\begin{itemize}[leftmargin=*, itemsep=0.25em]
+  \item \textbf{Estructurada:} tablas con filas/columnas (por ejemplo, ventas, inventario).
+  \item \textbf{Semi-estructurada:} datos con etiquetas o marcas (JSON, XML, \textit{logs}).
+  \item \textbf{No estructurada:} texto libre, imágenes, audio, correos, documentos.
+\end{itemize}
+
+\subsection*{De datos a conocimiento (DIKW)}
+Un marco común es la pirámide DIKW: los datos se transforman en información cuando se organizan y adquieren significado; luego se convierten en conocimiento al interpretarse con experiencia; y apoyan sabiduría/decisión al guiar acciones.
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{@{}p{3cm}p{10cm}@{}}
+\toprule
+\textbf{Nivel} & \textbf{Enfoque} \\
+\midrule
+Datos & Hechos crudos, registros aislados, sin interpretación. \\
+Información & Datos organizados con contexto y significado. \\
+Conocimiento & Interpretación de la información (patrones, aprendizajes). \\
+Sabiduría/Decisión & Aplicación del conocimiento para decidir y actuar. \\
+\bottomrule
+\end{tabular}
+\caption{Resumen del marco DIKW.}
+\end{table}
+
+\noindent\textbf{Fuentes:} \cite{ontotext_dikw, matillion_structured}.
+
+% =========================================================
+\section{Niveles de madurez analítica}
+La madurez analítica describe qué tan bien una organización usa los datos para tomar decisiones. Una forma práctica de verlo es por el tipo de análisis que domina en el día a día.
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{@{}p{3cm}p{4cm}p{6cm}@{}}
+\toprule
+\textbf{Nivel} & \textbf{Pregunta típica} & \textbf{Resultado} \\
+\midrule
+Descriptivo & ¿Qué pasó? & Reportes, tableros, KPI históricos \\
+Diagnóstico & ¿Por qué pasó? & Análisis de causas, segmentación, correlaciones \\
+Predictivo & ¿Qué podría pasar? & Modelos de pronóstico, tendencias, riesgo \\
+Prescriptivo & ¿Qué deberíamos hacer? & Recomendaciones, optimización, simulaciones \\
+\bottomrule
+\end{tabular}
+\caption{Madurez analítica por tipo de análisis dominante.}
+\end{table}
+
+Una organización más madura no ``abandona'' los niveles anteriores: los integra. La clave es pasar de reportar (describir) a anticipar y recomendar (predictivo/prescriptivo), apoyándose en datos confiables y en habilidades analíticas.
+
+\noindent\textbf{Fuentes:} \cite{gartner_data_analytics, davenport_competing}.
+
+% =========================================================
+\section{Datos para la toma de decisiones}
+En BI, los datos son un activo. Para que realmente apoyen decisiones, deben ser confiables, consistentes y disponibles a tiempo. Muchas organizaciones consolidan información en un Data Warehouse (DWH) o repositorio analítico, que integra datos de múltiples sistemas y conserva histórico.
+
+\subsection*{Principios clave}
+\begin{itemize}[leftmargin=*, itemsep=0.25em]
+  \item \textbf{Calidad:} exactitud, completitud, consistencia y oportunidad.
+  \item \textbf{Trazabilidad:} saber de dónde viene el dato y cómo se transformó.
+  \item \textbf{Gobernanza:} roles, reglas, catálogo y definiciones estándar de KPI.
+  \item \textbf{Contexto:} el significado importa (dimensiones como tiempo, producto, cliente).
+\end{itemize}
+
+\subsection*{Data Warehouse: definiciones de referencia}
+Bill Inmon caracteriza un \textit{Data Warehouse} como una colección orientada a temas, integrada, variante en el tiempo y no volátil, creada para apoyar la toma de decisiones de la gerencia. En paralelo, el enfoque de Kimball enfatiza el modelado dimensional (hechos y dimensiones) para facilitar el análisis y la comprensión del negocio.
+
+\noindent\textbf{Fuentes:} \cite{inmon_dataversity, kimball_dwtoolkit}.
+
+% =========================================================
+\section{Introducción a OLAP}
+OLAP (Online Analytical Processing) es una tecnología para realizar consultas complejas y análisis multidimensional de alto desempeño sobre grandes volúmenes de datos. Su idea central es representar los datos como un ``cubo'' con dimensiones (perspectivas de análisis) y medidas (métricas numéricas).
+
+\subsection*{Cubo OLAP: ejemplo de dimensiones}
+\begin{itemize}[leftmargin=*, itemsep=0.25em]
+  \item \textbf{Tiempo:} año $\rightarrow$ trimestre $\rightarrow$ mes $\rightarrow$ día
+  \item \textbf{Región:} país $\rightarrow$ departamento $\rightarrow$ ciudad
+  \item \textbf{Producto:} categoría $\rightarrow$ subcategoría $\rightarrow$ SKU
+  \item \textbf{Medidas típicas:} ventas, unidades, margen, costo
+\end{itemize}
+
+\subsection*{Tipos comunes de OLAP}
+\begin{itemize}[leftmargin=*, itemsep=0.25em]
+  \item \textbf{MOLAP:} almacena estructuras multidimensionales pre-calculadas (alto rendimiento).
+  \item \textbf{ROLAP:} opera sobre bases relacionales (flexible; depende del motor SQL).
+  \item \textbf{HOLAP:} combina ambos enfoques.
+\end{itemize}
+
+\noindent\textbf{Fuentes:} \cite{ibm_olap, gartner_bi_platforms, kimball_dwtoolkit}.
+
+% =========================================================
+\section{Modelo multidimensional y operaciones OLAP}
+El modelo multidimensional organiza la información como \textbf{hechos} (por ejemplo: ventas) y \textbf{dimensiones} (tiempo, tienda, producto, cliente). Las dimensiones suelen tener jerarquías (Año $\rightarrow$ Trimestre $\rightarrow$ Mes $\rightarrow$ Día), que permiten navegar el nivel de detalle.
+
+\subsection*{Operaciones OLAP más usadas}
+\begin{itemize}[leftmargin=*, itemsep=0.25em]
+  \item \textbf{Drill-down:} ir a mayor detalle (de año a mes, de país a ciudad).
+  \item \textbf{Roll-up:} resumir/agregar (de día a mes).
+  \item \textbf{Slice:} fijar un valor en una dimensión (solo 2025).
+  \item \textbf{Dice:} filtrar un subconjunto (2025 y Región = Centro).
+  \item \textbf{Pivot:} rotar la vista (cambiar filas/columnas entre dimensiones).
+\end{itemize}
+
+\subsection*{OLTP vs.\ OLAP (comparativa)}
+\begin{table}[h!]
+\centering
+\begin{tabular}{@{}p{6.2cm}p{6.2cm}@{}}
+\toprule
+\textbf{OLTP (transaccional)} & \textbf{OLAP (analítico)} \\
+\midrule
+Optimizado para escribir y mantener operaciones del día a día & Optimizado para leer, explorar y comparar \\
+Muchas transacciones pequeñas & Histórico y agregaciones; múltiples perspectivas \\
+Datos actuales, detalle fino & Datos integrados; visión consolidada por dimensiones \\
+Consultas frecuentes y simples & Consultas menos frecuentes pero más complejas \\
+\bottomrule
+\end{tabular}
+\caption{Diferencias generales entre sistemas OLTP y OLAP.}
+\end{table}
+
+\noindent\textbf{Fuentes:} \cite{ibm_olap, g4g_olap_ops}.
+
+% =========================================================
+\section{Ventajas del análisis multidimensional}
+El análisis multidimensional aporta una forma natural de explorar el negocio: permite comparar métricas desde distintas perspectivas y responder preguntas iterativamente, sin necesitar un reporte nuevo por cada duda.
+
+\subsection*{Ventajas principales}
+\begin{itemize}[leftmargin=*, itemsep=0.25em]
+  \item Rapidez en consultas por pre-agregaciones y estructuras optimizadas.
+  \item Navegación por jerarquías (\textit{drill-down}/\textit{roll-up}) para cambiar granularidad.
+  \item Consistencia de KPI cuando hay definiciones únicas en la capa semántica.
+  \item Autoservicio: analistas pueden explorar datos sin depender siempre de TI.
+  \item Mejor comprensión: dimensiones reflejan el lenguaje del negocio (cliente, producto, etc.).
+\end{itemize}
+
+\subsection*{Ejemplo de exploración}
+Ventas por mes $\rightarrow$ filtrar Región = Occidente (\textit{slice}) $\rightarrow$ comparar productos (\textit{pivot}) $\rightarrow$ bajar a día (\textit{drill-down}) para detectar patrones.
+
+\noindent\textbf{Fuentes:} \cite{ibm_olap, kimball_dwtoolkit}.
+
+% =========================================================
+\section{Cierre y bibliografía}
+BI y OLAP permiten transformar datos en análisis que sostienen decisiones. La calidad y gobernanza de los datos son tan importantes como las herramientas. El análisis multidimensional ayuda a entender el negocio de forma exploratoria y consistente.
+
+\subsection*{Checklist rápido para una iniciativa BI}
+\begin{itemize}[leftmargin=*, itemsep=0.25em]
+  \item Definir preguntas de negocio y KPI antes de diseñar reportes.
+  \item Asegurar calidad, catálogo y definición estándar de métricas.
+  \item Modelar dimensiones y jerarquías pensando en el usuario final.
+  \item Automatizar ETL/ELT y monitorear cargas, linaje y cambios.
+  \item Habilitar autoservicio con gobernanza (seguridad y roles).
+\end{itemize}
+
+\nocite{*}
+\printbibliography
+
+\end{document}

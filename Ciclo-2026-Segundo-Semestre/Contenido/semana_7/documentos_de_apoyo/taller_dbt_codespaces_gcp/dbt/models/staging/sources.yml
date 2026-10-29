@@ -1,0 +1,41 @@
+version: 2
+
+sources:
+  - name: raw_sgfood
+    description: Datos raw de SG-Food. En el taller se cargan con dbt seed; en el Proyecto 1 real se cargan con Python y Airflow.
+    database: "{{ target.project }}"
+    schema: "{{ target.schema }}_raw"
+    tables:
+      - name: clientes
+        description: Catalogo raw de clientes.
+        columns:
+          - name: cliente_id
+            tests:
+              - not_null
+              - unique
+      - name: productos
+        description: Catalogo raw de productos.
+        columns:
+          - name: producto_id
+            tests:
+              - not_null
+              - unique
+      - name: sucursales
+        description: Catalogo raw de sucursales o centros de distribucion.
+        columns:
+          - name: sucursal_id
+            tests:
+              - not_null
+              - unique
+      - name: ventas
+        description: Transacciones raw de ventas.
+        columns:
+          - name: venta_id
+            tests:
+              - not_null
+              - unique
+          - name: canal
+            tests:
+              - accepted_values:
+                  values: ['mayorista', 'minorista']
+

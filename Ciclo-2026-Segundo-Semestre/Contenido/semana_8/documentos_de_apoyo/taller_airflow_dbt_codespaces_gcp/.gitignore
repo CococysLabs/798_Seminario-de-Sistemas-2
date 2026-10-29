@@ -1,0 +1,26 @@
+.env
+.venv/
+.venv-dbt/
+.airflow/
+.terraform/
+.generated/
+*.tfstate
+*.tfstate.*
+*.tfplan
+terraform.tfvars
+*.auto.tfvars
+crash.log
+__pycache__/
+*.pyc
+**/target/
+**/logs/
+**/.user.yml
+**/dbt_packages/
+auth/
+*.zip
+gha-creds-*.json
+credentials*.json
+.private/
+
+# Material docente incluido en esta copia
+!/local/Ejemplo Local.zip

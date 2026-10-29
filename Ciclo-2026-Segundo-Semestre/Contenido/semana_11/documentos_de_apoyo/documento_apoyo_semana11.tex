@@ -1,0 +1,513 @@
+% !TeX program = pdflatex
+\documentclass[12pt]{article}
+
+% Idioma y codificacion
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+
+% Pagina y espaciado
+\usepackage{geometry}
+\geometry{letterpaper, margin=1in}
+\usepackage{setspace}
+\onehalfspacing
+
+% Tipografia y microajustes
+\usepackage{microtype}
+\usepackage{csquotes}
+\usepackage{amsmath}
+
+% Tablas
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+
+% Listas
+\usepackage{enumitem}
+
+% Codigo
+\usepackage{listingsutf8}
+\usepackage{listings}
+\lstset{inputencoding=utf8}
+\lstset{literate=%
+  {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'\i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+  {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+  {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {ü}{{\"u}}1 {Ü}{{\"U}}1
+}
+\usepackage{xcolor}
+\lstdefinestyle{sql}{
+  language=SQL,
+  inputencoding=utf8,
+  basicstyle=\ttfamily\small,
+  numbers=left,
+  numberstyle=\tiny,
+  stepnumber=1,
+  numbersep=8pt,
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=2,
+  frame=single
+}
+
+% Hipervinculos
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  urlcolor=blue,
+  citecolor=blue
+}
+
+% Formato academico y paginacion por seccion
+\usepackage{titlesec}
+\usepackage{etoolbox}
+\titlespacing*{\section}{0pt}{3ex plus 1ex minus .2ex}{2ex}
+\titlespacing*{\subsection}{0pt}{2.5ex plus 0.8ex minus .2ex}{1.2ex}
+\titlespacing*{\subsubsection}{0pt}{2ex plus 0.6ex minus .2ex}{1ex}
+\preto\section{\clearpage}
+
+% Encabezados/pies limpios
+\usepackage{fancyhdr}
+\setlength{\headheight}{15pt}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Documento de apoyo (Sesion 11, Unidad 2)}
+\rhead{Modelos de clasificacion}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Bibliografia
+\usepackage[
+  backend=biber,
+  style=ieee,
+  sorting=nyt,
+  maxbibnames=99
+]{biblatex}
+\addbibresource{referencias_s11.bib}
+
+% Metadatos
+\title{\textbf{Documento de apoyo (Sesion 11, Unidad 2)}\\
+\large Modelos de clasificacion y evaluacion de clasificadores\\
+\normalsize Continuacion de la Sesion 10 aplicada a BigQuery ML y al Proyecto 2 de NYC Taxi Trips 2022}
+\author{Javier Andres Valdez Gonzalez / Auxiliar \\
+\small Seminario de Sistemas 2 --- Seccion P \\
+\small Universidad de San Carlos de Guatemala}
+\date{Abril de 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+La sesion 10 introdujo el marco general del aprendizaje supervisado, la diferencia entre regresion y clasificacion, la separacion de datos y las metricas basicas de evaluacion. Debido a que no fue posible desarrollar con suficiente detalle los modelos de clasificacion, este documento continua directamente ese contenido y se concentra en la formulacion, entrenamiento, evaluacion e interpretacion de clasificadores. El enfoque principal es la clasificacion binaria, usando como ejemplo la prediccion de si un viaje de taxi tendra o no una propina alta. Se explican la construccion de la etiqueta, la regresion logistica como modelo base, el papel de las probabilidades, el umbral de decision, la matriz de confusion, las metricas derivadas, el desbalance de clases, la curva ROC y la aplicacion practica con BigQuery ML sobre el dataset NYC Taxi Trips 2022.
+\end{abstract}
+
+\textbf{Palabras clave:} clasificacion, regresion logistica, matriz de confusion, precision, recall, F1-score, ROC-AUC, umbral, BigQuery ML.
+
+\newpage
+\tableofcontents
+
+\section{Introduccion}
+La semana anterior establecio una distincion fundamental: un problema de regresion busca estimar un valor numerico continuo, mientras que un problema de clasificacion busca asignar una observacion a una categoria. Esa diferencia no es solamente terminologica. Determina la forma en que se construye la variable objetivo, el tipo de modelo que se entrena, las metricas que se reportan y la manera en que se comunican los resultados \cite{google_metrics_glossary}.
+
+En el Proyecto 2, el caso de taxis permite observar esta diferencia con claridad. Si se desea estimar el monto exacto de la propina, el objetivo es \texttt{tip\_amount} y el problema es de regresion. Si se desea responder si un viaje corresponde a una propina alta o no, el objetivo se convierte en una etiqueta discreta, por ejemplo \texttt{is\_high\_tip}, y el problema pasa a ser de clasificacion.
+
+La sesion 11 se enfoca en esta segunda formulacion. La meta no es solo ejecutar una sentencia \texttt{CREATE MODEL}, sino comprender que significa construir una clase positiva, como interpreta el modelo la probabilidad de pertenecer a esa clase, por que un umbral modifica el comportamiento del clasificador y por que una sola metrica como \textit{accuracy} no basta para evaluar correctamente el desempeno \cite{google_class_metrics,google_thresholding}.
+
+\section{Formulacion del problema de clasificacion}
+\subsection{Unidad de analisis y etiqueta}
+Todo modelo de clasificacion necesita una unidad de analisis y una etiqueta. En el proyecto, la unidad de analisis es un viaje individual de taxi. Cada viaje contiene atributos observables: distancia, tarifa, hora, dia de la semana, forma de pago, cantidad de pasajeros, zona de origen y zona de destino.
+
+La etiqueta define la clase que se desea predecir. Para clasificacion binaria solo existen dos clases. En este documento se usa:
+\begin{itemize}[leftmargin=*]
+\item \texttt{is\_high\_tip = 1}: el viaje pertenece a la clase positiva, es decir, tuvo propina alta.
+\item \texttt{is\_high\_tip = 0}: el viaje pertenece a la clase negativa, es decir, no tuvo propina alta.
+\end{itemize}
+
+Esta definicion requiere una regla de negocio. Por ejemplo, puede considerarse propina alta cuando el porcentaje de propina supera cierto umbral respecto a la tarifa. Lo importante es que la regla sea explicita, reproducible y razonable para el contexto del analisis.
+
+\subsection{Por que no clasificar directamente con \texttt{tip\_amount}}
+Un error frecuente consiste en tomar una variable numerica continua y tratarla como si fuera una clase. \texttt{tip\_amount} puede tomar muchos valores distintos, por lo que no representa por si misma una etiqueta binaria. Para convertir el problema en clasificacion se debe transformar esa informacion en una categoria.
+
+La transformacion puede hacerse con una regla como:
+\[
+\texttt{is\_high\_tip} =
+\begin{cases}
+1, & \text{si la propina cumple el criterio de propina alta}\\
+0, & \text{en caso contrario}
+\end{cases}
+\]
+
+Esta decision tiene consecuencias. Un umbral demasiado bajo puede producir demasiados positivos. Un umbral demasiado alto puede dejar muy pocos casos positivos y generar un conjunto desbalanceado. Por eso la definicion de la etiqueta es parte del diseno del modelo, no un detalle secundario.
+
+\subsection{Clase positiva y objetivo del modelo}
+En clasificacion binaria, la clase positiva es la clase que se desea detectar o estudiar con mayor atencion. En el ejemplo de taxis, la clase positiva es \texttt{is\_high\_tip = 1}. El modelo intenta aprender que combinaciones de variables aumentan o reducen la probabilidad de que un viaje pertenezca a esa clase.
+
+La eleccion de la clase positiva tambien afecta la interpretacion de las metricas. La precision, el recall y la matriz de confusion se calculan alrededor de esa clase. Si se cambia la definicion de positivo y negativo, cambia la lectura del desempeno.
+
+\section{Regresion logistica como clasificador base}
+\subsection{Idea general}
+Aunque su nombre incluye la palabra regresion, la regresion logistica se utiliza comunmente para clasificacion. Su objetivo no es predecir un valor continuo como una regresion lineal, sino estimar la probabilidad de que una observacion pertenezca a la clase positiva \cite{google_logistic_loss}.
+
+Para una observacion con variables de entrada \(x\), el modelo produce una probabilidad:
+\[
+P(y = 1 \mid x)
+\]
+
+Si esa probabilidad es alta, el modelo considera mas probable que la observacion sea positiva. Si es baja, considera mas probable que sea negativa.
+
+\subsection{Probabilidad frente a clase final}
+Un clasificador no necesariamente decide una clase de forma directa. Primero puede calcular una probabilidad y luego convertirla en clase usando un umbral. Con un umbral de 0.50, la regla seria:
+\[
+\hat{y} =
+\begin{cases}
+1, & \text{si } P(y = 1 \mid x) \geq 0.50\\
+0, & \text{si } P(y = 1 \mid x) < 0.50
+\end{cases}
+\]
+
+Esta distincion es importante porque dos modelos pueden tener probabilidades similares, pero producir clases diferentes si se cambia el umbral. Tambien permite ajustar el comportamiento del modelo segun el costo de los errores.
+
+\subsection{Variables categoricas y numericas}
+En BigQuery ML, un modelo de regresion logistica puede recibir variables numericas y categoricas. Entre las variables numericas se encuentran \texttt{trip\_distance}, \texttt{fare\_amount} y \texttt{trip\_duration\_minutes}. Entre las variables categoricas o discretas se encuentran el tipo de pago, el proveedor y los identificadores de zona de origen y destino.
+
+La calidad del modelo depende de que estas variables esten disponibles al momento de predecir. No debe usarse informacion que solo se conoce despues del evento si el objetivo es simular una prediccion realista. Esta es una forma concreta de evitar fuga de informacion \cite{google_overfitting,gcp_bqml_eval_overview}.
+
+\section{Construccion de datos para clasificacion}
+\subsection{Variables disponibles en el Proyecto 2}
+La tabla de caracteristicas del proyecto consolida los campos necesarios para entrenar y evaluar modelos:
+\begin{itemize}[leftmargin=*]
+\item variables operativas del viaje, como proveedor, pasajeros, distancia, tarifa y tipo de pago;
+\item variables temporales derivadas, como hora, dia de la semana y mes;
+\item variables espaciales, como zona de origen y zona de destino;
+\item etiqueta de clasificacion \texttt{is\_high\_tip};
+\item columna de particion logica \texttt{split\_col}, usada para separar entrenamiento, evaluacion y prediccion.
+\end{itemize}
+
+La separacion temporal usada en el proyecto es una practica defensible porque respeta la logica de aprender con datos anteriores y evaluar sobre datos posteriores:
+\begin{itemize}[leftmargin=*]
+\item \texttt{TRAIN}: viajes anteriores a octubre de 2022;
+\item \texttt{EVAL}: viajes de octubre y noviembre de 2022;
+\item \texttt{PREDICT}: viajes de diciembre de 2022.
+\end{itemize}
+
+\subsection{Consulta base de entrenamiento}
+El modelo de clasificacion del proyecto se entrena con una sentencia de BigQuery ML como la siguiente:
+
+\begin{lstlisting}[style=sql]
+CREATE OR REPLACE MODEL `project-9f4fe3c2-3919-4941-805.proyecto2_taxi.modelo_clasificacion_propina_alta`
+OPTIONS (
+  model_type = 'LOGISTIC_REG',
+  input_label_cols = ['is_high_tip'],
+  data_split_method = 'CUSTOM',
+  data_split_col = 'split_col',
+  auto_class_weights = TRUE,
+  max_iterations = 30,
+  learn_rate = 0.15
+) AS
+SELECT
+  vendor_id,
+  passenger_count,
+  trip_distance,
+  rate_code,
+  store_and_fwd_flag,
+  pickup_location_id,
+  dropoff_location_id,
+  payment_type,
+  fare_amount,
+  trip_duration_minutes,
+  pickup_hour,
+  pickup_day_of_week,
+  pickup_month,
+  split_col,
+  is_high_tip
+FROM `project-9f4fe3c2-3919-4941-805.proyecto2_taxi.ml_features_taxi_2022`;
+\end{lstlisting}
+
+La opcion \texttt{model\_type} indica que se entrenara un clasificador de regresion logistica. La opcion \texttt{input\_label\_cols} define la etiqueta. La opcion \texttt{data\_split\_method} delega la separacion de datos a la columna \texttt{split\_col}. Finalmente, \texttt{auto\_class\_weights} ayuda cuando las clases no tienen la misma frecuencia \cite{gcp_create_glm}.
+
+\subsection{Datos que no deben incluirse}
+Para entrenar un clasificador realista se deben excluir columnas que contaminen la prediccion. Si el objetivo es predecir si la propina sera alta, no debe incluirse una variable que revele directamente la propina final o una transformacion equivalente disponible solo despues de completar el viaje.
+
+En general, una columna debe rechazarse como \textit{feature} si:
+\begin{itemize}[leftmargin=*]
+\item contiene la respuesta que se desea predecir;
+\item se calcula a partir de la respuesta;
+\item solo existe despues del momento en que se tomaria la decision;
+\item identifica accidentalmente registros especificos en lugar de patrones generales.
+\end{itemize}
+
+\section{Matriz de confusion}
+\subsection{Definicion}
+La matriz de confusion resume los aciertos y errores de un clasificador binario. Sus cuatro celdas principales son verdaderos positivos, verdaderos negativos, falsos positivos y falsos negativos \cite{gcp_confusion_matrix,google_class_metrics}.
+
+\begin{longtable}{p{0.24\textwidth} p{0.34\textwidth} p{0.34\textwidth}}
+\toprule
+\textbf{Resultado} & \textbf{Significado general} & \textbf{Interpretacion en taxis} \\
+\midrule
+\endhead
+Verdadero positivo (TP) & El modelo predice positivo y la clase real es positiva. & Predijo propina alta y el viaje realmente tuvo propina alta. \\
+Verdadero negativo (TN) & El modelo predice negativo y la clase real es negativa. & Predijo no propina alta y el viaje realmente no tuvo propina alta. \\
+Falso positivo (FP) & El modelo predice positivo, pero la clase real es negativa. & Predijo propina alta, pero el viaje no tuvo propina alta. \\
+Falso negativo (FN) & El modelo predice negativo, pero la clase real es positiva. & No detecto un viaje que realmente tuvo propina alta. \\
+\bottomrule
+\end{longtable}
+
+\subsection{Consulta en BigQuery ML}
+En BigQuery ML, la matriz de confusion puede obtenerse con \texttt{ML.CONFUSION\_MATRIX}. Es recomendable evaluarla sobre el conjunto \texttt{EVAL}, no sobre los mismos datos usados para entrenar.
+
+\begin{lstlisting}[style=sql]
+SELECT *
+FROM ML.CONFUSION_MATRIX(
+  MODEL `project-9f4fe3c2-3919-4941-805.proyecto2_taxi.modelo_clasificacion_propina_alta`,
+  (
+    SELECT
+      vendor_id,
+      passenger_count,
+      trip_distance,
+      rate_code,
+      store_and_fwd_flag,
+      pickup_location_id,
+      dropoff_location_id,
+      payment_type,
+      fare_amount,
+      trip_duration_minutes,
+      pickup_hour,
+      pickup_day_of_week,
+      pickup_month,
+      is_high_tip
+    FROM `project-9f4fe3c2-3919-4941-805.proyecto2_taxi.ml_features_taxi_2022`
+    WHERE split_col = 'EVAL'
+  ),
+  STRUCT(0.50 AS threshold)
+);
+\end{lstlisting}
+
+El parametro \texttt{threshold} fija el punto de corte usado para convertir probabilidades en clases. Cambiarlo modifica la cantidad de positivos y negativos predichos \cite{google_thresholding}.
+
+\section{Metricas de clasificacion}
+\subsection{Accuracy}
+La exactitud global mide la proporcion de predicciones correctas:
+\[
+\text{Accuracy} = \frac{TP + TN}{TP + TN + FP + FN}
+\]
+
+Es util como primer resumen, pero no debe ser la unica metrica. Si solo el 5\% de los viajes fueran de propina alta, un modelo que siempre predice ``no propina alta'' tendria 95\% de accuracy y, aun asi, seria inutil para detectar la clase positiva \cite{google_class_metrics}.
+
+\subsection{Precision}
+La precision responde: de todos los casos que el modelo marco como positivos, cuantos eran realmente positivos?
+\[
+\text{Precision} = \frac{TP}{TP + FP}
+\]
+
+Una precision alta indica que, cuando el modelo predice propina alta, suele acertar. Es relevante cuando los falsos positivos tienen costo operativo o analitico.
+
+\subsection{Recall}
+El recall responde: de todos los positivos reales, cuantos logro encontrar el modelo?
+\[
+\text{Recall} = \frac{TP}{TP + FN}
+\]
+
+Un recall alto indica que el modelo pierde pocos casos positivos. Es relevante cuando interesa detectar la mayor cantidad posible de eventos de la clase positiva.
+
+\subsection{F1-score}
+El F1-score combina precision y recall:
+\[
+F1 = 2 \cdot \frac{\text{precision} \cdot \text{recall}}{\text{precision} + \text{recall}}
+\]
+
+Es especialmente util cuando se necesita equilibrio. Si la precision es alta pero el recall es bajo, el modelo es conservador: predice pocos positivos, pero suele acertar. Si el recall es alto pero la precision es baja, detecta muchos positivos, pero tambien genera muchos falsos positivos.
+
+\subsection{ROC-AUC}
+La curva ROC compara la tasa de verdaderos positivos con la tasa de falsos positivos para multiples umbrales. El AUC resume la capacidad del modelo para ordenar casos positivos por encima de casos negativos \cite{gcp_roc_curve,google_metrics_glossary}.
+
+Un AUC cercano a 1 indica buena separacion entre clases. Un AUC cercano a 0.5 indica un comportamiento similar al azar. Sin embargo, AUC no reemplaza la matriz de confusion porque no expresa directamente cuantos falsos positivos o falsos negativos se obtienen en un umbral operativo especifico.
+
+\section{Umbrales de decision}
+\subsection{Por que el umbral importa}
+El umbral convierte probabilidades en clases. Con umbral 0.50, un viaje con probabilidad 0.51 se clasifica como propina alta. Con umbral 0.70, ese mismo viaje se clasifica como no propina alta.
+
+Reducir el umbral suele aumentar el recall porque mas observaciones se marcan como positivas. Elevar el umbral suele aumentar la precision porque el modelo solo acepta como positivos los casos donde tiene mayor confianza. Esta relacion es una tension central en clasificacion \cite{google_thresholding}.
+
+\subsection{Ejemplo conceptual}
+Supongase que el modelo produce estas probabilidades para cinco viajes:
+\begin{longtable}{@{}p{0.12\textwidth} p{0.30\textwidth} p{0.24\textwidth} p{0.24\textwidth}@{}}
+\toprule
+\textbf{Viaje} & \textbf{Probabilidad de propina alta} & \textbf{Clase con umbral 0.50} & \textbf{Clase con umbral 0.70} \\
+\midrule
+\endhead
+1 & 0.82 & 1 & 1 \\
+2 & 0.66 & 1 & 0 \\
+3 & 0.54 & 1 & 0 \\
+4 & 0.31 & 0 & 0 \\
+5 & 0.12 & 0 & 0 \\
+\bottomrule
+\end{longtable}
+
+El modelo no cambio; lo que cambio fue la regla de decision. Por eso, al reportar resultados, debe indicarse el umbral usado.
+
+\subsection{Seleccion del umbral}
+No existe un umbral universalmente correcto. La seleccion debe responder al objetivo del analisis:
+\begin{itemize}[leftmargin=*]
+\item si se desea minimizar falsos positivos, puede elevarse el umbral;
+\item si se desea capturar mas positivos reales, puede reducirse el umbral;
+\item si se busca equilibrio, se puede analizar F1-score o comparar varios puntos de la curva ROC;
+\item si hay costos conocidos para cada tipo de error, el umbral debe alinearse con esos costos.
+\end{itemize}
+
+\section{Desbalance de clases}
+\subsection{Problema}
+Un conjunto esta desbalanceado cuando una clase aparece con mucha mayor frecuencia que la otra. En clasificacion de propina alta, es posible que la clase positiva sea menos frecuente que la negativa, dependiendo del umbral elegido para definir \texttt{is\_high\_tip}.
+
+El desbalance puede hacer que un modelo aprenda a favorecer la clase mayoritaria. Esto produce metricas aparentemente buenas, especialmente accuracy, pero desempeno pobre sobre la clase que realmente interesa detectar \cite{google_class_metrics}.
+
+\subsection{Pesos de clase}
+BigQuery ML permite usar \texttt{auto\_class\_weights = TRUE} en algunos modelos para compensar automaticamente el peso relativo de las clases \cite{gcp_create_glm}. En el proyecto, esta opcion se incluye en el modelo de regresion logistica.
+
+El objetivo de los pesos no es inventar informacion, sino modificar la penalizacion de errores para que equivocarse en la clase minoritaria no sea tratado como un evento irrelevante. Esto puede mejorar recall o F1-score, aunque tambien puede modificar la precision. Por eso debe evaluarse con varias metricas.
+
+\subsection{Buenas practicas ante desbalance}
+Ante clases desbalanceadas se recomienda:
+\begin{itemize}[leftmargin=*]
+\item revisar la distribucion de \texttt{is\_high\_tip} antes de entrenar;
+\item reportar matriz de confusion, precision, recall y F1-score;
+\item evitar conclusiones basadas solo en accuracy;
+\item probar umbrales alternativos;
+\item justificar el umbral usado para definir la etiqueta positiva.
+\end{itemize}
+
+\section{Evaluacion con BigQuery ML}
+\subsection{\texttt{ML.EVALUATE}}
+La funcion \texttt{ML.EVALUATE} devuelve metricas agregadas del modelo. Para un clasificador, puede incluir resultados como accuracy, precision, recall, F1-score, log loss y ROC-AUC, segun el tipo de modelo y configuracion \cite{gcp_evaluate}.
+
+\begin{lstlisting}[style=sql]
+SELECT *
+FROM ML.EVALUATE(
+  MODEL `project-9f4fe3c2-3919-4941-805.proyecto2_taxi.modelo_clasificacion_propina_alta`
+);
+\end{lstlisting}
+
+Cuando se usa separacion personalizada, BigQuery ML respeta la columna de particion definida al crear el modelo. Aun asi, para reportes academicos conviene explicar explicitamente que datos fueron usados para entrenamiento y cuales para evaluacion.
+
+\subsection{\texttt{ML.ROC\_CURVE}}
+La funcion \texttt{ML.ROC\_CURVE} permite inspeccionar el comportamiento del modelo en distintos umbrales \cite{gcp_roc_curve}.
+
+\begin{lstlisting}[style=sql]
+SELECT *
+FROM ML.ROC_CURVE(
+  MODEL `project-9f4fe3c2-3919-4941-805.proyecto2_taxi.modelo_clasificacion_propina_alta`
+);
+\end{lstlisting}
+
+Esta salida es util para comparar puntos de decision y observar como cambian las tasas de acierto y error. En una entrega, puede usarse para justificar por que se eligio un umbral distinto de 0.50 si el comportamiento del problema lo requiere.
+
+\subsection{\texttt{ML.PREDICT}}
+Una vez evaluado el modelo, se aplica sobre nuevos datos mediante \texttt{ML.PREDICT} \cite{gcp_predict}. En el proyecto, el conjunto \texttt{PREDICT} corresponde a diciembre de 2022.
+
+\begin{lstlisting}[style=sql]
+CREATE OR REPLACE TABLE `project-9f4fe3c2-3919-4941-805.proyecto2_taxi.pred_clasificacion_propina_alta`
+AS
+SELECT
+  pickup_date,
+  pickup_location_id,
+  dropoff_location_id,
+  pickup_hour,
+  predicted_is_high_tip,
+  predicted_is_high_tip_probs
+FROM ML.PREDICT(
+  MODEL `project-9f4fe3c2-3919-4941-805.proyecto2_taxi.modelo_clasificacion_propina_alta`,
+  (
+    SELECT
+      pickup_date,
+      vendor_id,
+      passenger_count,
+      trip_distance,
+      rate_code,
+      store_and_fwd_flag,
+      pickup_location_id,
+      dropoff_location_id,
+      payment_type,
+      fare_amount,
+      trip_duration_minutes,
+      pickup_hour,
+      pickup_day_of_week,
+      pickup_month
+    FROM `project-9f4fe3c2-3919-4941-805.proyecto2_taxi.ml_features_taxi_2022`
+    WHERE split_col = 'PREDICT'
+  )
+);
+\end{lstlisting}
+
+La salida incluye la clase predicha en \texttt{predicted\_is\_high\_tip}. Tambien incluye las probabilidades asociadas a cada clase en el arreglo de probabilidades devuelto por \texttt{ML.PREDICT}, lo cual permite interpretar la confianza relativa del clasificador.
+
+\section{Interpretacion de resultados}
+\subsection{Como leer un resultado de clasificacion}
+Un resultado de clasificacion debe interpretarse como una decision probabilistica, no como una verdad absoluta. Si el modelo predice que un viaje tiene alta probabilidad de propina alta, eso significa que sus caracteristicas se parecen a patrones historicos asociados con esa clase.
+
+Un reporte correcto deberia responder:
+\begin{itemize}[leftmargin=*]
+\item cual fue la etiqueta positiva;
+\item que variables se usaron como entrada;
+\item que periodo se uso para entrenar;
+\item que periodo se uso para evaluar;
+\item que metricas se obtuvieron;
+\item que umbral se uso para convertir probabilidades en clases;
+\item que limitaciones tiene el modelo.
+\end{itemize}
+
+\subsection{Comparacion entre metricas}
+No todas las metricas cuentan la misma historia. Un modelo puede tener buen accuracy y mal recall. Tambien puede tener buen recall pero baja precision. La seleccion de la metrica principal depende del objetivo.
+
+En el caso de propina alta:
+\begin{itemize}[leftmargin=*]
+\item si interesa identificar grupos de viajes con alta probabilidad de propina, precision puede ser prioritaria;
+\item si interesa no perder muchos viajes de propina alta, recall puede ser prioritario;
+\item si se busca equilibrio, F1-score puede ser una mejor metrica resumen;
+\item si se desea comparar capacidad general de separacion, ROC-AUC es util como complemento.
+\end{itemize}
+
+\subsection{Interpretabilidad}
+En modelos lineales como la regresion logistica, los coeficientes ayudan a entender la direccion de la relacion entre una variable y la probabilidad de la clase positiva. Sin embargo, esa interpretacion debe hacerse con cuidado, especialmente cuando existen variables categoricas codificadas, correlaciones entre variables o transformaciones internas del modelo.
+
+Cuando se usen modelos mas complejos, como arboles potenciados, puede ser conveniente revisar importancia de variables con herramientas como \texttt{ML.FEATURE\_IMPORTANCE}, cuando aplique al tipo de modelo usado \cite{gcp_feature_importance}.
+
+\section{Errores frecuentes en modelos de clasificacion}
+\begin{enumerate}[label=\textbf{C\arabic*.}, leftmargin=*]
+\item \textbf{No definir claramente la clase positiva.} Sin una clase positiva clara, precision, recall y matriz de confusion se interpretan mal.
+\item \textbf{Usar \texttt{tip\_amount} como etiqueta de clasificacion.} El monto de propina es continuo; para clasificar se necesita una etiqueta discreta.
+\item \textbf{Evaluar solo con accuracy.} Esta practica oculta problemas cuando las clases estan desbalanceadas.
+\item \textbf{No reportar el umbral.} La matriz de confusion depende del umbral usado para convertir probabilidades en clases.
+\item \textbf{Entrenar y evaluar con los mismos datos.} Esto impide medir generalizacion y puede inflar artificialmente los resultados.
+\item \textbf{Incluir variables contaminadas.} Usar columnas derivadas de la respuesta produce fuga de informacion.
+\item \textbf{No explicar el significado de los errores.} Un falso positivo y un falso negativo no tienen necesariamente el mismo costo.
+\end{enumerate}
+
+\section{Guia para explicar el modelo en la entrega}
+Para redactar la parte de clasificacion del Proyecto 2, se recomienda una estructura breve pero completa:
+\begin{enumerate}[label=\textbf{R\arabic*.}, leftmargin=*]
+\item \textbf{Planteamiento:} se entreno un modelo de clasificacion binaria para predecir si un viaje tendra propina alta.
+\item \textbf{Etiqueta:} la variable objetivo fue \texttt{is\_high\_tip}, donde 1 representa propina alta y 0 representa no propina alta.
+\item \textbf{Variables predictoras:} se usaron caracteristicas del viaje como distancia, tarifa, duracion, hora, dia de la semana, tipo de pago y zonas.
+\item \textbf{Separacion de datos:} se entreno con datos historicos y se evaluo con un bloque temporal posterior.
+\item \textbf{Modelo:} se uso regresion logistica mediante BigQuery ML.
+\item \textbf{Evaluacion:} se reportaron accuracy, precision, recall, F1-score, ROC-AUC y matriz de confusion.
+\item \textbf{Aplicacion:} el modelo se aplico sobre datos reservados para prediccion mediante \texttt{ML.PREDICT}.
+\end{enumerate}
+
+Un parrafo final podria redactarse asi:
+
+\begin{quote}
+El modelo de clasificacion permite estimar la probabilidad de que un viaje pertenezca a la categoria de propina alta. La evaluacion no se limito a accuracy, ya que el problema puede presentar desbalance entre clases. Por ello se revisaron precision, recall, F1-score, ROC-AUC y matriz de confusion. Esta combinacion de metricas permite analizar tanto la capacidad general de acierto como el tipo de errores cometidos por el clasificador.
+\end{quote}
+
+\section{Conclusiones}
+Los modelos de clasificacion son herramientas para convertir datos historicos en decisiones categoricas sobre observaciones nuevas. Su valor depende de una formulacion correcta del problema: definir la unidad de analisis, construir una etiqueta coherente, seleccionar variables disponibles al momento de predecir y separar adecuadamente los datos para evaluar generalizacion.
+
+La clasificacion binaria no termina al obtener una clase predicha. Detras de esa clase existe una probabilidad y un umbral de decision. Por esa razon, la evaluacion debe considerar matriz de confusion, precision, recall, F1-score y ROC-AUC, no solamente accuracy. Esta lectura permite entender que tipo de errores comete el modelo y si esos errores son aceptables para el objetivo del analisis.
+
+En el contexto del Proyecto 2, el modelo de clasificacion de propina alta complementa el modelo de regresion de monto de propina. Juntos muestran dos formas distintas de usar aprendizaje supervisado: una orientada a categorias y otra orientada a valores continuos. La semana 11 completa asi el contenido pendiente de la semana 10 y proporciona la base conceptual para justificar, ejecutar e interpretar el clasificador construido con BigQuery ML.
+
+\newpage
+\printbibliography
+\end{document}

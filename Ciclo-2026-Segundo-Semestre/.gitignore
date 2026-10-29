@@ -1,0 +1,16 @@
+# Archivos locales y entregas ajenas al material docente
+.env
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfplan
+.terraform/
+.venv/
+__pycache__/
+*.pyc
+*.log
+.private/
+.generated/
+Entrega_estudiantes/
+simple_auth_passwords.json
+proyecto2.env.ps1

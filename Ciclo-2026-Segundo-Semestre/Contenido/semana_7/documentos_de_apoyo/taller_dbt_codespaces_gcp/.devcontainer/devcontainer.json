@@ -1,0 +1,26 @@
+{
+  "name": "SS2 dbt BigQuery Workshop",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "postCreateCommand": "pip install -r requirements.txt && bash scripts/setup_codespace.sh",
+  "forwardPorts": [8080],
+  "portsAttributes": {
+    "8080": {
+      "label": "dbt Docs",
+      "onAutoForward": "notify"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "innoverio.vscode-dbt-power-user",
+        "redhat.vscode-yaml",
+        "ms-python.python",
+        "GitHub.copilot"
+      ]
+    }
+  }
+}
+

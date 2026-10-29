@@ -1,0 +1,84 @@
+Project DEMO_SGFood_Abastecimiento {
+  note: "DEMO: Modelo estrella para Pedidos/Entregas. 1 fila = línea de orden por producto."
+}
+
+Table dim_fecha_hora {
+  fecha_hora_key int [pk, increment]
+  fecha_hora     datetime
+  anio           int
+  mes            int
+  nombre_mes     varchar(20)
+  dia            int
+  hora           int
+  minuto         int
+  dia_semana     varchar(20)
+}
+
+Table dim_producto {
+  producto_key     int [pk, increment]
+  codigo_producto  varchar(50) [not null]   // clave natural (NK)
+  nombre_producto  varchar(255)
+  categoria        varchar(100)
+  marca            varchar(100)
+}
+
+Table dim_bodega {
+  bodega_key      int [pk, increment]
+  codigo_bodega   varchar(50) [not null]    // NK
+  nombre_bodega   varchar(255)
+  ciudad          varchar(100)
+  region          varchar(100)
+}
+
+Table dim_canal {
+  canal_key int [pk, increment]
+  canal     varchar(50) [not null]
+}
+
+// SCD2: Proveedor (historial)
+Table dim_proveedor {
+  proveedor_key     int [pk, increment]
+  codigo_proveedor  varchar(50) [not null]  // NK
+
+  nombre_proveedor  varchar(255)
+  clasificacion     varchar(10)
+  ciudad_proveedor  varchar(100)
+
+}
+
+Table dim_transportista {
+  transportista_key     int [pk, increment]
+  codigo_transportista  varchar(50) [not null] // NK
+  empresa_transportista varchar(255)
+  tipo_unidad           varchar(50)
+}
+
+Table fact_pedido_detalle {
+  pedido_detalle_id int [pk, increment]
+
+  fecha_hora_key     int
+  producto_key       int
+  bodega_key         int
+  canal_key          int
+  proveedor_key      int
+  transportista_key  int
+
+  // dimensión degenerada (identificador de orden)
+  numero_orden       varchar(50)
+  numero_linea       int
+
+  // medidas
+  unidades_pedidas   int
+  costo_unitario     decimal(10,2)
+  costo_bruto        decimal(12,2)
+  descuento_linea    decimal(12,2)
+  costo_neto         decimal(12,2)
+  dias_entrega       int
+}
+
+Ref: fact_pedido_detalle.fecha_hora_key    > dim_fecha_hora.fecha_hora_key
+Ref: fact_pedido_detalle.producto_key      > dim_producto.producto_key
+Ref: fact_pedido_detalle.bodega_key        > dim_bodega.bodega_key
+Ref: fact_pedido_detalle.canal_key         > dim_canal.canal_key
+Ref: fact_pedido_detalle.proveedor_key     > dim_proveedor.proveedor_key
+Ref: fact_pedido_detalle.transportista_key > dim_transportista.transportista_key

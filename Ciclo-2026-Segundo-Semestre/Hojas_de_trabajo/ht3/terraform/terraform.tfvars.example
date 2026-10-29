@@ -1,0 +1,5 @@
+﻿project_id         = "TU_PROJECT_ID"
+region             = "us-central1"
+zone               = "us-central1-a"
+bucket_name_prefix = "ht3-carnet"
+vm_machine_type    = "e2-standard-4"

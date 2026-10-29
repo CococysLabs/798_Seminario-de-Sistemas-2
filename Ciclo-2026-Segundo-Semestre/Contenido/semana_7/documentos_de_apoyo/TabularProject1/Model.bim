@@ -1,0 +1,395 @@
+{
+  "name": "SemanticModel",
+  "compatibilityLevel": 1200,
+  "model": {
+    "culture": "es-MX",
+    "dataSources": [
+      {
+        "name": "SqlServer 127.0.0.1 SSISLab",
+        "connectionString": "Provider=SQLOLEDB;Data Source=127.0.0.1;Initial Catalog=SSISLab;User ID=sa;Persist Security Info=true",
+        "impersonationMode": "impersonateServiceAccount",
+        "annotations": [
+          {
+            "name": "ConnectionEditUISource",
+            "value": "SqlServer"
+          }
+        ]
+      }
+    ],
+    "tables": [
+      {
+        "name": "DimCliente",
+        "columns": [
+          {
+            "name": "ClienteKey",
+            "dataType": "int64",
+            "sourceColumn": "ClienteKey",
+            "sourceProviderType": "Integer"
+          },
+          {
+            "name": "ClienteID",
+            "dataType": "string",
+            "sourceColumn": "ClienteID",
+            "sourceProviderType": "Char"
+          },
+          {
+            "name": "Cliente",
+            "dataType": "string",
+            "sourceColumn": "Cliente",
+            "sourceProviderType": "WChar"
+          },
+          {
+            "name": "SegmentoCliente",
+            "dataType": "string",
+            "sourceColumn": "SegmentoCliente",
+            "sourceProviderType": "WChar"
+          },
+          {
+            "name": "Ciudad",
+            "dataType": "string",
+            "sourceColumn": "Ciudad",
+            "sourceProviderType": "WChar"
+          },
+          {
+            "name": "Pais",
+            "dataType": "string",
+            "sourceColumn": "Pais",
+            "sourceProviderType": "WChar"
+          },
+          {
+            "name": "Canal",
+            "dataType": "string",
+            "sourceColumn": "Canal",
+            "sourceProviderType": "WChar"
+          },
+          {
+            "name": "FechaCreacion",
+            "dataType": "string",
+            "sourceColumn": "FechaCreacion",
+            "sourceProviderType": "WChar"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "DimCliente",
+            "dataView": "full",
+            "source": {
+              "type": "query",
+              "query": " \t\t\t\tSELECT [dbo].[DimCliente].*   FROM [dbo].[DimCliente] ",
+              "dataSource": "SqlServer 127.0.0.1 SSISLab"
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "_TM_ExtProp_QueryDefinition",
+            "value": " \t\t\t\tSELECT [dbo].[DimCliente].*   FROM [dbo].[DimCliente] "
+          },
+          {
+            "name": "_TM_ExtProp_DbTableName",
+            "value": "DimCliente"
+          },
+          {
+            "name": "_TM_ExtProp_DbSchemaName",
+            "value": "dbo"
+          }
+        ]
+      },
+      {
+        "name": "DimFecha",
+        "columns": [
+          {
+            "name": "FechaKey",
+            "dataType": "int64",
+            "sourceColumn": "FechaKey",
+            "sourceProviderType": "Integer"
+          },
+          {
+            "name": "Fecha",
+            "dataType": "string",
+            "sourceColumn": "Fecha",
+            "sourceProviderType": "WChar"
+          },
+          {
+            "name": "Anio",
+            "dataType": "int64",
+            "sourceColumn": "Anio",
+            "sourceProviderType": "SmallInt"
+          },
+          {
+            "name": "Semestre",
+            "dataType": "int64",
+            "sourceColumn": "Semestre",
+            "sourceProviderType": "UnsignedTinyInt"
+          },
+          {
+            "name": "Trimestre",
+            "dataType": "int64",
+            "sourceColumn": "Trimestre",
+            "sourceProviderType": "UnsignedTinyInt"
+          },
+          {
+            "name": "MesNumero",
+            "dataType": "int64",
+            "sourceColumn": "MesNumero",
+            "sourceProviderType": "UnsignedTinyInt"
+          },
+          {
+            "name": "MesNombre",
+            "dataType": "string",
+            "sourceColumn": "MesNombre",
+            "sourceProviderType": "WChar"
+          },
+          {
+            "name": "DiaDelMes",
+            "dataType": "int64",
+            "sourceColumn": "DiaDelMes",
+            "sourceProviderType": "UnsignedTinyInt"
+          },
+          {
+            "name": "NombreDia",
+            "dataType": "string",
+            "sourceColumn": "NombreDia",
+            "sourceProviderType": "WChar"
+          },
+          {
+            "name": "EsFinDeSemana",
+            "dataType": "boolean",
+            "sourceColumn": "EsFinDeSemana",
+            "formatString": "\"TRUE\";\"TRUE\";\"FALSE\"",
+            "sourceProviderType": "Boolean"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "DimFecha",
+            "dataView": "full",
+            "source": {
+              "type": "query",
+              "query": " \t\t\t\tSELECT [dbo].[DimFecha].*   FROM [dbo].[DimFecha] ",
+              "dataSource": "SqlServer 127.0.0.1 SSISLab"
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "_TM_ExtProp_QueryDefinition",
+            "value": " \t\t\t\tSELECT [dbo].[DimFecha].*   FROM [dbo].[DimFecha] "
+          },
+          {
+            "name": "_TM_ExtProp_DbTableName",
+            "value": "DimFecha"
+          },
+          {
+            "name": "_TM_ExtProp_DbSchemaName",
+            "value": "dbo"
+          }
+        ]
+      },
+      {
+        "name": "DimProducto",
+        "columns": [
+          {
+            "name": "ProductoKey",
+            "dataType": "int64",
+            "sourceColumn": "ProductoKey",
+            "sourceProviderType": "Integer"
+          },
+          {
+            "name": "ProductoID",
+            "dataType": "string",
+            "sourceColumn": "ProductoID",
+            "sourceProviderType": "Char"
+          },
+          {
+            "name": "Producto",
+            "dataType": "string",
+            "sourceColumn": "Producto",
+            "sourceProviderType": "WChar"
+          },
+          {
+            "name": "Categoria",
+            "dataType": "string",
+            "sourceColumn": "Categoria",
+            "sourceProviderType": "WChar"
+          },
+          {
+            "name": "Marca",
+            "dataType": "string",
+            "sourceColumn": "Marca",
+            "sourceProviderType": "WChar"
+          },
+          {
+            "name": "FechaCreacion",
+            "dataType": "string",
+            "sourceColumn": "FechaCreacion",
+            "sourceProviderType": "WChar"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "DimProducto",
+            "dataView": "full",
+            "source": {
+              "type": "query",
+              "query": " \t\t\t\tSELECT [dbo].[DimProducto].*   FROM [dbo].[DimProducto] ",
+              "dataSource": "SqlServer 127.0.0.1 SSISLab"
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "_TM_ExtProp_QueryDefinition",
+            "value": " \t\t\t\tSELECT [dbo].[DimProducto].*   FROM [dbo].[DimProducto] "
+          },
+          {
+            "name": "_TM_ExtProp_DbTableName",
+            "value": "DimProducto"
+          },
+          {
+            "name": "_TM_ExtProp_DbSchemaName",
+            "value": "dbo"
+          }
+        ]
+      },
+      {
+        "name": "FactVentas",
+        "columns": [
+          {
+            "name": "VentaKey",
+            "dataType": "int64",
+            "sourceColumn": "VentaKey",
+            "sourceProviderType": "BigInt"
+          },
+          {
+            "name": "VentaID",
+            "dataType": "int64",
+            "sourceColumn": "VentaID",
+            "sourceProviderType": "Integer"
+          },
+          {
+            "name": "FechaKey",
+            "dataType": "int64",
+            "sourceColumn": "FechaKey",
+            "sourceProviderType": "Integer"
+          },
+          {
+            "name": "ProductoKey",
+            "dataType": "int64",
+            "sourceColumn": "ProductoKey",
+            "sourceProviderType": "Integer"
+          },
+          {
+            "name": "ClienteKey",
+            "dataType": "int64",
+            "sourceColumn": "ClienteKey",
+            "sourceProviderType": "Integer"
+          },
+          {
+            "name": "Cantidad",
+            "dataType": "int64",
+            "sourceColumn": "Cantidad",
+            "sourceProviderType": "Integer"
+          },
+          {
+            "name": "PrecioUnitario",
+            "dataType": "double",
+            "sourceColumn": "PrecioUnitario",
+            "sourceProviderType": "Numeric"
+          },
+          {
+            "name": "CostoUnitario",
+            "dataType": "double",
+            "sourceColumn": "CostoUnitario",
+            "sourceProviderType": "Numeric"
+          },
+          {
+            "name": "DescuentoPct",
+            "dataType": "double",
+            "sourceColumn": "DescuentoPct",
+            "sourceProviderType": "Numeric"
+          },
+          {
+            "name": "MontoVenta",
+            "dataType": "double",
+            "sourceColumn": "MontoVenta",
+            "sourceProviderType": "Numeric"
+          },
+          {
+            "name": "MontoCosto",
+            "dataType": "double",
+            "sourceColumn": "MontoCosto",
+            "sourceProviderType": "Numeric"
+          },
+          {
+            "name": "Utilidad",
+            "dataType": "double",
+            "sourceColumn": "Utilidad",
+            "sourceProviderType": "Numeric"
+          },
+          {
+            "name": "FechaCarga",
+            "dataType": "string",
+            "sourceColumn": "FechaCarga",
+            "sourceProviderType": "WChar"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "FactVentas",
+            "dataView": "full",
+            "source": {
+              "type": "query",
+              "query": " \t\t\t\tSELECT [dbo].[FactVentas].*   FROM [dbo].[FactVentas] ",
+              "dataSource": "SqlServer 127.0.0.1 SSISLab"
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "_TM_ExtProp_QueryDefinition",
+            "value": " \t\t\t\tSELECT [dbo].[FactVentas].*   FROM [dbo].[FactVentas] "
+          },
+          {
+            "name": "_TM_ExtProp_DbTableName",
+            "value": "FactVentas"
+          },
+          {
+            "name": "_TM_ExtProp_DbSchemaName",
+            "value": "dbo"
+          }
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "name": "279ae3f4-698d-4cc3-9ad1-6195d321d3a6",
+        "fromTable": "FactVentas",
+        "fromColumn": "ClienteKey",
+        "toTable": "DimCliente",
+        "toColumn": "ClienteKey"
+      },
+      {
+        "name": "30f7c20a-0282-4ee0-808d-c14d095cde65",
+        "fromTable": "FactVentas",
+        "fromColumn": "FechaKey",
+        "toTable": "DimFecha",
+        "toColumn": "FechaKey"
+      },
+      {
+        "name": "d559006f-b072-40b9-a983-5646829bd350",
+        "fromTable": "FactVentas",
+        "fromColumn": "ProductoKey",
+        "toTable": "DimProducto",
+        "toColumn": "ProductoKey"
+      }
+    ],
+    "annotations": [
+      {
+        "name": "ClientCompatibilityLevel",
+        "value": "400"
+      }
+    ]
+  },
+  "id": "SemanticModel"
+}

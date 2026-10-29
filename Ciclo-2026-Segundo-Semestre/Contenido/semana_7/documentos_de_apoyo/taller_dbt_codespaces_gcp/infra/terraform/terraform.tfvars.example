@@ -1,0 +1,15 @@
+project_id        = "ss2-dbt-workshop-project"
+region            = "us-central1"
+bigquery_location = "US"
+bucket_name       = "ss2-dbt-workshop-raw-demo"
+
+dataset_prefixes = [
+  "grupo_demo",
+  "grupo_01",
+  "grupo_02"
+]
+
+create_service_account_key = true
+create_vm                  = false
+allowed_ssh_cidrs          = []
+

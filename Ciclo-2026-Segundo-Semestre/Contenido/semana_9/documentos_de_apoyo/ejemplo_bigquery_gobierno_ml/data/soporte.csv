@@ -1,0 +1,8 @@
+ticket_id,cliente_id,fecha_ticket,tipo_ticket,resuelto
+5001,1,2026-03-05,consulta,1
+5002,2,2026-03-06,reclamo,0
+5003,2,2026-03-16,reclamo,1
+5004,3,2026-03-09,consulta,1
+5005,4,2026-03-15,reclamo,0
+5006,5,2026-03-18,consulta,1
+5007,6,2026-03-22,reclamo,1

@@ -1,0 +1,443 @@
+% !TeX program = pdflatex
+\documentclass[12pt]{article}
+
+% Idioma y codificacion
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+
+% Pagina y espaciado
+\usepackage{geometry}
+\geometry{letterpaper, margin=1in}
+\usepackage{setspace}
+\onehalfspacing
+
+% Tipografia y microajustes
+\usepackage{microtype}
+\usepackage{csquotes}
+
+% Tablas
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+
+% Listas
+\usepackage{enumitem}
+
+% Hipervinculos
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  urlcolor=blue,
+  citecolor=blue
+}
+
+% Formato academico y paginacion por seccion
+\usepackage{titlesec}
+\usepackage{etoolbox}
+\titlespacing*{\section}{0pt}{3ex plus 1ex minus .2ex}{2ex}
+\titlespacing*{\subsection}{0pt}{2.5ex plus 0.8ex minus .2ex}{1.2ex}
+\titlespacing*{\subsubsection}{0pt}{2ex plus 0.6ex minus .2ex}{1ex}
+\preto\section{\clearpage}
+
+% Encabezados/pies limpios
+\usepackage{fancyhdr}
+\setlength{\headheight}{15pt}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Documento de apoyo (Sesion 12, Unidad 2)}
+\rhead{Roles en equipos de datos}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Bibliografia
+\usepackage[
+  backend=biber,
+  style=ieee,
+  sorting=nyt,
+  maxbibnames=99
+]{biblatex}
+\addbibresource{referencias_s12.bib}
+
+% Metadatos
+\title{\textbf{Documento de apoyo (Sesion 12, Unidad 2)}\\
+\large Roles de Ingeniero de Datos, Analista de Datos y Cientifico de Datos\\
+\normalsize Diferencias, complementariedad y competencias dentro de un equipo moderno de datos}
+\author{Javier Andres Valdez Gonzalez / Auxiliar \\
+\small Seminario de Sistemas 2 --- Seccion P \\
+\small Universidad de San Carlos de Guatemala}
+\date{Abril de 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+En la practica profesional, el trabajo con datos no recae en un unico perfil tecnico. Las organizaciones que construyen capacidades analiticas sostenibles suelen distribuir responsabilidades entre roles especializados que cubren infraestructura, modelado, analisis, interpretacion y experimentacion. Este documento desarrolla de forma extensa los roles de Ingeniero de Datos, Analista de Datos y Cientifico de Datos, explicando su proposito, entregables, herramientas, competencias, puntos de contacto y limites. Tambien se examina como colaboran estos perfiles a lo largo del ciclo de vida del dato, desde la captura y preparacion hasta la generacion de conocimiento y la construccion de modelos predictivos. El objetivo es ofrecer un marco tecnico y organizacional que permita distinguir claramente las responsabilidades de cada rol y comprender por que la calidad del trabajo analitico depende de su coordinacion.
+\end{abstract}
+
+\textbf{Palabras clave:} ingenieria de datos, analisis de datos, ciencia de datos, roles, pipelines, visualizacion, machine learning, gobierno de datos.
+
+\newpage
+\tableofcontents
+
+\section{Introduccion}
+En muchas conversaciones academicas y laborales, los terminos \textit{Ingeniero de Datos}, \textit{Analista de Datos} y \textit{Cientifico de Datos} se usan como si fueran intercambiables. Sin embargo, aunque comparten un interes comun por convertir datos en valor, sus objetivos cotidianos, sus entregables y sus criterios de exito son distintos. Un equipo moderno de datos suele estructurarse precisamente para separar esas responsabilidades y reducir ambiguedades operativas \cite{ibm_modern_team,ibm_roles}.
+
+La confusion es comprensible. Los tres roles utilizan SQL en mayor o menor medida, trabajan con tablas, dependen de la calidad de los datos y necesitan comprender el negocio. Ademas, en organizaciones pequenas una misma persona puede asumir varias funciones. Aun asi, cuando el entorno crece en complejidad, la especializacion resulta necesaria: no es lo mismo asegurar que los datos lleguen confiablemente a una plataforma analitica, que interpretar indicadores para una gerencia, o que entrenar un modelo predictivo para anticipar comportamientos futuros \cite{aws_analytics,aws_data_science}.
+
+Este documento busca diferenciar estos perfiles con un enfoque tecnico, aplicado a un curso que ya ha trabajado conceptos como ETL, modelado dimensional, OLAP y analitica. La idea central es sencilla: el Ingeniero de Datos se concentra en construir y mantener la base tecnica que hace posible el trabajo con datos; el Analista de Datos traduce datos en indicadores, hallazgos y apoyo a decisiones; y el Cientifico de Datos formula problemas analiticos avanzados, construye modelos y evalua su utilidad en contextos inciertos \cite{ibm_roles,provost_fawcett}. 
+
+\section{Por que existen roles distintos en un equipo de datos}
+La existencia de roles distintos responde a una necesidad de division del trabajo. Un sistema moderno de datos incluye fuentes operacionales, procesos de integracion, almacenamiento, catalogos, modelos semanticos, tableros, analisis exploratorio, evaluaciones estadisticas y, en algunos casos, modelos de aprendizaje automatico. Ser competente en toda esa cadena al mismo nivel de profundidad es poco realista; por eso las organizaciones distribuyen funciones y crean especializaciones \cite{ibm_modern_team,dama_dmbok}.
+
+\subsection{Especializacion tecnica}
+El Ingeniero de Datos requiere fundamentos de ingenieria de software, arquitectura de datos, rendimiento de sistemas, automatizacion y observabilidad. El Analista de Datos, en cambio, necesita dominar interpretacion de metricas, visualizacion, modelado de indicadores y comunicacion con usuarios de negocio. El Cientifico de Datos necesita estadistica, experimentacion, modelado predictivo y capacidad para traducir problemas ambiguos en hipotesis cuantificables \cite{ibm_roles,aws_data_science}.
+
+\subsection{Diferencia en entregables}
+Cada rol produce artefactos distintos:
+\begin{itemize}[leftmargin=*]
+\item El Ingeniero de Datos entrega \textit{pipelines}, tablas confiables, procesos de carga, modelos de almacenamiento y mecanismos de monitoreo.
+\item El Analista de Datos entrega reportes, tableros, consultas, definiciones de KPI, analisis descriptivos y recomendaciones para operacion o gestion.
+\item El Cientifico de Datos entrega modelos, experimentos, evaluaciones, segmentaciones, pronosticos y, en los casos mas maduros, componentes analiticos desplegables.
+\end{itemize}
+
+\subsection{Diferencia en preguntas rectoras}
+Una forma util de distinguirlos es observar las preguntas que cada rol intenta responder:
+\begin{itemize}[leftmargin=*]
+\item \textbf{Ingeniero de Datos:} ``\textit{Como garantizo que los datos correctos lleguen, con calidad, seguridad y trazabilidad, al lugar correcto?}''
+\item \textbf{Analista de Datos:} ``\textit{Que esta ocurriendo, por que podria estar ocurriendo y como lo comunico para apoyar decisiones?}''
+\item \textbf{Cientifico de Datos:} ``\textit{Que patron subyacente existe en los datos y puedo construir un modelo que prediga, clasifique u optimice un resultado?}''
+\end{itemize}
+
+\section{Rol del Ingeniero de Datos}
+\subsection{Definicion general}
+El Ingeniero de Datos es el profesional que diseña, construye, automatiza y mantiene la infraestructura logica y operacional mediante la cual los datos fluyen desde sus fuentes hasta sus consumidores. IBM resume este rol como el encargado de desarrollar y mantener la arquitectura y los \textit{pipelines} de datos, asi como de optimizar plataformas y procesos de integracion \cite{ibm_roles}. En terminos practicos, es quien convierte datos dispersos y heterogeneos en activos reutilizables.
+
+\subsection{Objetivo principal}
+Su objetivo no es producir el grafico final ni entrenar el modelo final, sino asegurar que ambos sean posibles sobre datos correctos, consistentes y accesibles. Desde la perspectiva de arquitectura, el Ingeniero de Datos opera en la frontera entre sistemas transaccionales, almacenamiento analitico y plataformas de procesamiento. Si el flujo de datos falla, llega tarde o llega mal, los demas roles quedan bloqueados o trabajan con una base defectuosa \cite{kimball_dw_toolkit,dama_dmbok}.
+
+\subsection{Responsabilidades tipicas}
+Entre sus responsabilidades frecuentes se encuentran:
+\begin{enumerate}[label=\textbf{I\arabic*.}, leftmargin=*]
+\item Diseñar procesos de ingestion desde bases de datos, APIs, archivos, eventos o sistemas externos.
+\item Construir ETL/ELT reproducibles y observables.
+\item Definir capas de staging, transformacion y publicacion de datos.
+\item Modelar tablas analiticas, data marts o bodegas de datos.
+\item Gestionar particionamiento, rendimiento, costos y escalabilidad.
+\item Aplicar controles de calidad, validaciones, contratos de datos y monitoreo.
+\item Administrar seguridad, permisos, trazabilidad y gobierno operativo sobre los datos.
+\end{enumerate}
+
+\subsection{Herramientas y tecnologias comunes}
+El Ingeniero de Datos suele trabajar con:
+\begin{itemize}[leftmargin=*]
+\item SQL para transformacion, validacion y modelado.
+\item Python, Scala o Java para automatizacion y procesamiento.
+\item Motores de bases de datos relacionales y analiticos.
+\item Orquestadores como Airflow o servicios administrados equivalentes.
+\item Almacenamiento en nube, colas, procesamiento distribuido y herramientas de observabilidad.
+\item Plataformas de versionado, integracion continua y pruebas de datos.
+\end{itemize}
+
+\subsection{Competencias clave}
+Las competencias de este perfil combinan ingenieria y criterio de datos:
+\begin{itemize}[leftmargin=*]
+\item Pensamiento sistémico para entender dependencias entre fuentes, procesos y consumidores.
+\item Capacidad para manejar fallos, reintentos, idempotencia y cargas incrementales.
+\item Dominio de modelado de datos y fundamentos de calidad.
+\item Sensibilidad por rendimiento, costos, latencia y mantenibilidad.
+\item Habilidad para documentar esquemas, flujos y supuestos de negocio incorporados en el pipeline.
+\end{itemize}
+
+\subsection{Como se mide su exito}
+El trabajo del Ingeniero de Datos no se mide solo por ``hacer que corra un script''. Se mide por indicadores como:
+\begin{itemize}[leftmargin=*]
+\item disponibilidad de los datasets,
+\item confiabilidad y puntualidad de las cargas,
+\item reduccion de errores de calidad,
+\item facilidad de reutilizacion de datos por otros equipos,
+\item escalabilidad del sistema y
+\item trazabilidad operativa para auditoria y soporte.
+\end{itemize}
+
+\subsection{Riesgos cuando este rol falta o esta mal definido}
+Cuando no existe este rol o se ejecuta de forma improvisada, aparecen problemas clasicos: tablas duplicadas, logica de negocio repetida en multiples consultas, ausencia de versionado, pipelines manuales, reportes inconsistentes y baja confianza organizacional en los datos. En ese escenario, los analistas invierten demasiado tiempo en limpieza y los cientificos de datos modelan sobre insumos fragiles \cite{dama_dmbok,kimball_dw_toolkit}.
+
+\section{Rol del Analista de Datos}
+\subsection{Definicion general}
+El Analista de Datos transforma datos disponibles en informacion interpretable para la toma de decisiones. Su trabajo se orienta principalmente a responder preguntas descriptivas y diagnosticas: que paso, que esta pasando, donde ocurrio, para quien ocurrio y que patrones visibles se observan en el comportamiento del negocio \cite{aws_analytics}. Aunque puede realizar transformaciones tecnicas, su foco principal es el entendimiento del contexto organizacional y la comunicacion de hallazgos.
+
+\subsection{Objetivo principal}
+El objetivo del Analista de Datos es reducir incertidumbre en decisiones operativas o tacticas. No se trata unicamente de construir dashboards ``bonitos'', sino de estructurar indicadores pertinentes, validar definiciones, contextualizar tendencias y detectar desviaciones relevantes. El analista convierte datasets preparados en evidencia accionable \cite{ibm_modern_team}.
+
+\subsection{Responsabilidades tipicas}
+Entre sus tareas comunes se encuentran:
+\begin{enumerate}[label=\textbf{A\arabic*.}, leftmargin=*]
+\item Levantar requerimientos con usuarios de negocio.
+\item Traducir preguntas de negocio a consultas, metricas y cortes de analisis.
+\item Limpiar y preparar subconjuntos de datos para exploracion y reporte.
+\item Diseñar y mantener dashboards, reportes periodicos y vistas analiticas.
+\item Analizar tendencias, segmentaciones, outliers y variaciones frente a metas.
+\item Comunicar resultados con narrativa clara y recomendaciones entendibles.
+\item Validar que los KPI definidos correspondan al significado real del proceso.
+\end{enumerate}
+
+\subsection{Herramientas y tecnologias comunes}
+Este rol suele apoyarse en:
+\begin{itemize}[leftmargin=*]
+\item SQL para consultas y transformaciones intermedias.
+\item Hojas de calculo para validaciones puntuales y analisis exploratorio ligero.
+\item Herramientas de visualizacion y BI como Power BI, Tableau o Looker.
+\item Python o R cuando el contexto exige automatizacion analitica o estadistica mas avanzada.
+\item Modelos semanticos, diccionarios de datos y catálogos de metricas.
+\end{itemize}
+
+\subsection{Competencias clave}
+El Analista de Datos necesita un equilibrio entre tecnica y comunicacion:
+\begin{itemize}[leftmargin=*]
+\item comprension profunda del negocio,
+\item dominio de agregaciones, filtros, segmentaciones y definiciones de KPI,
+\item criterio para elegir visualizaciones adecuadas,
+\item pensamiento critico para no confundir correlacion con causalidad y
+\item capacidad de redactar conclusiones claras para audiencias no tecnicas.
+\end{itemize}
+
+\subsection{Como se mide su exito}
+Su exito suele evaluarse por:
+\begin{itemize}[leftmargin=*]
+\item utilidad real de los reportes para la toma de decisiones,
+\item claridad y consistencia de los indicadores,
+\item tiempo de respuesta a preguntas de negocio,
+\item adopcion de dashboards por parte de usuarios y
+\item calidad de sus interpretaciones y recomendaciones.
+\end{itemize}
+
+\subsection{Riesgos cuando este rol se reduce a ``hacer graficas''}
+Un error comun consiste en trivializar este perfil como si solo produjera visualizaciones. Cuando eso ocurre, se pierde el trabajo mas importante: definir correctamente las preguntas, validar el significado de las metricas y evitar conclusiones superficiales. Un dashboard sin contexto puede ser tan inutil como una tabla sin limpiar. El valor del analista radica en conectar datos con decisiones, no solo en exponerlos en pantalla \cite{aws_analytics,provost_fawcett}.
+
+\section{Rol del Cientifico de Datos}
+\subsection{Definicion general}
+El Cientifico de Datos trabaja con problemas donde la simple descripcion del pasado no basta. Su foco esta en descubrir patrones no triviales, formular hipotesis cuantitativas y construir modelos que clasifiquen, predigan, segmenten u optimicen resultados. IBM y AWS coinciden en que este perfil combina estadistica, programacion, conocimiento del dominio y tecnicas de analitica avanzada o aprendizaje automatico \cite{ibm_data_science,aws_data_science}.
+
+\subsection{Objetivo principal}
+El objetivo central del Cientifico de Datos es generar capacidad inferencial o predictiva. Esto implica ir mas alla del reporte tradicional para responder preguntas como:
+\begin{itemize}[leftmargin=*]
+\item que clientes tienen mayor riesgo de abandono,
+\item que transacciones son anomalias,
+\item que demanda se espera el siguiente mes,
+\item que variables explican mejor un comportamiento y
+\item que decision automatizada podria mejorar un proceso.
+\end{itemize}
+
+\subsection{Responsabilidades tipicas}
+Sus responsabilidades comunes incluyen:
+\begin{enumerate}[label=\textbf{C\arabic*.}, leftmargin=*]
+\item Traducir problemas ambiguos a problemas analiticos formulables.
+\item Seleccionar variables, construir etiquetas y preparar conjuntos de entrenamiento.
+\item Ejecutar analisis exploratorio con enfoque estadistico.
+\item Diseñar, entrenar y comparar modelos.
+\item Evaluar metricas, sesgos, sobreajuste, interpretabilidad y estabilidad.
+\item Comunicar supuestos, limitaciones y valor esperado del modelo.
+\item Colaborar con ingenieria para despliegue, monitoreo y reentrenamiento cuando el caso lo amerita.
+\end{enumerate}
+
+\subsection{Herramientas y tecnologias comunes}
+Con frecuencia utiliza:
+\begin{itemize}[leftmargin=*]
+\item Python o R para analisis estadistico y modelado.
+\item Librerias de aprendizaje automatico, notebooks y entornos de experimentacion.
+\item SQL para acceder y combinar datos.
+\item Herramientas de seguimiento de experimentos, versionado de modelos y evaluacion.
+\item Infraestructura de entrenamiento local, en nube o sobre plataformas distribuidas.
+\end{itemize}
+
+\subsection{Competencias clave}
+Las capacidades distintivas de este rol suelen incluir:
+\begin{itemize}[leftmargin=*]
+\item estadistica inferencial y probabilidad,
+\item evaluacion experimental,
+\item modelado predictivo y seleccion de variables,
+\item sensibilidad ante fuga de informacion, desbalance de clases y drift,
+\item habilidad para explicar por que un modelo es util o por que no deberia usarse.
+\end{itemize}
+
+\subsection{Como se mide su exito}
+El Cientifico de Datos no deberia medirse solo por exactitud numerica aislada. Tambien importan:
+\begin{itemize}[leftmargin=*]
+\item pertinencia del problema elegido,
+\item calidad metodologica del experimento,
+\item valor de negocio del modelo,
+\item robustez frente a nuevos datos y
+\item posibilidad real de operar o aprovechar el resultado.
+\end{itemize}
+
+\subsection{Riesgos cuando este rol opera sin base ingenieril o sin contexto}
+Sin una base de datos confiable, el Cientifico de Datos cae en trabajo artesanal poco reproducible. Sin contexto de negocio, puede optimizar metricas academicamente interesantes pero irrelevantes para la organizacion. Y sin apoyo para despliegue, los modelos se quedan en notebooks y no generan impacto. Por eso este rol depende fuertemente de la colaboracion con Ingenieria de Datos, analistas y responsables del proceso \cite{ibm_modern_team,provost_fawcett,crispdm}.
+
+\section{Comparacion estructurada entre los tres roles}
+\subsection{Diferencia de foco}
+La diferencia esencial esta en el foco primario:
+\begin{itemize}[leftmargin=*]
+\item \textbf{Ingeniero de Datos:} confiabilidad y disponibilidad del dato.
+\item \textbf{Analista de Datos:} interpretacion y apoyo a decisiones.
+\item \textbf{Cientifico de Datos:} modelado avanzado, inferencia y prediccion.
+\end{itemize}
+
+\subsection{Diferencia de horizonte temporal}
+Tambien cambia el horizonte temporal de sus preguntas:
+\begin{itemize}[leftmargin=*]
+\item el Ingeniero de Datos trabaja para que el flujo funcione hoy, mañana y de forma sostenible en el tiempo;
+\item el Analista de Datos observa el presente y el pasado reciente para explicar comportamiento;
+\item el Cientifico de Datos suele proyectarse al futuro o a escenarios no observados mediante modelos.
+\end{itemize}
+
+\subsection{Tabla comparativa}
+\begin{longtable}{@{}p{0.18\textwidth}p{0.23\textwidth}p{0.23\textwidth}p{0.26\textwidth}@{}}
+\toprule
+\textbf{Aspecto} & \textbf{Ingeniero de Datos} & \textbf{Analista de Datos} & \textbf{Cientifico de Datos} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Aspecto} & \textbf{Ingeniero de Datos} & \textbf{Analista de Datos} & \textbf{Cientifico de Datos} \\
+\midrule
+\endhead
+
+Pregunta central &
+Como mover y preparar datos correctamente &
+Que esta pasando y como explicarlo &
+Que patron puedo modelar o predecir \\
+
+Entregable tipico &
+Pipeline, tabla curada, data mart, monitoreo &
+Dashboard, reporte, analisis, KPI &
+Modelo, experimento, segmentacion, pronostico \\
+
+Tipo de trabajo &
+Infraestructura y automatizacion &
+Interpretacion y comunicacion &
+Experimentacion y modelado \\
+
+Herramientas dominantes &
+SQL, Python, orquestacion, nube &
+SQL, BI, hojas de calculo, visualizacion &
+Python/R, estadistica, ML, notebooks \\
+
+Criterio de exito &
+Confiabilidad, puntualidad, calidad, escalabilidad &
+Utilidad para decisiones, claridad y adopcion &
+Desempeno valido, impacto y robustez \\
+
+Relacion con el negocio &
+Indirecta pero critica &
+Muy cercana y frecuente &
+Cercana, especialmente en definicion del problema \\
+
+Riesgo tipico &
+Pipelines fragiles o costosos &
+Metricas mal definidas o mal interpretadas &
+Modelos sin valor, sobreajuste o no desplegables \\
+
+\bottomrule
+\end{longtable}
+
+\section{Como colaboran en un flujo de trabajo real}
+\subsection{Caso general}
+Puede imaginarse un escenario universitario o empresarial en el que se desea entender y predecir el comportamiento de ventas, uso de servicios o abandono de clientes. En ese flujo:
+\begin{enumerate}[label=\textbf{F\arabic*.}, leftmargin=*]
+\item El Ingeniero de Datos extrae informacion de sistemas fuente, limpia estructuras, integra catálogos y publica tablas curadas.
+\item El Analista de Datos explora esas tablas, define KPI, detecta patrones y valida con el negocio que las metricas representen correctamente la realidad operativa.
+\item El Cientifico de Datos toma esos datos ya contextualizados para formular un problema predictivo o de clasificacion y evaluar si un modelo aporta valor adicional.
+\end{enumerate}
+
+\subsection{Dependencias mutuas}
+La colaboracion no es lineal en un solo sentido. El analista puede descubrir una inconsistencia y retroalimentar al ingeniero. El cientifico de datos puede requerir nuevas variables o historicos mas granulares, obligando ajustes en la capa ingenieril. El ingeniero puede detectar que cierta definicion de indicador es ambigua y pedir una definicion mas precisa al analista o al area usuaria. Los tres roles, por tanto, forman un sistema de dependencias iterativas \cite{ibm_modern_team,crispdm}.
+
+\subsection{Ejemplo aplicado al curso}
+Si se usa como referencia un proyecto de viajes de taxi:
+\begin{itemize}[leftmargin=*]
+\item el Ingeniero de Datos prepara tablas limpias con fechas, zonas, montos y atributos del viaje;
+\item el Analista de Datos construye indicadores como viajes por hora, propina promedio por zona, distancia media por dia o distribucion por metodo de pago;
+\item el Cientifico de Datos formula un problema como predecir propina alta, tiempo de viaje o probabilidad de cancelacion, seleccionando variables y evaluando un clasificador o regresor.
+\end{itemize}
+
+\section{Competencias compartidas y competencias distintivas}
+\subsection{Lo que comparten}
+Aunque sus funciones difieren, los tres perfiles comparten una base comun:
+\begin{itemize}[leftmargin=*]
+\item alfabetizacion de datos,
+\item uso de SQL,
+\item comprension del contexto del negocio,
+\item pensamiento estructurado,
+\item documentacion y trazabilidad,
+\item criterio etico frente al uso de datos.
+\end{itemize}
+
+\subsection{Lo que los distingue}
+Las diferencias aparecen en profundidad y prioridad:
+\begin{itemize}[leftmargin=*]
+\item El Ingeniero de Datos profundiza en arquitectura, confiabilidad y automatizacion.
+\item El Analista de Datos profundiza en metricas, visualizacion, narrativa e interpretacion.
+\item El Cientifico de Datos profundiza en estadistica, inferencia, optimizacion y validacion de modelos.
+\end{itemize}
+
+\subsection{No toda persona necesita dominarlo todo al mismo nivel}
+Una mala practica de gestion consiste en redactar descripciones de puesto donde se exige a una sola persona: construir pipelines productivos, administrar infraestructura, modelar bodegas, definir KPI, crear dashboards, desarrollar modelos avanzados y desplegarlos. Aunque eso puede ocurrir en equipos pequeños de forma transitoria, no representa una especializacion sostenible. La madurez organizacional suele implicar separar responsabilidades y definir interfaces claras \cite{ibm_modern_team,ibm_roles}.
+
+\section{Trayectorias de aprendizaje para cada perfil}
+\subsection{Ruta orientada a Ingenieria de Datos}
+Quien aspire a este rol deberia fortalecer:
+\begin{enumerate}[label=\textbf{R\arabic*.}, leftmargin=*]
+\item SQL avanzado.
+\item Modelado relacional y dimensional.
+\item ETL/ELT, procesamiento por lotes e incremental.
+\item Python para automatizacion y transformacion.
+\item Sistemas distribuidos, nube y orquestacion.
+\item Calidad, observabilidad, seguridad y gobierno de datos.
+\end{enumerate}
+
+\subsection{Ruta orientada a Analisis de Datos}
+La ruta habitual incluye:
+\begin{enumerate}[label=\textbf{R\arabic*.}, leftmargin=*]
+\item SQL para consulta y agregacion.
+\item Estadistica descriptiva.
+\item Limpieza y preparacion de datos.
+\item Visualizacion y diseno de dashboards.
+\item Definicion de KPI y entendimiento del negocio.
+\item Comunicacion ejecutiva y redaccion de hallazgos.
+\end{enumerate}
+
+\subsection{Ruta orientada a Ciencia de Datos}
+Una trayectoria razonable requiere:
+\begin{enumerate}[label=\textbf{R\arabic*.}, leftmargin=*]
+\item algebra lineal, probabilidad y estadistica inferencial;
+\item Python o R para experimentacion;
+\item aprendizaje supervisado y no supervisado;
+\item evaluacion de modelos y validacion experimental;
+\item interpretabilidad, sesgos y monitoreo de drift;
+\item nociones de despliegue y colaboracion con ingenieria.
+\end{enumerate}
+
+\section{Malentendidos frecuentes sobre estos roles}
+\subsection{``El Cientifico de Datos es el rol mas importante''}
+No existe un ``rol supremo'' en un equipo de datos maduro. Un modelo sofisticado sin pipelines confiables o sin definiciones metricas correctas tiene poco valor. Del mismo modo, una plataforma impecable pero sin preguntas de negocio relevantes tampoco justifica su costo. La cadena completa es la que genera valor.
+
+\subsection{``El Analista de Datos solo usa Excel''}
+El uso de hojas de calculo no define ni limita al rol. Un analista serio debe entender fuentes, definiciones, agregaciones, sesgos de visualizacion y contexto del proceso. Su trabajo requiere criterio tecnico y comunicativo, no solo herramientas.
+
+\subsection{``El Ingeniero de Datos solo mueve tablas''}
+Mover tablas es apenas una parte pequena del rol. La ingenieria de datos involucra diseno de arquitectura, manejo de fallos, automatizacion, costos, seguridad y contratos de datos. La diferencia entre un proceso improvisado y una plataforma confiable suele residir precisamente en este perfil.
+
+\subsection{``Si ya hay dashboards, no se necesita ciencia de datos''}
+Los dashboards son fundamentales para describir y monitorear. Pero cuando la organizacion necesita prediccion, deteccion de anomalias, segmentacion o experimentacion cuantitativa, entra en juego la ciencia de datos. Cada capa responde a necesidades distintas \cite{aws_analytics,aws_data_science}.
+
+\section{Conclusiones}
+Los roles de Ingeniero de Datos, Analista de Datos y Cientifico de Datos forman una cadena de valor complementaria. El primero construye la base tecnica y operativa; el segundo convierte datos en informacion util para decisiones; el tercero utiliza metodos estadisticos y computacionales avanzados para explicar, predecir u optimizar fenomenos. Confundirlos conduce a malas expectativas laborales, a descripciones de puesto irreales y a proyectos con responsabilidades difusas \cite{ibm_roles,ibm_modern_team}.
+
+Desde una perspectiva academica, distinguir estos perfiles ayuda a ubicar mejor los contenidos del curso. Los temas de ETL, modelado dimensional, calidad y orquestacion se acercan mas a la Ingenieria de Datos. Los temas de indicadores, visualizacion y consumo analitico dialogan con el Analisis de Datos. Y los temas de modelos predictivos, evaluacion y machine learning se conectan con la Ciencia de Datos. Entender esa diferenciacion permite al estudiante reconocer afinidades profesionales, planificar su formacion con mayor claridad y colaborar mejor en equipos multidisciplinarios \cite{kimball_dw_toolkit,provost_fawcett}.
+
+\newpage
+\printbibliography
+\end{document}

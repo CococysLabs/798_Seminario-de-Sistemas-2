@@ -1,0 +1,328 @@
+% !TeX program = pdflatex
+\documentclass[12pt]{article}
+
+% Idioma y codificación
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+
+% Página y espaciado
+\usepackage{geometry}
+\geometry{letterpaper, margin=1in}
+\usepackage{setspace}
+\onehalfspacing
+
+% Tipografía y microajustes
+\usepackage{microtype}
+\usepackage{csquotes}
+\usepackage{amsmath}
+
+% Tablas
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+
+% Listas
+\usepackage{enumitem}
+
+% Código
+\usepackage{listingsutf8}
+\usepackage{listings}
+\lstset{inputencoding=utf8}
+\lstset{literate=%
+  {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'\i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+  {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+  {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {ü}{{\"u}}1 {Ü}{{\"U}}1
+}
+\usepackage{xcolor}
+\lstdefinestyle{sql}{
+  language=SQL,
+  inputencoding=utf8,
+  basicstyle=\ttfamily\small,
+  numbers=left,
+  numberstyle=\tiny,
+  stepnumber=1,
+  numbersep=8pt,
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=2,
+  frame=single
+}
+
+% Hipervínculos
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  urlcolor=blue,
+  citecolor=blue
+}
+
+% Formato académico y paginación por sección
+\usepackage{titlesec}
+\usepackage{etoolbox}
+\titlespacing*{\section}{0pt}{3ex plus 1ex minus .2ex}{2ex}
+\titlespacing*{\subsection}{0pt}{2.5ex plus 0.8ex minus .2ex}{1.2ex}
+\titlespacing*{\subsubsection}{0pt}{2ex plus 0.6ex minus .2ex}{1ex}
+\preto\section{\clearpage}
+
+% Encabezados/pies limpios
+\usepackage{fancyhdr}
+\setlength{\headheight}{15pt}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Documento de apoyo (Sesión 10, Unidad 2)}
+\rhead{Teoría de modelos predictivos}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Bibliografía
+\usepackage[
+  backend=biber,
+  style=ieee,
+  sorting=nyt,
+  maxbibnames=99
+]{biblatex}
+\addbibresource{referencias_s10.bib}
+
+% Metadatos
+\title{\textbf{Documento de apoyo (Sesión 10, Unidad 2)}\\
+\large Fundamentos de regresión, clasificación y evaluación de modelos predictivos\\
+\normalsize Teoría aplicada a BigQuery ML y al Proyecto 2 de NYC Taxi Trips 2022}
+\author{Javier Andrés Valdez González / Auxiliar \\
+\small Seminario de Sistemas 2 --- Sección P \\
+\small Universidad de San Carlos de Guatemala}
+\date{Abril de 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+El análisis exploratorio de datos permite describir el comportamiento histórico de un fenómeno, pero no basta por sí solo cuando se busca anticipar resultados futuros o automatizar decisiones. En ese punto entran los modelos predictivos, cuya función es aprender relaciones entre variables observadas y una variable objetivo para luego aplicarlas sobre registros no vistos durante el entrenamiento. Este documento desarrolla, con enfoque técnico-académico, la teoría de los problemas de regresión y clasificación, el papel de las variables de entrada y salida, la noción de entrenamiento, evaluación y generalización, y la importancia de separar adecuadamente los datos para evitar sobreajuste y fuga de información. Asimismo, se explican las métricas fundamentales de clasificación y regresión, su interpretación práctica, y la forma en que estas ideas se aterrizan en un flujo con BigQuery ML y SQL sobre el dataset NYC Taxi Trips 2022.
+\end{abstract}
+
+\textbf{Palabras clave:} regresión, clasificación, evaluación de modelos, BigQuery ML, precisión, matriz de confusión, error cuadrático medio, overfitting.
+
+\newpage
+\tableofcontents
+
+\section{Introducción}
+En analítica de datos, no todas las preguntas tienen la misma naturaleza. Algunas buscan describir el pasado, como identificar qué horas concentran mayor volumen de viajes o qué rutas generan más ingresos. Otras persiguen un objetivo diferente: usar la información histórica para inferir o estimar resultados futuros. Este segundo grupo de preguntas define el terreno del aprendizaje supervisado, donde un modelo se entrena con ejemplos etiquetados y luego se utiliza sobre datos nuevos \cite{gcp_bqml_eval_overview,google_overfitting}.
+
+Desde la perspectiva del curso, el requisito de entrenar dos modelos distintos no debe entenderse como una exigencia meramente operativa, sino como una oportunidad para demostrar que el estudiante puede recorrer un ciclo completo de modelado: formulación del problema, construcción de variables, entrenamiento, evaluación, comparación y aplicación de resultados. En BigQuery ML, este ciclo se materializa mediante SQL, lo que reduce la fricción técnica pero no reemplaza la necesidad de comprender los fundamentos conceptuales \cite{gcp_create_glm,gcp_predict}.
+
+\section{Modelado predictivo: propósito y estructura conceptual}
+\subsection{De la descripción a la predicción}
+El análisis descriptivo resume lo que ya ocurrió. En cambio, un modelo predictivo intenta aproximar una función que relacione variables observadas con una variable objetivo. Si se dispone de suficientes ejemplos históricos, el algoritmo ajusta parámetros internos para encontrar patrones útiles y luego reutiliza ese patrón en observaciones no vistas \cite{gcp_bqml_eval_overview}.
+
+En un escenario de taxis, una observación corresponde a un viaje individual. Ese viaje contiene atributos como hora de abordaje, distancia, forma de pago, tarifa y zonas de origen y destino. La idea del modelo consiste en aprender cómo esos atributos se relacionan con una etiqueta de interés, por ejemplo el monto de propina o la probabilidad de que la propina sea alta.
+
+\subsection{Variables de entrada, variable objetivo y observación}
+Todo problema supervisado puede descomponerse en tres elementos:
+\begin{enumerate}[label=\textbf{M\arabic*.}, leftmargin=*]
+\item \textbf{Observación:} la unidad de análisis. En este proyecto es un viaje de taxi.
+\item \textbf{Variables de entrada o \textit{features}:} columnas conocidas que describen la observación y que el modelo puede usar para predecir.
+\item \textbf{Variable objetivo o \textit{label}:} el resultado que se quiere estimar.
+\end{enumerate}
+
+La claridad en esta separación es crítica. Si el objetivo es predecir \texttt{tip\_amount}, entonces el problema es de regresión. Si el objetivo es clasificar un viaje como \texttt{is\_high\_tip = 1} o \texttt{0}, entonces el problema es de clasificación. Confundir ambas cosas conduce a elegir métricas o algoritmos incorrectos \cite{google_metrics_glossary}.
+
+\section{Regresión y clasificación}
+\subsection{Problemas de regresión}
+La regresión se utiliza cuando la salida esperada es un valor numérico continuo. No se busca decidir una categoría, sino aproximar un valor. En el contexto del proyecto, predecir el monto de la propina es un problema de regresión: el valor real puede ser 0.50, 3.75, 7.20 o cualquier otra cantidad dentro de un rango razonable \cite{google_linear_loss}.
+
+La calidad del modelo depende de la distancia entre el valor predicho y el valor real. Por esa razón, la evaluación de regresión se basa en métricas de error, no en conteos de aciertos y errores discretos.
+
+\subsection{Problemas de clasificación}
+La clasificación se utiliza cuando la salida esperada pertenece a una clase o categoría. En la forma más simple, se trata de clasificación binaria, donde la etiqueta solo puede tomar dos valores. Si un viaje se marca como ``propina alta'' o ``no propina alta'', el problema consiste en asignar correctamente una observación a una de esas dos clases \cite{gcp_create_glm,google_class_metrics}.
+
+Un clasificador binario no solo produce una clase, sino generalmente una probabilidad. La clase final surge al comparar esa probabilidad con un umbral. Si la probabilidad supera el umbral, el modelo clasifica como positivo; en caso contrario, como negativo \cite{google_thresholding}.
+
+\subsection{Por qué el proyecto pide dos modelos}
+Pedir dos modelos persigue tres fines pedagógicos:
+\begin{itemize}[leftmargin=*]
+\item obligar al estudiante a justificar una formulación del problema;
+\item promover la comparación entre alternativas, en lugar de asumir que un solo modelo basta;
+\item evidenciar que la evaluación depende del tipo de tarea y de las métricas apropiadas.
+\end{itemize}
+
+En términos prácticos, una combinación natural para este proyecto es:
+\begin{itemize}[leftmargin=*]
+\item un modelo de clasificación para determinar si la propina será alta;
+\item un modelo de regresión para estimar el monto de la propina.
+\end{itemize}
+
+\section{Entrenamiento, evaluación y generalización}
+\subsection{Qué significa entrenar un modelo}
+Entrenar un modelo significa ajustar sus parámetros internos usando ejemplos históricos donde ya se conoce la salida correcta. El algoritmo recibe columnas de entrada y la variable objetivo, y trata de encontrar una relación que minimice el error o maximice la capacidad de discriminación según el tipo de tarea \cite{gcp_create_glm,google_logistic_loss}.
+
+En BigQuery ML este proceso se implementa mediante \texttt{CREATE MODEL}. Aunque la sintaxis pueda parecer simple, conceptualmente el motor está resolviendo un problema de optimización: busca parámetros que hagan que las predicciones se aproximen lo más posible a la realidad observada \cite{gcp_create_glm}.
+
+\subsection{Qué significa evaluar}
+Evaluar implica medir qué tan bien se comporta el modelo sobre datos que no fueron utilizados para aprender. Esa distinción es fundamental. Un modelo puede ajustarse perfectamente a los datos de entrenamiento y aun así fracasar cuando se le presentan ejemplos nuevos \cite{gcp_bqml_eval_overview,google_overfitting}.
+
+\subsection{Generalización y sobreajuste}
+Se dice que un modelo generaliza bien cuando mantiene buen desempeño fuera del conjunto de entrenamiento. El problema opuesto es el sobreajuste (\textit{overfitting}), que ocurre cuando el modelo aprende patrones reales mezclados con ruido, peculiaridades accidentales o memorias del conjunto de entrenamiento, deteriorando así su utilidad práctica sobre datos nuevos \cite{google_overfitting}.
+
+En escenarios de negocio, un modelo sobreajustado puede lucir excelente en pruebas internas mal diseñadas y ser inútil en producción. Por eso la evaluación debe realizarse sobre observaciones no vistas.
+
+\section{Separación de datos y fuga de información}
+\subsection{Conjuntos de entrenamiento, evaluación y predicción}
+Una práctica estándar consiste en dividir los datos en subconjuntos con funciones diferentes:
+\begin{itemize}[leftmargin=*]
+\item \textbf{Training set:} usado para entrenar;
+\item \textbf{Evaluation set o validation set:} usado para medir desempeño fuera del entrenamiento;
+\item \textbf{Prediction set:} datos nuevos sobre los que se aplica el modelo ya entrenado.
+\end{itemize}
+
+En el proyecto se propone una división temporal: meses iniciales para entrenamiento, meses intermedios para evaluación y el último bloque para predicción. Esta estrategia tiene sentido porque el fenómeno observado es temporal y la intención es simular un escenario real donde se aprende con el pasado y se predice sobre el futuro \cite{gcp_bqml_eval_overview}.
+
+\subsection{Data leakage}
+La fuga de información ocurre cuando el modelo recibe, de forma directa o indirecta, información que en el mundo real no estaría disponible al momento de predecir. El resultado es un desempeño artificialmente alto \cite{gcp_bqml_eval_overview,google_overfitting}.
+
+Existen dos fuentes comunes de fuga:
+\begin{enumerate}[label=\textbf{L\arabic*.}, leftmargin=*]
+\item \textbf{Variables contaminadas:} columnas que contienen o anticipan la respuesta.
+\item \textbf{Partición incorrecta del tiempo:} mezclar pasado y futuro al evaluar, especialmente en datos secuenciales.
+\end{enumerate}
+
+En el proyecto, separar por meses es una medida concreta para reducir fuga temporal.
+
+\section{Ingeniería de características}
+La ingeniería de características (\textit{feature engineering}) consiste en transformar datos crudos en variables más útiles para el modelo. En muchos casos, las columnas originales no son la representación más informativa del fenómeno \cite{gcp_create_glm}.
+
+Ejemplos adecuados en el dataset de taxis son:
+\begin{itemize}[leftmargin=*]
+\item extraer \texttt{pickup\_hour} de \texttt{pickup\_datetime};
+\item derivar \texttt{pickup\_day\_of\_week};
+\item calcular \texttt{trip\_duration\_minutes} como diferencia entre abordaje y descenso;
+\item definir \texttt{tip\_pct} como relación entre propina y tarifa;
+\item construir \texttt{is\_high\_tip} a partir de un umbral sobre \texttt{tip\_pct}.
+\end{itemize}
+
+La razón técnica es clara: al crear variables derivadas, el modelo accede a una representación más alineada con patrones útiles. Un timestamp completo puede ser demasiado específico, mientras que la hora del día o el día de la semana pueden capturar mejor regularidades de comportamiento.
+
+\section{Métricas para clasificación}
+\subsection{Matriz de confusión}
+La matriz de confusión resume el desempeño de un clasificador binario en cuatro tipos de resultado: verdaderos positivos, verdaderos negativos, falsos positivos y falsos negativos \cite{gcp_confusion_matrix,google_thresholding}. Esta representación es valiosa porque no solo indica cuántos aciertos hubo, sino también qué tipo de errores comete el modelo.
+
+Si la clase positiva es ``propina alta'', entonces:
+\begin{itemize}[leftmargin=*]
+\item \textbf{Verdadero positivo (TP):} el modelo predijo propina alta y era correcto;
+\item \textbf{Verdadero negativo (TN):} el modelo predijo no propina alta y era correcto;
+\item \textbf{Falso positivo (FP):} el modelo afirmó propina alta cuando no correspondía;
+\item \textbf{Falso negativo (FN):} el modelo no detectó un caso que sí era propina alta.
+\end{itemize}
+
+\subsection{Accuracy}
+La exactitud global o \textit{accuracy} mide la proporción total de predicciones correctas:
+\[
+\text{Accuracy} = \frac{TP + TN}{TP + TN + FP + FN}
+\]
+Es una métrica fácil de interpretar, pero puede ser engañosa en conjuntos desbalanceados, porque un modelo puede acertar casi siempre a la clase mayoritaria y aun así ser poco útil para detectar la minoritaria \cite{google_class_metrics}.
+
+\subsection{Precision}
+La precisión responde a la pregunta: ``de todos los casos que el modelo clasificó como positivos, cuántos realmente lo eran?'' Su fórmula es:
+\[
+\text{Precision} = \frac{TP}{TP + FP}
+\]
+Es importante cuando el costo de los falsos positivos es alto \cite{google_class_metrics,google_metrics_glossary}.
+
+\subsection{Recall}
+El \textit{recall} o sensibilidad responde a la pregunta: ``de todos los casos positivos reales, cuántos fue capaz de detectar el modelo?'' Su fórmula es:
+\[
+\text{Recall} = \frac{TP}{TP + FN}
+\]
+Se vuelve crucial cuando el costo de perder positivos reales es elevado \cite{google_class_metrics}.
+
+\subsection{F1-score}
+El F1-score combina precisión y recall en una sola medida:
+\[
+F1 = 2 \cdot \frac{\text{precision} \cdot \text{recall}}{\text{precision} + \text{recall}}
+\]
+Resulta especialmente útil cuando se busca equilibrio entre ambas métricas y cuando el conjunto de clases no está balanceado \cite{google_class_metrics}.
+
+\subsection{ROC y ROC-AUC}
+La curva ROC estudia el comportamiento del clasificador para distintos umbrales. En lugar de asumir un único punto de corte, analiza cómo cambia la tasa de verdaderos positivos frente a la tasa de falsos positivos \cite{gcp_roc_curve,google_thresholding}. El área bajo la curva, conocida como AUC, resume la capacidad global del modelo para discriminar entre clases. Valores cercanos a 1 sugieren alta separación; valores cercanos a 0.5 indican comportamiento similar al azar \cite{google_metrics_glossary}.
+
+\section{Métricas para regresión}
+\subsection{Error y función de pérdida}
+En regresión, la pregunta no es si una clase fue correcta o incorrecta, sino qué tan lejos está la predicción del valor real. Esa distancia se expresa mediante el error:
+\[
+\text{error} = y - \hat{y}
+\]
+Las métricas de regresión resumen la magnitud de esos errores en un conjunto de observaciones \cite{google_linear_loss}.
+
+\subsection{MAE}
+El error absoluto medio (\textit{Mean Absolute Error}) promedia el valor absoluto de los errores. Tiene una ventaja interpretativa: se expresa en las mismas unidades de la variable objetivo. Si la etiqueta está en dólares, el MAE también está en dólares \cite{google_linear_loss}.
+
+\subsection{MSE}
+El error cuadrático medio (\textit{Mean Squared Error}) promedia el cuadrado de los errores. Al elevar al cuadrado, penaliza con mayor severidad los errores grandes, por lo que resulta sensible a valores atípicos:
+\[
+\text{MSE} = \frac{1}{N}\sum_{i=1}^{N}(y_i - \hat{y}_i)^2
+\]
+Esta métrica es importante tanto desde el punto de vista de evaluación como desde el entrenamiento, porque muchos modelos de regresión optimizan variantes del error cuadrático \cite{google_linear_loss,google_metrics_glossary}.
+
+\subsection{RMSE}
+La raíz del error cuadrático medio (\textit{Root Mean Squared Error}) devuelve el error a la escala original de la etiqueta:
+\[
+\text{RMSE} = \sqrt{\text{MSE}}
+\]
+Su interpretación suele ser más intuitiva que la del MSE puro, aunque conserva la fuerte penalización de errores grandes \cite{google_linear_loss}.
+
+\subsection{R\textsuperscript{2}}
+El coeficiente de determinación mide qué proporción de la variabilidad del objetivo logra explicar el modelo. Aunque es una métrica útil como resumen general, no debe interpretarse de manera aislada. Un buen análisis de regresión debería revisar al menos una métrica de escala interpretable como MAE o RMSE además de R\textsuperscript{2} \cite{gcp_evaluate}.
+
+\section{Comparación entre modelos y selección}
+La comparación de modelos no debería reducirse a ``escoger el que tenga el número más alto'' sin contexto. La selección debe considerar:
+\begin{itemize}[leftmargin=*]
+\item el tipo de problema;
+\item la métrica más alineada con el objetivo;
+\item los costos relativos de los distintos errores;
+\item la estabilidad del modelo sobre datos no vistos;
+\item la interpretabilidad y facilidad de comunicar resultados.
+\end{itemize}
+
+Por ejemplo, un clasificador con \textit{accuracy} alta pero \textit{recall} muy bajo podría ser inaceptable si el objetivo es detectar correctamente los casos positivos. De manera análoga, un modelo de regresión con buen R\textsuperscript{2} pero MAE muy alto puede ser poco útil operativamente.
+
+\section{Aplicación sobre nuevos datos}
+La frase ``aplicarlo sobre nuevos datos'' implica usar el modelo ya entrenado en observaciones no utilizadas durante el aprendizaje. En BigQuery ML esto ocurre con \texttt{ML.PREDICT} \cite{gcp_predict}. Conceptualmente, esta etapa verifica el propósito práctico del modelo: no basta con explicar el pasado; debe ser posible usar lo aprendido para generar predicciones en registros futuros o no vistos.
+
+En el Proyecto 2, esa idea se operacionaliza al reservar el último bloque temporal para predicción. De ese modo, la secuencia es coherente:
+\begin{enumerate}[label=\textbf{P\arabic*.}, leftmargin=*]
+\item entrenar con meses anteriores;
+\item evaluar con un subconjunto posterior;
+\item aplicar el modelo sobre el tramo final del año.
+\end{enumerate}
+
+\section{Aterrizaje de la teoría al Proyecto 2}
+La formulación propuesta en el proyecto puede justificarse del siguiente modo:
+
+\subsection{Modelo de clasificación}
+Se define una etiqueta binaria, por ejemplo \texttt{is\_high\_tip}, que indica si la propina relativa supera cierto umbral. El modelo intenta responder si un viaje pertenece o no a la clase positiva. Las métricas relevantes son precisión, recall, F1-score, ROC-AUC y matriz de confusión \cite{gcp_confusion_matrix,gcp_roc_curve,google_class_metrics}.
+
+\subsection{Modelo de regresión}
+Se usa \texttt{tip\_amount} como variable objetivo continua. El modelo intenta estimar un monto numérico de propina. Las métricas relevantes son MAE, MSE, RMSE y, de forma complementaria, R\textsuperscript{2} \cite{gcp_evaluate,google_linear_loss}.
+
+\subsection{Justificación de variables}
+Variables como \texttt{trip\_distance}, \texttt{fare\_amount}, \texttt{pickup\_hour}, \texttt{payment\_type} y las zonas de abordaje/descenso tienen justificación razonable porque reflejan condiciones del viaje que potencialmente influyen en el monto o patrón de propina. La etapa de ingeniería de características permite convertir estas observaciones en señales más útiles para el modelo.
+
+\section{Errores conceptuales frecuentes}
+\begin{enumerate}[label=\textbf{E\arabic*.}, leftmargin=*]
+\item \textbf{Usar accuracy como única métrica de clasificación.} Puede ocultar problemas graves en conjuntos desbalanceados.
+\item \textbf{Evaluar con datos de entrenamiento.} Impide medir generalización.
+\item \textbf{Ignorar la fuga de información.} Produce resultados artificialmente optimistas.
+\item \textbf{No justificar la variable objetivo.} Desconecta el modelo del problema real.
+\item \textbf{Confundir regresión con clasificación.} Conduce a interpretar mal los resultados y a elegir métricas impropias.
+\end{enumerate}
+
+\section{Conclusiones}
+La teoría detrás del requisito de entrenar dos modelos y evaluarlos con métricas adecuadas responde a una lógica fundamental del aprendizaje supervisado: los datos históricos se convierten en un insumo para aprender patrones, esos patrones se formalizan en modelos, y el valor real del proceso se verifica cuando las predicciones se sostienen sobre datos no vistos \cite{gcp_bqml_eval_overview,gcp_predict}.
+
+En términos académicos, este tipo de práctica obliga a distinguir entre descripción y predicción, entre variables de entrada y objetivo, entre entrenamiento y evaluación, y entre buenos resultados aparentes y capacidad real de generalización. En términos aplicados, permite transformar un conjunto masivo de viajes en una base para anticipar comportamientos útiles, justificar decisiones analíticas y comunicar resultados con evidencia medible.
+
+\newpage
+\printbibliography
+\end{document}

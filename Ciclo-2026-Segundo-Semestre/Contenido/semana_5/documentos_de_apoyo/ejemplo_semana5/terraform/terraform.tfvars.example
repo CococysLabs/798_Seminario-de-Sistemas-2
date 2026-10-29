@@ -1,0 +1,12 @@
+project_id         = "tu-proyecto-gcp"
+region             = "us-central1"
+zone               = "us-central1-a"
+name_prefix        = "sem5-ventas"
+subnet_cidr        = "10.50.0.0/24"
+allowed_cidrs_sql  = ["0.0.0.0/0"]
+allowed_cidrs_ssh  = ["0.0.0.0/0"]
+machine_type       = "e2-standard-2"
+boot_disk_size_gb  = 50
+data_disk_size_gb  = 100
+datamart_db        = "ventas_dm"
+sa_password        = "Cambia_Esta_Contrasena_123!"

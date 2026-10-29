@@ -1,0 +1,515 @@
+% !TeX program = pdflatex
+\documentclass[12pt]{article}
+
+% =========================================================
+% Estilo base (alineado al documento de apoyo de la Semana 3)
+% =========================================================
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+
+\usepackage{geometry}
+\geometry{letterpaper, margin=1in}
+\usepackage{setspace}
+\onehalfspacing
+
+\usepackage{microtype}
+\usepackage{csquotes}
+
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+
+\usepackage{enumitem}
+
+\usepackage{listingsutf8}
+\usepackage{listings}
+\lstset{inputencoding=utf8}
+\lstset{literate=%
+  {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'\i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+  {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+  {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {ü}{{\"u}}1 {Ü}{{\"U}}1
+}
+\usepackage{xcolor}
+\lstdefinestyle{text}{
+  basicstyle=\ttfamily\small,
+  numbers=left,
+  numberstyle=\tiny,
+  stepnumber=1,
+  numbersep=8pt,
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=2,
+  frame=single
+}
+
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  urlcolor=blue,
+  citecolor=blue
+}
+
+\usepackage{titlesec}
+\usepackage{etoolbox}
+\titlespacing*{\section}{0pt}{3ex plus 1ex minus .2ex}{2ex}
+\titlespacing*{\subsection}{0pt}{2.5ex plus 0.8ex minus .2ex}{1.2ex}
+\titlespacing*{\subsubsection}{0pt}{2ex plus 0.6ex minus .2ex}{1ex}
+\preto\section{\clearpage}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Documento de apoyo (Sesión 4, Unidad 2)}
+\rhead{Herramientas ETL y tendencias modernas}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% =========================================================
+% Bibliografía embebida (un solo .tex descargable)
+% =========================================================
+\begin{filecontents*}{referencias_s4.bib}
+@online{ms_adf_intro,
+  author  = {{Microsoft}},
+  title   = {Introduction to {Azure} Data Factory},
+  year    = {2025},
+  url     = {https://learn.microsoft.com/en-us/azure/data-factory/introduction},
+  urldate = {2026-02-16}
+}
+@online{aws_glue_what,
+  author  = {{Amazon Web Services}},
+  title   = {What is {AWS} Glue?},
+  year    = {2026},
+  url     = {https://docs.aws.amazon.com/glue/latest/dg/what-is-glue.html},
+  urldate = {2026-02-16}
+}
+@online{gcp_data_fusion_overview,
+  author  = {{Google Cloud}},
+  title   = {Cloud Data Fusion overview},
+  year    = {2026},
+  url     = {https://docs.cloud.google.com/data-fusion/docs/concepts/overview},
+  urldate = {2026-02-16}
+}
+@online{airbyte_docs,
+  author  = {{Airbyte}},
+  title   = {Airbyte documentation},
+  year    = {2026},
+  url     = {https://docs.airbyte.com/},
+  urldate = {2026-02-16}
+}
+@online{airbyte_github,
+  author  = {{airbytehq}},
+  title   = {Airbyte (GitHub): The leading data integration platform for {ETL}/{ELT}},
+  year    = {2026},
+  url     = {https://github.com/airbytehq/airbyte},
+  urldate = {2026-02-16}
+}
+@online{dbt_intro,
+  author  = {{dbt Labs}},
+  title   = {What is dbt? (dbt Developer Hub)},
+  year    = {2026},
+  url     = {https://docs.getdbt.com/docs/introduction},
+  urldate = {2026-02-16}
+}
+@online{dbt_docs_build,
+  author  = {{dbt Labs}},
+  title   = {About documentation (dbt Developer Hub)},
+  year    = {2026},
+  url     = {https://docs.getdbt.com/docs/build/documentation},
+  urldate = {2026-02-16}
+}
+@online{airflow_what_is,
+  author  = {{Apache Software Foundation}},
+  title   = {What is Airflow? (Apache Airflow Documentation)},
+  year    = {2026},
+  url     = {https://airflow.apache.org/docs/apache-airflow/stable/index.html},
+  urldate = {2026-02-16}
+}
+@online{nifi_overview,
+  author  = {{Apache Software Foundation}},
+  title   = {Apache NiFi Overview},
+  year    = {2026},
+  url     = {https://nifi.apache.org/docs/nifi-docs/html/overview.html},
+  urldate = {2026-02-16}
+}
+@online{debezium_home,
+  author  = {{Debezium}},
+  title   = {Debezium: Distributed platform for Change Data Capture},
+  year    = {2026},
+  url     = {https://debezium.io/},
+  urldate = {2026-02-16}
+}
+@online{kafka_connect_user_guide,
+  author  = {{Apache Software Foundation}},
+  title   = {Kafka Connect User Guide},
+  year    = {2025},
+  url     = {https://kafka.apache.org/41/kafka-connect/user-guide/},
+  urldate = {2026-02-16}
+}
+@online{snowpipe_intro,
+  author  = {{Snowflake}},
+  title   = {Snowpipe},
+  year    = {2026},
+  url     = {https://docs.snowflake.com/en/user-guide/data-load-snowpipe-intro},
+  urldate = {2026-02-16}
+}
+@online{databricks_cdc_tutorial,
+  author  = {{Databricks}},
+  title   = {Tutorial: Build an ETL pipeline using change data capture},
+  year    = {2026},
+  url     = {https://docs.databricks.com/aws/en/ldp/tutorial-pipelines},
+  urldate = {2026-02-16}
+}
+@online{talend_os_discontinued,
+  author  = {{Talend}},
+  title   = {Update on the future of Talend Open Studio},
+  year    = {2024},
+  url     = {https://www.talend.com/blog/update-on-the-future-of-talend-open-studio/},
+  urldate = {2026-02-16}
+}
+@online{qlik_talend_lifecycle,
+  author  = {{Qlik}},
+  title   = {Talend products lifecycle (Customer Support Statements)},
+  year    = {2026},
+  url     = {https://help.qlik.com/talend/en-US/customer-support-statements/Cloud/product-end-of-life-planning},
+  urldate = {2026-02-16}
+}
+@online{fivetran_getting_started,
+  author  = {{Fivetran}},
+  title   = {Getting started (Documentation)},
+  year    = {2026},
+  url     = {https://fivetran.com/docs/getting-started},
+  urldate = {2026-02-16}
+}
+\end{filecontents*}
+
+\usepackage[
+  backend=biber,
+  style=ieee,
+  sorting=nyt,
+  maxbibnames=99
+]{biblatex}
+\addbibresource{referencias_s4.bib}
+
+% =========================================================
+% Metadatos
+% =========================================================
+\title{\textbf{Documento de apoyo (Sesión 4, Unidad 2)}\\
+\large Herramientas ETL y tendencias modernas\\
+\normalsize Tipos de herramientas, criterios de selección y casos de uso}
+\author{Javier Andrés Valdez González / Auxiliar \\
+\small Seminario de Sistemas 2 — Sección P \\
+\small Universidad de San Carlos de Guatemala}
+\date{Febrero de 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Este documento complementa el material previo sobre fundamentos y operación del proceso ETL, enfocándose en el \textit{panorama de herramientas} disponibles hoy y en las \textit{tendencias modernas} de integración de datos. Se proponen tipologías prácticas (ETL visual, \textit{data replication} tipo ELT, orquestación, \textit{dataflow} y CDC/streaming, y capas de transformación), se presentan ejemplos representativos comerciales y \textit{open source}, se describen servicios ETL administrados en la nube y se establecen criterios técnicos para seleccionar herramientas según volumen, latencia, gobernanza y mantenibilidad. Finalmente, se discuten tendencias actuales (modern data stack, lakehouse, DataOps/observabilidad y tiempo casi real) mediante casos de uso reales orientados a analítica y OLAP.
+\end{abstract}
+
+\textbf{Palabras clave:} integración de datos, ETL, ELT, orquestación, CDC, Airflow, dbt, Airbyte, ADF, AWS Glue, Data Fusion.
+
+\newpage
+\tableofcontents
+
+% =========================================================
+\section{Alcance y premisas}
+Este documento asume que el lector ya conoce (i) el propósito de ETL/ELT en arquitecturas analíticas, (ii) la idea de \textit{staging}, cargas incrementales y control de calidad, y (iii) el rol del modelado dimensional para OLAP. El objetivo aquí no es re-explicar el proceso, sino ampliar el \textbf{criterio de ingeniería} para responder preguntas típicas en entornos reales:
+
+\begin{itemize}[leftmargin=*]
+  \item \textit{¿Qué tipo de herramienta necesito para mi escenario (batch vs.\ casi real, on-prem vs.\ nube, low-code vs.\ código)?}
+  \item \textit{¿Cómo comparo alternativas comerciales y open source sin caer en “listas de nombres”?}
+  \item \textit{¿Qué tendencias están cambiando la forma de construir pipelines y qué riesgos introducen?}
+\end{itemize}
+
+A lo largo del documento se usa \textbf{OLAP} como contexto de consumo (modelo estrella, \textit{data marts}, cubos/tablas) y, por tanto, se enfatizan propiedades como: consistencia semántica, trazabilidad, repetibilidad, y capacidad de operar cargas incrementales.
+
+% =========================================================
+\section{Tipos de herramientas ETL (y herramientas cercanas a ETL)}
+En la práctica, \textit{“herramienta ETL”} se usa como etiqueta para tecnologías diferentes que cumplen partes del ciclo de integración (extraer, mover, transformar, orquestar, observar, versionar). Una clasificación útil para evaluar soluciones (sin depender de marcas) es la siguiente.
+
+\subsection{Plataformas ETL visuales (\textit{low-code/no-code})}
+Son entornos con diseño de flujos por componentes (fuente--transformación--destino), conectores preconstruidos y ejecución administrada (o desplegable). Ventajas comunes:
+
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Productividad} para pipelines estándar (mover, limpiar, mapear).
+  \item \textbf{Monitoreo integrado} (\textit{runs}, estados, reintentos, alertas).
+  \item \textbf{Gobernanza} más directa (roles, auditoría, catálogos, entornos).
+\end{itemize}
+
+Riesgos típicos: dependencia de componentes propietarios, dificultad para versionar flujos complejos como código, y coste por ejecución/tiempo (en ofertas SaaS). En la nube, servicios como Azure Data Factory se posicionan explícitamente como \textit{data integration/ETL} con UI y orquestación \cite{ms_adf_intro}.
+
+\subsection{Herramientas de \textit{data replication} (ELT orientado a conectores)}
+Estas herramientas priorizan \textbf{extraer y cargar} a un destino analítico (warehouse/lakehouse) con mínima transformación previa. La transformación se desplaza hacia capas posteriores (SQL, dbt, notebooks), siguiendo el patrón ELT.
+
+Ejemplos representativos: Fivetran (gestionado) \cite{fivetran_getting_started} y Airbyte (open source/gestionado) \cite{airbyte_docs,airbyte_github}. Este enfoque es especialmente atractivo cuando:
+\begin{itemize}[leftmargin=*]
+  \item la mayoría de fuentes son SaaS/APIs y se necesita sincronización frecuente;
+  \item el equipo prefiere transformar “cerca del warehouse” con SQL y pruebas;
+  \item se requiere escalar conectores rápidamente sin diseñar flujos complejos.
+\end{itemize}
+
+\subsection{Capas de transformación en el destino (dbt y similares)}
+En el \textit{modern data stack}, la capa de transformación se formaliza como \textbf{proyecto versionado} que genera modelos tabulares, documentación y pruebas automatizadas. dbt Core se presenta como herramienta open source para transformar datos \textit{dentro} del destino \cite{dbt_intro} y genera documentación del proyecto como artefacto reproducible \cite{dbt_docs_build}. En escenarios OLAP, esta capa se usa para:
+\begin{itemize}[leftmargin=*]
+  \item estandarizar dimensiones conformadas y jerarquías;
+  \item definir hechos agregables (sumarizables) por grano;
+  \item mantener un diccionario de métricas y lógica de negocio versionada.
+\end{itemize}
+
+\subsection{Orquestación y automatización de workflows (no es ETL, pero lo sostiene)}
+Un pipeline robusto raramente es un solo “job”. Suele incluir dependencias (staging $\rightarrow$ dims $\rightarrow$ facts $\rightarrow$ validaciones $\rightarrow$ refresco de cubo). Apache Airflow se define como plataforma open source para \textbf{desarrollar, calendarizar y monitorear workflows batch} \cite{airflow_what_is}. Un orquestador es clave para:
+\begin{itemize}[leftmargin=*]
+  \item controlar dependencias y reintentos con idempotencia;
+  \item estandarizar parametrización por ambiente (dev/qa/prod);
+  \item instrumentar alertas y auditoría de ejecución por DAG.
+\end{itemize}
+
+\subsection{Automatización de flujos de datos (\textit{dataflow})}
+Herramientas de \textit{dataflow} se enfocan en mover y enrutar datos entre sistemas (integración, \textit{routing}, \textit{backpressure}). Apache NiFi describe su propósito como automatizar el flujo de datos entre sistemas \cite{nifi_overview}. Es útil cuando hay:
+\begin{itemize}[leftmargin=*]
+  \item múltiples fuentes y destinos heterogéneos;
+  \item necesidad de enrutar por reglas (p.\ ej., cuarentena vs.\ carga);
+  \item ingestión continua de archivos, colas o eventos con control de presión.
+\end{itemize}
+
+\subsection{CDC y streaming para latencias bajas}
+Cuando se busca latencia casi real, el “ETL” se aproxima a integración por eventos. Debezium se presenta como plataforma distribuida open source para \textbf{captura de cambios (CDC)} \cite{debezium_home}. Kafka Connect ofrece modos de ejecución y operación de conectores para import/export de datos en flujos \cite{kafka_connect_user_guide}. En analítica, CDC/streaming permite:
+\begin{itemize}[leftmargin=*]
+  \item alimentar tablas incrementales con granularidad de cambio;
+  \item habilitar dashboards de operación (minutos/segundos);
+  \item reducir ventanas batch, a costa de mayor complejidad operativa.
+\end{itemize}
+
+% =========================================================
+\section{Ejemplos de herramientas comerciales y Open Source}
+Esta sección no busca \textit{“la lista definitiva”}. El objetivo es mostrar cómo mapear herramientas a la tipología anterior, y qué \textbf{preguntas correctas} hacer al evaluarlas.
+
+\subsection{Mapa rápido por categoría}
+\begin{longtable}{@{}p{3.2cm}p{5.2cm}p{6.1cm}@{}}
+\toprule
+\textbf{Categoría} & \textbf{¿Qué resuelve mejor?} & \textbf{Ejemplos (referenciales)} \\
+\midrule
+ETL visual (low-code) & Pipelines estándar, monitoreo integrado, conectores + orquestación & Azure Data Factory \cite{ms_adf_intro}; Cloud Data Fusion \cite{gcp_data_fusion_overview} \\
+ELT / replication & Cargar rápido muchas fuentes (SaaS/APIs/BD) al warehouse/lake & Fivetran \cite{fivetran_getting_started}; Airbyte \cite{airbyte_docs} \\
+Transformación en destino & Modelado, pruebas, documentación y linaje lógico sobre SQL & dbt Core \cite{dbt_intro} \\
+Orquestación & Dependencias, calendarización, reintentos, observabilidad de jobs & Apache Airflow \cite{airflow_what_is} \\
+Dataflow & Enrutamiento, ingestión continua, backpressure, cuarentenas & Apache NiFi \cite{nifi_overview} \\
+CDC/Streaming & Cambios incrementales, near real-time, integración por eventos & Debezium \cite{debezium_home}; Kafka Connect \cite{kafka_connect_user_guide} \\
+\bottomrule
+\end{longtable}
+
+\subsection{Notas de evaluación para herramientas open source}
+Las herramientas open source suelen ser atractivas por costo y extensibilidad, pero su “costo total” depende de:
+
+\begin{enumerate}[label=\textbf{O\arabic*.}, leftmargin=*]
+  \item \textbf{Operación}: instalación, upgrades, HA, observabilidad, backups.
+  \item \textbf{Conectores reales}: no es solo “existe el conector”, sino si soporta \textit{incremental}, \textit{schema evolution}, límites API, y autenticación moderna.
+  \item \textbf{Gobernanza}: roles, auditoría, encriptación, secretos, segregación de ambientes.
+  \item \textbf{Ciclo de desarrollo}: CI/CD, revisión, pruebas, versionado como código.
+\end{enumerate}
+
+Por ejemplo, Airbyte enfatiza un catálogo amplio y una plataforma de integración open source \cite{airbyte_docs,airbyte_github}; esto acelera prototipos, pero el equipo debe definir prácticas de operación y control de cambios para sostener entornos productivos.
+
+\subsection{Notas de evaluación para herramientas comerciales}
+Las plataformas comerciales tienden a ofrecer:
+\begin{itemize}[leftmargin=*]
+  \item SLAs, soporte, conectores mantenidos y cumplimiento empresarial;
+  \item integraciones con IAM corporativo y auditoría;
+  \item UI, monitoreo y \textit{governance} integrados.
+\end{itemize}
+
+Sin embargo, conviene revisar dependencias de licenciamiento, costos por ejecución (en nube), límites por conector, y portabilidad. Como ejemplo histórico, Talend Open Studio fue discontinuado a inicios de 2024 \cite{talend_os_discontinued}; y Qlik mantiene páginas de ciclo de vida/fin de soporte para productos Talend \cite{qlik_talend_lifecycle}. Este tipo de eventos es relevante al evaluar riesgo de continuidad y estrategia de migración.
+
+% =========================================================
+\section{Herramientas ETL en la nube}
+La nube estandarizó una clase de herramientas: \textbf{servicios administrados} para integración, orquestación y transformación. Su ventaja principal no es “hacer ETL”, sino reducir carga operativa: escalado, infraestructura, integración con identidades y monitoreo.
+
+\subsection{Servicios administrados representativos}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Azure Data Factory (ADF):} se describe como servicio ETL e integración de datos para crear workflows que mueven y transforman datos a escala \cite{ms_adf_intro}.
+  \item \textbf{AWS Glue:} se describe como servicio \textit{serverless} de integración de datos para descubrir, preparar, mover e integrar datos desde múltiples fuentes \cite{aws_glue_what}.
+  \item \textbf{Cloud Data Fusion:} se describe como servicio administrado, \textit{cloud-native}, para construir y gestionar pipelines \cite{gcp_data_fusion_overview}.
+\end{itemize}
+
+\subsection{Patrones comunes en la nube}
+\begin{enumerate}[label=\textbf{C\arabic*.}, leftmargin=*]
+  \item \textbf{Ingestión hacia un lake/warehouse:} carga por lotes o micro-batches a almacenamiento/warehouse.
+  \item \textbf{Transformación con motores administrados:} Spark/SQL administrado o jobs de transformación.
+  \item \textbf{Orquestación central:} pipelines con dependencias, \textit{retry}, alertas y auditoría.
+  \item \textbf{Seguridad integrada:} IAM, secretos, redes privadas, \textit{private endpoints}.
+\end{enumerate}
+
+\subsection{Costos y \textit{trade-offs}}
+En la nube, el costo está ligado a consumo (tiempo de ejecución, workers, throughput, conectores). Buenas prácticas al diseñar pipelines:
+\begin{itemize}[leftmargin=*]
+  \item preferir incrementales (CDC/marcas de agua) para no “pagar por volver a copiar todo”;
+  \item particionar por tiempo o claves de negocio para cargas y consultas;
+  \item separar \textit{dev/qa/prod} para evitar ejecuciones accidentales costosas.
+\end{itemize}
+
+\subsection{Integración casi real y cargas continuas}
+Algunos warehouses ofrecen mecanismos \textbf{serverless} de carga continua. Por ejemplo, Snowpipe habilita cargar archivos en micro-batches “tan pronto como estén disponibles” \cite{snowpipe_intro}. En lakehouse/streaming, guías de Databricks describen pipelines ETL con CDC (incluyendo entrada desde Debezium) \cite{databricks_cdc_tutorial}. Estos enfoques reducen latencia, pero implican disciplina en:
+\begin{itemize}[leftmargin=*]
+  \item control de duplicación (exactly-once vs.\ at-least-once);
+  \item manejo de cambios de esquema;
+  \item control de calidad en flujos continuos.
+\end{itemize}
+
+% =========================================================
+\section{Criterios de selección}
+Seleccionar una herramienta no es “elegir marca”; es alinear capacidades con requisitos. A continuación se propone un conjunto de criterios con enfoque académico-práctico para evaluar alternativas en proyectos de analítica/OLAP.
+
+\subsection{Criterios técnicos (checklist)}
+\begin{enumerate}[label=\textbf{S\arabic*.}, leftmargin=*]
+  \item \textbf{Conectividad real:} fuentes/destinos requeridos, autenticación, y soporte de incrementales.
+  \item \textbf{Volumen y rendimiento:} throughput, paralelismo, particionamiento, y límites por conector.
+  \item \textbf{Latencia objetivo:} batch (diario/hora) vs.\ micro-batch (minutos) vs.\ streaming (segundos).
+  \item \textbf{Transformaciones:} complejidad (joins, SCD, enriquecimiento), expresividad (SQL/Python), y pruebas.
+  \item \textbf{Gobernanza y seguridad:} IAM, auditoría, secretos, encriptación, redes privadas.
+  \item \textbf{Observabilidad:} logs, métricas, \textit{lineage} operativo, alertas y reintentos.
+  \item \textbf{Mantenibilidad:} versionado, CI/CD, revisión por pares, ambientes, portabilidad.
+  \item \textbf{Costo total:} licencias + operación + infraestructura + tiempo humano.
+\end{enumerate}
+
+\subsection{Matriz de puntuación (plantilla)}
+Una forma útil de formalizar la decisión es asignar pesos (importancia) y puntajes (capacidad). La Tabla~\ref{tab:matriz} sirve como plantilla para clase/laboratorio.
+
+\begin{longtable}{@{}p{4.0cm}p{2.3cm}p{2.3cm}p{6.0cm}@{}}
+\caption{Matriz de selección (plantilla).}\label{tab:matriz}\\
+\toprule
+\textbf{Criterio} & \textbf{Peso (1--5)} & \textbf{Puntaje (1--5)} & \textbf{Evidencia (¿cómo lo verifico?)} \\
+\midrule
+Conectores e incrementales &  &  & Demo con una fuente real + corrida incremental \\
+Observabilidad y reintentos &  &  & Logs por etapa + alertas + re-run idempotente \\
+Transformación y pruebas &  &  & Caso con SCD/validaciones + suite de tests \\
+Seguridad/IAM &  &  & Integración con roles + secretos + red privada \\
+Costo total &  &  & Estimación de consumo/licencias + operación mensual \\
+Portabilidad / lock-in &  &  & Exportación de pipeline / ejecución en otro entorno \\
+\bottomrule
+\end{longtable}
+
+\subsection{Regla práctica para escenarios OLAP}
+Para analítica y cubos, suele funcionar bien la combinación:
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Replicación/ingestión} (Airbyte/Fivetran o servicio cloud) $\rightarrow$
+  \item \textbf{Transformación versionada} (dbt/SQL) $\rightarrow$
+  \item \textbf{Orquestación} (Airflow/ADF) $\rightarrow$
+  \item \textbf{Publicación} (modelos estrella + materializaciones/particiones).
+\end{itemize}
+La decisión final depende de latencia, volumen y gobernanza: si se exige near real-time, CDC/streaming (Debezium/Kafka) pasa a ser componente central.
+
+% =========================================================
+\section{Tendencias actuales}
+La “modernidad” en ETL no es un conjunto fijo de herramientas, sino un cambio de énfasis: más automatización operativa, más transformación en el destino, y más disciplina de ingeniería (\textit{DataOps}).
+
+\subsection{Del ETL monolítico al \textit{modern data stack}}
+Se observa una separación de responsabilidades:
+\begin{itemize}[leftmargin=*]
+  \item ingestión/replicación (EL) como servicio o plataforma de conectores;
+  \item transformación (T) dentro del warehouse/lakehouse con proyectos versionados (dbt) \cite{dbt_intro};
+  \item orquestación y monitoreo como capa transversal \cite{airflow_what_is}.
+\end{itemize}
+Esto facilita modularidad: cada capa puede evolucionar sin rehacer todo el pipeline.
+
+\subsection{Lakehouse y pipelines declarativos}
+En entornos lakehouse, los pipelines combinan batch y streaming bajo un mismo sistema de almacenamiento/tabla. Documentación de Databricks presenta pipelines ETL con CDC, incluyendo integración con Debezium \cite{databricks_cdc_tutorial}. La tendencia relevante es \textbf{declarar} expectativas de calidad y dependencias, y dejar que el sistema ejecute/optimice.
+
+\subsection{CDC/streaming como estándar para latencias bajas}
+Debezium (CDC) \cite{debezium_home} y Kafka Connect \cite{kafka_connect_user_guide} se usan para mover cambios de bases operacionales hacia capas analíticas casi en tiempo real. Esto habilita:
+\begin{itemize}[leftmargin=*]
+  \item KPIs operativos (por hora/minuto);
+  \item detección de anomalías/fraude con menor demora;
+  \item sincronización de catálogos e inventarios en alta rotación.
+\end{itemize}
+El costo es complejidad: manejo de orden, duplicación, esquemas, y consistencia eventual.
+
+\subsection{Observabilidad y gobernanza “por defecto”}
+La tendencia DataOps impulsa:
+\begin{itemize}[leftmargin=*]
+  \item \textbf{pruebas} y documentación automatizadas en transformación \cite{dbt_docs_build};
+  \item \textbf{monitoreo} y trazabilidad de ejecuciones en orquestación \cite{airflow_what_is};
+  \item prácticas de \textbf{CI/CD} para pipelines, evitando cambios manuales “en producción”.
+\end{itemize}
+
+% =========================================================
+\section{Casos de uso reales}
+Los siguientes casos están pensados para que el estudiante identifique requisitos y derive una arquitectura razonable, sin casarse con una sola marca.
+
+\subsection{Caso 1: Analítica de ventas (batch nocturno) para cubo OLAP}
+\textbf{Contexto.} Punto de venta (POS) y e-commerce generan transacciones; se requiere un cubo/tabla agregada por tiempo, tienda, categoría.
+
+\textbf{Requisitos.} Latencia diaria; volumen medio; calidad alta; auditoría (cortes contables).
+
+\textbf{Arquitectura típica.}
+\begin{itemize}[leftmargin=*]
+  \item ETL visual en la nube (ADF/Glue/Data Fusion) para extraer y cargar \cite{ms_adf_intro,aws_glue_what,gcp_data_fusion_overview}.
+  \item Transformación en destino (SQL/dbt) para conformar dimensiones y construir hechos \cite{dbt_intro}.
+  \item Orquestación con dependencias y reconciliación (Airflow o el propio servicio) \cite{airflow_what_is}.
+\end{itemize}
+
+\textbf{Riesgo clave.} Correcciones retroactivas (devoluciones) $\rightarrow$ diseñar upserts/particiones y control de re-procesos.
+
+\subsection{Caso 2: Marketing y analítica SaaS (ELT con conectores)}
+\textbf{Contexto.} Datos dispersos en CRM, Ads, soporte, web analytics. Se necesita un modelo unificado para BI.
+
+\textbf{Requisitos.} Muchas fuentes API; cambios frecuentes de campos; el equipo prefiere “cargar todo” y transformar después.
+
+\textbf{Arquitectura típica.}
+\begin{itemize}[leftmargin=*]
+  \item Replicación al warehouse con conectores (Fivetran/Airbyte) \cite{fivetran_getting_started,airbyte_docs}.
+  \item Transformación con dbt para estandarizar métricas y documentación \cite{dbt_intro,dbt_docs_build}.
+  \item Orquestación para refrescar modelos y publicar tablas de consumo (Airflow) \cite{airflow_what_is}.
+\end{itemize}
+
+\textbf{Riesgo clave.} \textit{Schema drift} en APIs $\rightarrow$ contratos mínimos, pruebas y alertas (DataOps).
+
+\subsection{Caso 3: Inventario de alta rotación (near real-time con CDC)}
+\textbf{Contexto.} Inventario cambia constantemente; operaciones necesitan alertas y tableros casi en tiempo real.
+
+\textbf{Requisitos.} Latencia de minutos; consistencia razonable; tolerancia a consistencia eventual.
+
+\textbf{Arquitectura típica.}
+\begin{itemize}[leftmargin=*]
+  \item CDC desde la BD operacional con Debezium \cite{debezium_home}.
+  \item Transporte con Kafka Connect y topics (o conectores equivalentes) \cite{kafka_connect_user_guide}.
+  \item Consumo en lakehouse/warehouse con micro-batches o streaming; guías de pipelines CDC (p.\ ej., Databricks) \cite{databricks_cdc_tutorial}.
+\end{itemize}
+
+\textbf{Riesgo clave.} Duplicación/orden de eventos $\rightarrow$ claves idempotentes, ventanas, \textit{watermarks}.
+
+\subsection{Caso 4: Integración de archivos y múltiples destinos (dataflow)}
+\textbf{Contexto.} Llegan archivos (CSV/JSON) desde proveedores; algunos registros son válidos, otros deben ir a cuarentena; se publican extractos a varios sistemas.
+
+\textbf{Requisitos.} Enrutamiento por reglas, control de presión (\textit{backpressure}), trazabilidad por archivo.
+
+\textbf{Arquitectura típica.}
+\begin{itemize}[leftmargin=*]
+  \item Dataflow con NiFi para ingestión, validación y ruteo \cite{nifi_overview}.
+  \item Carga a staging y posteriormente transformaciones para el modelo analítico.
+\end{itemize}
+
+\textbf{Riesgo clave.} Falta de versionado de flujos $\rightarrow$ tratar la configuración como artefacto desplegable y auditable.
+
+\subsection{Caso 5: Carga continua serverless en warehouse}
+\textbf{Contexto.} Se reciben archivos en almacenamiento cloud y se desean visibles en el warehouse “en minutos”.
+
+\textbf{Requisitos.} Latencia corta sin administrar servidores; costos controlados.
+
+\textbf{Arquitectura típica.} Snowpipe habilita carga en micro-batches cuando los archivos están disponibles \cite{snowpipe_intro}. Se complementa con transformación posterior y monitoreo de fallos.
+
+\textbf{Riesgo clave.} Explosión de pequeños archivos $\rightarrow$ políticas de compactación y particionado.
+
+% =========================================================
+\section{Conclusiones}
+Las herramientas ETL modernas se entienden mejor como un \textbf{ecosistema} de componentes: ingestión, transformación, orquestación, dataflow y CDC/streaming. La selección adecuada depende de requisitos medibles (latencia, volumen, gobernanza, mantenibilidad) y de un diseño que preserve consistencia semántica para OLAP. En la práctica, combinar replicación/ingestión (Airbyte/Fivetran o servicios cloud) \cite{airbyte_docs,fivetran_getting_started,ms_adf_intro,aws_glue_what,gcp_data_fusion_overview} con transformación versionada (dbt) \cite{dbt_intro} y orquestación (Airflow) \cite{airflow_what_is} produce pipelines más modularizables y auditables. Para escenarios near real-time, CDC y streaming (Debezium/Kafka Connect) \cite{debezium_home,kafka_connect_user_guide} habilitan nuevos casos de uso, a cambio de mayor complejidad operativa.
+
+\clearpage
+\printbibliography
+
+\end{document}

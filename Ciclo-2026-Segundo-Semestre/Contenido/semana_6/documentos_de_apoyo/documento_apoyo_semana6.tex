@@ -1,0 +1,263 @@
+﻿% !TeX program = pdflatex
+\documentclass[12pt]{article}
+
+% Idioma y codificación
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+
+% Página y espaciado
+\usepackage{geometry}
+\geometry{letterpaper, margin=1in}
+\usepackage{setspace}
+\onehalfspacing
+
+% Tipografía y microajustes
+\usepackage{microtype}
+\usepackage{csquotes}
+
+% Tablas
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+
+% Listas
+\usepackage{enumitem}
+
+% Código
+\usepackage{listingsutf8}
+\usepackage{listings}
+\lstset{inputencoding=utf8}
+\lstset{literate=%
+  {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'\i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+  {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+  {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {ü}{{\"u}}1 {Ü}{{\"U}}1
+}
+\usepackage{xcolor}
+\lstdefinestyle{python}{
+  language=Python,
+  inputencoding=utf8,
+  basicstyle=\ttfamily\small,
+  numbers=left,
+  numberstyle=\tiny,
+  stepnumber=1,
+  numbersep=8pt,
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=2,
+  frame=single
+}
+
+% Hipervínculos
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  urlcolor=blue,
+  citecolor=blue
+}
+
+% Formato académico y paginación por sección
+\usepackage{titlesec}
+\usepackage{etoolbox}
+\titlespacing*{\section}{0pt}{3ex plus 1ex minus .2ex}{2ex}
+\titlespacing*{\subsection}{0pt}{2.5ex plus 0.8ex minus .2ex}{1.2ex}
+\titlespacing*{\subsubsection}{0pt}{2ex plus 0.6ex minus .2ex}{1ex}
+\preto\section{\clearpage}
+
+% Encabezados/pies
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Documento de apoyo (Sesión 6, Unidad 2)}
+\rhead{Análisis y ecosistemas Big Data con Spark}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Bibliografía
+\usepackage[
+  backend=biber,
+  style=ieee,
+  sorting=nyt,
+  maxbibnames=99
+]{biblatex}
+\addbibresource{referencias_s6.bib}
+
+% Metadatos
+\title{\textbf{Documento de apoyo (Sesión 6, Unidad 2)}\\
+\large Análisis y ecosistemas Big Data con Apache Spark\\
+\normalsize Fundamentos, arquitectura, exploración y carga desde data lakes}
+\author{Javier Andrés Valdez González / Auxiliar \\
+\small Seminario de Sistemas 2 --- Sección P \\
+\small Universidad de San Carlos de Guatemala}
+\date{Marzo de 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+El análisis Big Data requiere arquitecturas distribuidas capaces de procesar grandes volúmenes de información con velocidad y flexibilidad. En esta sesión se introducen los fundamentos conceptuales de Big Data a través del marco de las 4V, y se desarrolla el papel de Apache Spark como motor de análisis distribuido para cargas batch e interactivas. El documento presenta la arquitectura de Spark, sus componentes principales, el flujo básico de trabajo para análisis de datos y prácticas de exploración con DataFrames. Finalmente, se aborda la carga de información desde data lakes, destacando formatos columnares y consideraciones de particionamiento para mejorar desempeño analítico.
+\end{abstract}
+
+\textbf{Palabras clave:} Big Data, 4V, Apache Spark, DataFrames, data lake, particionamiento, Parquet.
+
+\newpage
+\tableofcontents
+
+\section{Introducción}
+Las organizaciones modernas generan datos desde aplicaciones transaccionales, sensores, plataformas web, redes sociales y sistemas empresariales. Este crecimiento no solo incrementa el volumen de datos, sino también la diversidad de formatos y la velocidad con la que la información cambia. En ese contexto surge Big Data como un enfoque para almacenar, procesar y analizar datos que superan las capacidades de herramientas tradicionales \cite{ibm_big_data}.
+
+Apache Spark se ha consolidado como uno de los motores más utilizados para análisis distribuido por su modelo de ejecución en memoria, su API unificada y su integración con ecosistemas de almacenamiento masivo. Spark permite construir pipelines de transformación, exploración y análisis sobre datos estructurados y semiestructurados en entornos locales, clústeres on-premise o nube \cite{spark_docs_overview}.
+
+El objetivo de este documento es presentar, en formato técnico y práctico, los temas de la semana 6: definición de Big Data (4V), arquitectura de Spark, fundamentos de análisis en Spark, exploración de datos y carga desde data lakes.
+
+\section{Análisis y ecosistemas Big Data: ¿Qué es Big Data? (4V)}
+Big Data describe conjuntos de datos cuya escala, complejidad y dinámica requieren arquitecturas distribuidas y técnicas especializadas para su procesamiento \cite{laney_3v}. Una forma estándar de entenderlo es mediante las 4V:
+
+\begin{enumerate}[label=\textbf{V\arabic*.}, leftmargin=*]
+\item \textbf{Volumen:} cantidad masiva de datos (GB, TB, PB) provenientes de múltiples fuentes.
+\item \textbf{Velocidad:} ritmo al que los datos se generan, transmiten y deben procesarse.
+\item \textbf{Variedad:} coexistencia de formatos estructurados, semiestructurados y no estructurados.
+\item \textbf{Veracidad:} nivel de calidad, consistencia y confiabilidad del dato para análisis.
+\end{enumerate}
+
+Estas dimensiones obligan a diseñar soluciones que combinen almacenamiento escalable, procesamiento paralelo, control de calidad y gobierno de datos.
+
+\section{Análisis y ecosistemas Big Data: Arquitectura de Spark}
+Spark opera sobre un modelo distribuido orientado a clúster, donde una aplicación se divide en tareas paralelas ejecutadas por nodos trabajadores. Sus componentes principales son:
+
+\begin{itemize}[leftmargin=*]
+\item \textbf{Driver:} proceso que contiene la lógica de la aplicación, planifica tareas y coordina la ejecución.
+\item \textbf{Cluster Manager:} asigna recursos entre aplicaciones (por ejemplo, Standalone, YARN o Kubernetes).
+\item \textbf{Executors:} procesos en nodos trabajadores que ejecutan tareas y almacenan datos en memoria/disco.
+\item \textbf{SparkSession:} punto de entrada para trabajar con DataFrames, SQL y lectura/escritura de datos.
+\end{itemize}
+
+A nivel lógico, Spark transforma el código en un DAG (grafo acíclico dirigido) de etapas y tareas. Este plan se optimiza antes de ejecutarse para reducir movimientos de datos y mejorar rendimiento \cite{spark_sql_guide}.
+
+\section{Análisis y ecosistemas Big Data: Fundamentos de Spark para análisis}
+En análisis de datos, Spark se usa principalmente mediante DataFrames y Spark SQL. El flujo básico de trabajo suele ser:
+
+\begin{enumerate}[label=\textbf{F\arabic*.}, leftmargin=*]
+\item \textbf{Inicializar la sesión de Spark.}
+\item \textbf{Cargar datos} desde archivos o tablas.
+\item \textbf{Transformar} (filtrar, agregar, limpiar, enriquecer).
+\item \textbf{Analizar} con operaciones SQL o API de DataFrame.
+\item \textbf{Persistir resultados} en formatos analíticos.
+\end{enumerate}
+
+\begin{lstlisting}[style=python, caption={Ejemplo base de análisis con PySpark DataFrame}]
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, sum as sum_
+
+spark = SparkSession.builder \
+    .appName("Semana6-BigData") \
+    .getOrCreate()
+
+df = spark.read.option("header", True).csv("data/ventas.csv")
+
+resumen = (
+    df.groupBy("categoria")
+      .agg(sum_(col("monto").cast("double")).alias("ventas_totales"))
+      .orderBy(col("ventas_totales").desc())
+)
+
+resumen.show(20, truncate=False)
+\end{lstlisting}
+
+\section{Análisis y ecosistemas Big Data: Exploración de datos en Spark}
+La exploración inicial permite entender estructura, calidad y patrones antes de modelar. En Spark, algunas operaciones esenciales son:
+
+\begin{itemize}[leftmargin=*]
+\item \texttt{printSchema()} para validar tipos de datos.
+\item \texttt{show()} para inspección rápida de registros.
+\item \texttt{describe()} para estadísticas descriptivas básicas.
+\item \texttt{count()}, \texttt{distinct()} y \texttt{groupBy()} para perfiles de distribución.
+\item análisis de nulos y valores atípicos con reglas de negocio.
+\end{itemize}
+
+\begin{lstlisting}[style=python, caption={Rutina básica de exploración en Spark}]
+from pyspark.sql.functions import col, count, when
+
+print("Total de filas:", df.count())
+
+df.printSchema()
+df.show(10, truncate=False)
+
+df.describe().show()
+
+nulos = df.select([
+    count(when(col(c).isNull(), c)).alias(c)
+    for c in df.columns
+])
+
+nulos.show(truncate=False)
+\end{lstlisting}
+
+Una exploración adecuada evita errores posteriores de agregación, sesgo por datos faltantes y fallos de tipado en cálculos.
+
+\section{Análisis y ecosistemas Big Data: Carga desde data lakes}
+Un data lake almacena datos en bruto y curados, generalmente en almacenamiento de objetos o sistemas distribuidos, para su consumo analítico por distintos motores \cite{aws_datalake}. Spark se integra de forma natural con esta arquitectura gracias a sus conectores y soporte de formatos abiertos.
+
+\subsection{Formatos comunes de lectura}
+\begin{itemize}[leftmargin=*]
+\item \textbf{CSV/JSON:} útiles para ingestión inicial, pero menos eficientes para análisis masivo.
+\item \textbf{Parquet/ORC:} formatos columnares comprimidos y optimizados para consultas analíticas.
+\item \textbf{Delta Lake (cuando aplica):} agrega transaccionalidad y versionado sobre archivos de data lake \cite{delta_docs}.
+\end{itemize}
+
+\subsection{Ejemplo de carga desde data lake}
+\begin{lstlisting}[style=python, caption={Lectura y escritura en formato Parquet particionado}]
+from pyspark.sql.functions import year, month, to_date, col
+
+raw = spark.read.parquet("s3a://mi-datalake/raw/ventas/")
+
+curated = (
+    raw.withColumn("fecha", to_date(col("fecha")))
+       .withColumn("anio", year(col("fecha")))
+       .withColumn("mes", month(col("fecha")))
+       .filter(col("monto").isNotNull())
+)
+
+(curated.write
+    .mode("overwrite")
+    .partitionBy("anio", "mes")
+    .parquet("s3a://mi-datalake/curated/ventas/"))
+\end{lstlisting}
+
+El particionamiento por fecha facilita el \textit{pruning} de particiones, reduciendo el volumen leído y acelerando consultas.
+
+\section{Buenas prácticas mínimas para la semana 6}
+\begin{longtable}{@{}p{0.30\textwidth}p{0.62\textwidth}@{}}
+\toprule
+\textbf{Tema} & \textbf{Práctica recomendada} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Tema} & \textbf{Práctica recomendada} \\
+\midrule
+\endhead
+
+Lectura de datos & Definir esquema explícito cuando sea posible para evitar inferencia costosa o errores de tipos. \\
+
+Transformaciones & Encadenar operaciones de forma declarativa y validar resultados parciales con muestras controladas. \\
+
+Exploración & Revisar nulos, cardinalidad y rangos antes de construir agregaciones o métricas de negocio. \\
+
+Data lake & Preferir Parquet para capas analíticas y organizar rutas particionadas por columnas de alta selectividad. \\
+
+Rendimiento & Evitar acciones innecesarias repetidas; usar cache solo cuando un DataFrame se reutiliza varias veces. \\
+
+\bottomrule
+\end{longtable}
+
+\section{Conclusiones}
+Big Data se entiende mejor como un problema de ingeniería de datos definido por volumen, velocidad, variedad y veracidad. En este contexto, Spark aporta un modelo distribuido y unificado para procesar datos a escala con APIs orientadas a análisis.
+
+Para la práctica de esta semana, los puntos críticos son: comprender la arquitectura de Spark, dominar el flujo base con DataFrames, explorar datos con criterios de calidad y cargar/organizar información desde data lakes con formatos eficientes. Estos fundamentos son la base para construir pipelines analíticos robustos en sesiones posteriores.
+
+\newpage
+\printbibliography
+\end{document}

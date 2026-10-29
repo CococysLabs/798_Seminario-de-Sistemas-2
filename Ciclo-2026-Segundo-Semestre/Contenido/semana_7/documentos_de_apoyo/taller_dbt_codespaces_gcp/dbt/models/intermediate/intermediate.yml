@@ -1,0 +1,13 @@
+version: 2
+
+models:
+  - name: int_ventas_enriquecidas
+    description: Integra ventas con clientes, productos y sucursales. Es una capa intermedia, no orientada directamente al usuario final.
+    columns:
+      - name: venta_id
+        tests:
+          - not_null
+          - unique
+      - name: margen_estimado
+        description: Venta neta menos costo estimado de los productos vendidos.
+

@@ -1,0 +1,8 @@
+project_id         = "project-xxxxxxxx"
+region             = "us-central1"
+bigquery_location  = "US"
+bucket_location    = "US-CENTRAL1"
+dataset_id         = "semana9_novashop"
+bucket_name        = "semana9-novashop-project-xxxxxxxx"
+delete_contents_on_destroy = true
+force_destroy_bucket       = true

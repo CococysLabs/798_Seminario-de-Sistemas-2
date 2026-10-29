@@ -1,0 +1,420 @@
+% !TeX program = pdflatex
+\documentclass[12pt]{article}
+
+% Idioma y codificacion
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+
+% Pagina y espaciado
+\usepackage{geometry}
+\geometry{letterpaper, margin=1in}
+\usepackage{setspace}
+\onehalfspacing
+
+% Tipografia y microajustes
+\usepackage{microtype}
+\usepackage{csquotes}
+
+% Tablas
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+
+% Listas
+\usepackage{enumitem}
+
+% Codigo
+\usepackage{listingsutf8}
+\usepackage{listings}
+\lstset{inputencoding=utf8}
+\lstset{literate=%
+  {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'\i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+  {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+  {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {ü}{{\"u}}1 {Ü}{{\"U}}1
+}
+\usepackage{xcolor}
+\lstdefinestyle{sql}{
+  language=SQL,
+  inputencoding=utf8,
+  basicstyle=\ttfamily\small,
+  numbers=left,
+  numberstyle=\tiny,
+  stepnumber=1,
+  numbersep=8pt,
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=2,
+  frame=single
+}
+
+% Hipervinculos
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  urlcolor=blue,
+  citecolor=blue
+}
+
+% Formato academico y paginacion por seccion
+\usepackage{titlesec}
+\usepackage{etoolbox}
+\titlespacing*{\section}{0pt}{3ex plus 1ex minus .2ex}{2ex}
+\titlespacing*{\subsection}{0pt}{2.5ex plus 0.8ex minus .2ex}{1.2ex}
+\titlespacing*{\subsubsection}{0pt}{2ex plus 0.6ex minus .2ex}{1ex}
+\preto\section{\clearpage}
+
+% Encabezados/pies
+\usepackage{fancyhdr}
+\setlength{\headheight}{15pt}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Documento de apoyo (Sesion 7, Unidad 2)}
+\rhead{Modelado Analitico con dbt}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Bibliografia
+\usepackage[
+  backend=biber,
+  style=ieee,
+  sorting=nyt,
+  maxbibnames=99
+]{biblatex}
+\addbibresource{referencias_s7.bib}
+
+% Metadatos
+\title{\textbf{Documento de apoyo (Sesion 7, Unidad 2)}\\
+\large Modelado Analitico con dbt\\
+\normalsize SQL, ELT, pruebas, documentacion y trazabilidad}
+\author{Javier Andres Valdez Gonzalez / Auxiliar \\
+\small Seminario de Sistemas 2 --- Seccion P \\
+\small Universidad de San Carlos de Guatemala}
+\date{Marzo de 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+El modelado analitico moderno requiere transformar datos crudos en modelos confiables, verificables y reutilizables para inteligencia de negocios. En esta sesion se estudia dbt como herramienta central de transformacion ELT: permite escribir modelos en SQL, organizar un proyecto en capas, declarar fuentes, cargar datos semilla, reutilizar logica mediante macros, ejecutar pruebas de calidad, generar documentacion y mantener linaje entre tablas. El documento presenta los fundamentos conceptuales y practicos necesarios para construir modelos analiticos reproducibles, con enfasis en rigor analitico, responsabilidad tecnica, colaboracion mediante control de versiones y trazabilidad de las transformaciones.
+\end{abstract}
+
+\textbf{Palabras clave:} dbt, ELT, modelado analitico, SQL, staging, intermediate, marts, sources, seeds, macros, pruebas de datos, documentacion, linaje, Git.
+
+\newpage
+\tableofcontents
+
+\section{Introduccion}
+La inteligencia de negocios no depende solamente de visualizar datos en un tablero. Antes de llegar a un dashboard, los datos deben ser extraidos desde sistemas operacionales, cargados en una plataforma analitica, transformados con reglas claras y publicados en tablas comprensibles para usuarios de negocio. Si esa transformacion no es reproducible, documentada y verificable, las metricas pueden volverse ambiguas y las decisiones quedan expuestas a errores dificiles de rastrear.
+
+dbt, abreviatura de \textit{data build tool}, surge precisamente en esa etapa de transformacion. Su proposito es permitir que analistas e ingenieros de datos construyan modelos analiticos mediante SQL, con practicas heredadas del desarrollo de software: modularidad, control de versiones, revisiones, pruebas automatizadas, documentacion y linaje \cite{dbt_explained}. En lugar de transformar los datos antes de cargarlos, dbt asume que los datos ya estan disponibles en una bodega, lago o plataforma analitica, y ejecuta las transformaciones dentro de esa misma plataforma.
+
+El objetivo de este documento es explicar los temas de la semana 7 desde una perspectiva academica y practica: fundamentos de dbt y ELT, estructura de un proyecto dbt, capas de modelado, pruebas, documentacion, linaje, perfiles, ambientes, ejecucion local y control de versiones con Git. El proposito no es memorizar comandos aislados, sino comprender como dbt ayuda a construir datos confiables para BI.
+
+\section{Marco formativo de la sesion}
+\subsection{Area actitudinal: saber ser}
+El trabajo con dbt no debe entenderse solamente como una actividad tecnica. Al construir modelos analiticos, el estudiante desarrolla habitos profesionales relacionados con calidad, evidencia, colaboracion y trazabilidad. Estos valores son necesarios porque los modelos de datos suelen alimentar reportes, indicadores y decisiones institucionales.
+
+\begin{longtable}{@{}p{0.24\textwidth}p{0.68\textwidth}@{}}
+\toprule
+\textbf{Valor} & \textbf{Aplicacion en la sesion} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Valor} & \textbf{Aplicacion en la sesion} \\
+\midrule
+\endhead
+
+Rigor analitico & Se refuerza al construir modelos de datos consistentes, verificables y reutilizables mediante SQL y dbt. \\
+
+Responsabilidad tecnica & Se promueve al documentar fuentes, transformaciones y supuestos para evitar decisiones basadas en datos ambiguos. \\
+
+Colaboracion & Se desarrolla al trabajar con control de versiones, revision de cambios y estandares compartidos de modelado. \\
+
+Trazabilidad & Se aplica al mantener linaje entre fuentes, modelos intermedios y tablas analiticas finales. \\
+
+\bottomrule
+\end{longtable}
+
+\subsection{Area de conocimiento y habilidades}
+La competencia central de la sesion es construir modelos analiticos reproducibles mediante dbt, SQL y control de versiones, aplicando pruebas, documentacion y buenas practicas de transformacion ELT para preparar datos confiables orientados a BI.
+
+Esta competencia integra el \textit{saber} y el \textit{saber hacer}. En el area de conocimiento, el estudiante comprende los fundamentos de dbt, ELT, estructura de proyecto, capas de modelado, calidad, documentacion y ejecucion. En el area de habilidades, aplica esos conceptos al desarrollar modelos, declarar fuentes, ejecutar pruebas y versionar cambios.
+
+\section{Fundamentos de dbt y ELT}
+\subsection{ETL vs ELT}
+En un proceso ETL, por \textit{Extract, Transform, Load}, los datos se extraen desde las fuentes, se transforman fuera del repositorio analitico y luego se cargan a una bodega o data mart. Este patron fue natural cuando el almacenamiento analitico era costoso y las plataformas tenian menor capacidad para procesar grandes volumenes directamente.
+
+En un proceso ELT, por \textit{Extract, Load, Transform}, los datos se extraen y se cargan primero a una plataforma analitica. La transformacion ocurre despues, usando la capacidad de computo de la bodega o motor de datos. dbt Labs describe ELT como un flujo donde los datos se cargan en una bodega central y luego se transforman dentro de ella para generar modelos utiles para analisis \cite{dbt_elt_pipeline}.
+
+La diferencia practica puede resumirse asi:
+
+\begin{enumerate}[label=\textbf{E\arabic*.}, leftmargin=*]
+\item \textbf{ETL:} transforma antes de cargar; suele depender de herramientas externas de integracion.
+\item \textbf{ELT:} carga primero y transforma despues; aprovecha motores analiticos modernos.
+\item \textbf{dbt:} se ubica principalmente en la T de ELT, es decir, en la transformacion gobernada de datos ya cargados.
+\end{enumerate}
+
+\subsection{Rol de dbt en el stack moderno de datos}
+dbt no reemplaza todas las piezas de una arquitectura de datos. No es, por si mismo, una herramienta de extraccion desde aplicaciones transaccionales, ni una plataforma de visualizacion. Su rol principal es convertir datos disponibles en la plataforma analitica en modelos consistentes para consumo posterior.
+
+Un stack moderno de datos puede representarse con las siguientes capas:
+
+\begin{itemize}[leftmargin=*]
+\item \textbf{Fuentes operacionales:} bases transaccionales, APIs, archivos, ERPs, CRMs o sistemas de aplicacion.
+\item \textbf{Ingesta y carga:} herramientas que copian o sincronizan datos hacia la plataforma analitica.
+\item \textbf{Transformacion con dbt:} modelos SQL, pruebas, documentacion y linaje.
+\item \textbf{Consumo analitico:} dashboards, reportes, notebooks, modelos predictivos o capa semantica.
+\end{itemize}
+
+Desde esta perspectiva, dbt aporta rigor analitico porque obliga a escribir transformaciones explicitas, revisables y ejecutables. La logica de negocio deja de vivir solamente en consultas sueltas o archivos personales y pasa a formar parte de un proyecto controlado.
+
+\subsection{Modelo como unidad de trabajo}
+En dbt, un modelo es normalmente un archivo SQL que contiene una consulta \texttt{select}. dbt compila esa consulta y la materializa en la plataforma de datos como una vista, tabla, tabla incremental u otro tipo de objeto soportado por el adaptador utilizado \cite{dbt_models}. Esta idea es central: el modelo no es solamente una consulta temporal, sino un activo de datos que puede versionarse, probarse, documentarse y relacionarse con otros modelos.
+
+\begin{lstlisting}[style=sql, caption={Ejemplo simple de modelo dbt en SQL}]
+select
+    customer_id,
+    lower(email) as email,
+    created_at,
+    current_timestamp as loaded_at
+from {{ source('app', 'customers') }}
+where customer_id is not null
+\end{lstlisting}
+
+El uso de \texttt{source()} indica que la consulta depende de una fuente declarada. Esa dependencia queda registrada en el grafo del proyecto, lo cual permite construir trazabilidad entre datos crudos y modelos finales.
+
+\section{Estructura de un proyecto dbt}
+\subsection{Archivo dbt\_project.yml}
+Todo proyecto dbt necesita un archivo \texttt{dbt\_project.yml}. Este archivo define el nombre del proyecto, la version, el perfil de conexion y configuraciones generales de recursos. La documentacion oficial indica que dbt usa este archivo para entender el contexto del proyecto y como transformar los datos \cite{dbt_projects}.
+
+Una estructura minima puede verse asi:
+
+\begin{lstlisting}[style=sql, caption={Estructura conceptual de un proyecto dbt}]
+dbt_project.yml
+models/
+  staging/
+  intermediate/
+  marts/
+seeds/
+macros/
+tests/
+\end{lstlisting}
+
+Aunque el ejemplo se presenta en un bloque monoespaciado, no representa SQL ejecutable. Su funcion es mostrar la organizacion logica de carpetas que se utilizara durante el modelado.
+
+\subsection{Models}
+La carpeta \texttt{models} contiene la logica principal de transformacion. Cada archivo SQL representa una transformacion que dbt puede ejecutar. En proyectos analiticos, los modelos suelen organizarse en capas para separar responsabilidades y facilitar mantenimiento.
+
+La modularidad es importante porque evita consultas gigantes, dificiles de leer y de probar. Un modelo debe tener un objetivo claro: limpiar una fuente, integrar entidades, calcular una metrica o preparar una tabla final para BI. Cuando un modelo intenta resolver demasiadas responsabilidades, aumenta el riesgo de duplicar logica o introducir errores silenciosos.
+
+\subsection{Sources}
+Las fuentes, o \texttt{sources}, permiten declarar tablas que ya existen en la plataforma analitica y que son administradas fuera de dbt. Al declararlas, dbt puede documentarlas, probarlas y usarlas como nodos iniciales del linaje \cite{dbt_sources}. Esto es relevante porque el modelo analitico no debe ocultar de donde provienen los datos.
+
+Una fuente puede incluir descripciones, nombres de tablas, columnas y pruebas basicas. Por ejemplo, se puede validar que una llave primaria no sea nula o que una columna de estado solo contenga valores esperados.
+
+\subsection{Seeds}
+Los \texttt{seeds} son archivos CSV que dbt puede cargar a la plataforma de datos como tablas. La documentacion oficial los presenta como datos estaticos que forman parte del proyecto \cite{dbt_seeds}. Son utiles para catalogos pequenos, parametros de referencia, mapeos manuales o tablas auxiliares que no provienen de un sistema operacional.
+
+Un ejemplo universitario podria ser una tabla semilla con codigos de sede, nombres normalizados de categorias o equivalencias entre estados. No conviene usar seeds para grandes volumenes transaccionales; para eso debe existir un mecanismo formal de ingesta.
+
+\subsection{Macros}
+Las macros permiten reutilizar logica mediante Jinja. dbt las usa para evitar repeticion en transformaciones, generar SQL dinamico y encapsular patrones comunes \cite{dbt_jinja_macros}. Una macro debe usarse con criterio: si oculta demasiada logica, el proyecto se vuelve dificil de auditar; si se usa para una regla repetida y bien definida, mejora consistencia.
+
+Por ejemplo, una macro puede estandarizar una expresion de limpieza de texto, calcular rangos de fechas o generar condiciones repetidas para modelos incrementales.
+
+\section{Modelado analitico con dbt}
+\subsection{Capas staging, intermediate y marts}
+Una practica comun en proyectos dbt es dividir los modelos en capas. dbt Labs recomienda pensar el modelado como un conjunto de capas que construyen progresivamente desde fuentes crudas hasta modelos de negocio \cite{dbt_staging_best_practices}. En una implementacion academica, esta division ayuda a explicar el proposito de cada transformacion.
+
+\begin{enumerate}[label=\textbf{C\arabic*.}, leftmargin=*]
+\item \textbf{Staging:} normaliza datos fuente con cambios minimos.
+\item \textbf{Intermediate:} combina, enriquece o prepara calculos que no deben exponerse directamente al negocio.
+\item \textbf{Marts:} publica tablas finales orientadas a procesos de negocio, indicadores y consumo BI.
+\end{enumerate}
+
+\subsection{Staging}
+La capa \texttt{staging} debe estar cerca de las fuentes. Su objetivo es limpiar nombres de columnas, convertir tipos de datos, aplicar reglas simples de estandarizacion y eliminar detalles tecnicos innecesarios. Normalmente, un modelo staging mantiene la granularidad de la fuente original.
+
+Buenas practicas para esta capa:
+
+\begin{itemize}[leftmargin=*]
+\item usar nombres claros, por ejemplo \texttt{stg\_ventas\_\_ordenes};
+\item no calcular metricas complejas de negocio;
+\item conservar llaves necesarias para trazabilidad;
+\item documentar columnas criticas y supuestos de limpieza;
+\item aplicar pruebas basicas sobre identificadores, fechas y estados.
+\end{itemize}
+
+\subsection{Intermediate}
+La capa \texttt{intermediate} contiene transformaciones que combinan o preparan informacion para los marts. Aqui pueden existir joins entre entidades, deduplicacion, filtros de negocio, calculos auxiliares y estructuras temporales necesarias para simplificar modelos finales.
+
+No todos los proyectos necesitan una capa intermedia extensa. Sin embargo, cuando la logica de negocio crece, esta capa evita que los modelos finales se conviertan en consultas demasiado largas. Tambien permite probar pasos parciales y explicar mejor la transformacion.
+
+\subsection{Marts}
+La capa \texttt{marts} representa el resultado analitico final. Sus modelos deben estar orientados a usuarios de negocio: ventas por cliente, inscripciones por periodo, rendimiento academico, inventario por sede, indicadores financieros o cualquier entidad relevante para BI.
+
+En esta capa se recomienda pensar en modelos dimensionales. Kimball y Ross destacan la importancia de hechos, dimensiones, granularidad y conformidad de dimensiones para construir soluciones analiticas comprensibles y reutilizables \cite{kimball_dw}. dbt no elimina esos fundamentos; los implementa con SQL versionado y automatizable.
+
+\begin{lstlisting}[style=sql, caption={Ejemplo conceptual de mart analitico}]
+select
+    d.fecha,
+    c.segmento_cliente,
+    p.categoria_producto,
+    sum(f.monto_total) as ventas_totales,
+    count(distinct f.orden_id) as ordenes
+from {{ ref('int_ventas_enriquecidas') }} f
+join {{ ref('dim_fecha') }} d on f.fecha_key = d.fecha_key
+join {{ ref('dim_cliente') }} c on f.cliente_key = c.cliente_key
+join {{ ref('dim_producto') }} p on f.producto_key = p.producto_key
+group by
+    d.fecha,
+    c.segmento_cliente,
+    p.categoria_producto
+\end{lstlisting}
+
+El uso de \texttt{ref()} declara dependencias entre modelos dbt. Gracias a esas referencias, dbt puede construir el grafo de ejecucion, determinar orden correcto de construccion y mostrar linaje entre capas.
+
+\section{Calidad y documentacion}
+\subsection{Pruebas de datos}
+Las pruebas en dbt son consultas que validan condiciones esperadas sobre modelos, fuentes, semillas u otros recursos. dbt incluye pruebas genericas comunes, como \texttt{not\_null}, \texttt{unique}, \texttt{relationships} y \texttt{accepted\_values} \cite{dbt_data_tests}. Tambien permite pruebas singulares escritas como SQL personalizado.
+
+Las pruebas no garantizan que todo analisis sea correcto, pero reducen el riesgo de errores basicos y hacen explicitos los supuestos del modelo. Por ejemplo, si una dimension de clientes debe tener una llave unica, esa regla debe estar codificada como prueba y ejecutarse de forma recurrente.
+
+\begin{lstlisting}[style=sql, caption={Ejemplo conceptual de pruebas declaradas en YAML}]
+models:
+  - name: dim_cliente
+    columns:
+      - name: cliente_id
+        tests:
+          - not_null
+          - unique
+      - name: segmento_cliente
+        tests:
+          - accepted_values:
+              values: ['minorista', 'mayorista', 'corporativo']
+\end{lstlisting}
+
+Aunque el bloque anterior usa estilo monoespaciado, representa configuracion YAML. Se mantiene dentro del mismo formato de codigo para conservar consistencia visual del documento.
+
+\subsection{Documentacion automatica}
+dbt permite documentar modelos, columnas, fuentes y otros recursos dentro de archivos YAML y Markdown. Luego puede generar un sitio de documentacion con descripciones y metadatos del proyecto \cite{dbt_docs}. Esta documentacion es valiosa porque conecta conocimiento tecnico con comprension de negocio.
+
+Una documentacion adecuada debe responder preguntas como:
+
+\begin{itemize}[leftmargin=*]
+\item que representa el modelo;
+\item cual es su granularidad;
+\item de que fuentes depende;
+\item que columnas son llaves o metricas;
+\item que supuestos de transformacion aplica;
+\item que usuario o proceso consume el resultado.
+\end{itemize}
+
+Documentar no es un tramite posterior. En un proyecto dbt maduro, la documentacion forma parte del desarrollo del modelo y debe revisarse junto con el codigo.
+
+\subsection{Linaje de datos}
+El linaje muestra como un dato se mueve desde una fuente hasta modelos intermedios y tablas finales. dbt construye un grafo de dependencias a partir de funciones como \texttt{source()} y \texttt{ref()}. Este grafo permite entender que modelos dependen de otros, que tablas se ven afectadas por un cambio y como se relaciona una metrica final con sus fuentes originales \cite{dbt_lineage}.
+
+La trazabilidad es especialmente importante en ambientes academicos y empresariales porque permite justificar resultados. Si un indicador cambia, el equipo puede investigar si el cambio proviene de una fuente, una transformacion, una regla de negocio o un error de calidad.
+
+\section{Ejecucion y buenas practicas}
+\subsection{Perfiles y ambientes}
+dbt separa la logica del proyecto de la configuracion de conexion. El archivo \texttt{profiles.yml} contiene parametros como motor, host, base de datos, esquema, usuario, credenciales y ambiente de ejecucion \cite{dbt_profiles}. Esta separacion ayuda a ejecutar el mismo proyecto contra ambientes distintos sin cambiar la logica SQL.
+
+En un curso universitario, al menos deben distinguirse:
+
+\begin{itemize}[leftmargin=*]
+\item \textbf{Desarrollo:} ambiente personal para construir y probar modelos.
+\item \textbf{Pruebas:} ambiente controlado para validar cambios antes de publicarlos.
+\item \textbf{Produccion:} ambiente estable consumido por reportes y usuarios finales.
+\end{itemize}
+
+La responsabilidad tecnica implica no mezclar datos experimentales con modelos que alimentan decisiones reales. Tambien implica no guardar credenciales sensibles dentro del repositorio.
+
+\subsection{Ejecucion local}
+Un flujo local basico con dbt suele incluir validacion de conexion, ejecucion de modelos, pruebas y generacion de documentacion. Los comandos exactos pueden variar segun adaptador y plataforma, pero la secuencia conceptual es estable:
+
+\begin{lstlisting}[style=sql, caption={Flujo local basico de trabajo con dbt}]
+dbt debug
+dbt seed
+dbt run
+dbt test
+dbt docs generate
+dbt docs serve
+\end{lstlisting}
+
+\texttt{dbt debug} ayuda a validar configuracion; \texttt{dbt seed} carga datos semilla; \texttt{dbt run} construye modelos; \texttt{dbt test} ejecuta pruebas; \texttt{dbt docs generate} produce artefactos de documentacion; y \texttt{dbt docs serve} permite visualizarla localmente \cite{dbt_commands}.
+
+\subsection{Control de versiones con Git}
+dbt se beneficia del control de versiones porque los modelos son archivos de texto: SQL, YAML y Markdown. Esto permite trabajar con ramas, revisar cambios mediante \textit{pull requests}, comparar versiones y recuperar el historial de decisiones tecnicas. dbt Labs resalta que la versionacion, las pruebas y la documentacion son parte de la disciplina de ingenieria aplicada a datos \cite{dbt_explained}.
+
+Buenas practicas minimas:
+
+\begin{itemize}[leftmargin=*]
+\item crear una rama por cambio funcional;
+\item revisar SQL, YAML, pruebas y documentacion en conjunto;
+\item exigir que \texttt{dbt run} y \texttt{dbt test} pasen antes de integrar cambios;
+\item escribir mensajes de commit que expliquen el impacto analitico;
+\item evitar subir credenciales, archivos locales de perfil o datos sensibles.
+\end{itemize}
+
+\section{Relacion con la practica de la semana 7}
+La practica de esta semana debe orientar al estudiante a construir un proyecto dbt pequeno pero completo. El objetivo no es solamente ejecutar comandos, sino observar como se construye una cadena reproducible desde fuentes hasta modelos finales.
+
+Una practica recomendable puede seguir esta secuencia:
+
+\begin{enumerate}[label=\textbf{P\arabic*.}, leftmargin=*]
+\item declarar una fuente con datos cargados previamente;
+\item crear modelos \texttt{staging} para limpiar nombres, tipos y valores;
+\item construir un modelo \texttt{intermediate} que integre entidades;
+\item publicar uno o mas modelos \texttt{marts} orientados a BI;
+\item agregar pruebas de unicidad, nulidad, relaciones y valores aceptados;
+\item documentar modelos y columnas principales;
+\item generar documentacion y revisar el linaje;
+\item versionar el cambio con Git.
+\end{enumerate}
+
+Este recorrido refuerza las areas actitudinales de la sesion. El rigor analitico aparece al validar modelos; la responsabilidad tecnica se evidencia al documentar fuentes y supuestos; la colaboracion se desarrolla mediante Git y revision de cambios; y la trazabilidad se materializa en el linaje entre fuentes, modelos intermedios y tablas finales.
+
+\section{Buenas practicas minimas para trabajar con dbt}
+\begin{longtable}{@{}p{0.28\textwidth}p{0.64\textwidth}@{}}
+\toprule
+\textbf{Tema} & \textbf{Practica recomendada} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Tema} & \textbf{Practica recomendada} \\
+\midrule
+\endhead
+
+Rigor analitico & Definir granularidad, llaves y metricas antes de publicar un mart para usuarios de negocio. \\
+
+Sources & Declarar fuentes en YAML, documentarlas y aplicar pruebas basicas sobre columnas criticas. \\
+
+Staging & Mantener transformaciones simples, cercanas a la fuente y con nombres consistentes. \\
+
+Intermediate & Usar esta capa para joins, deduplicacion y preparacion de logica que no debe exponerse directamente. \\
+
+Marts & Disenar tablas finales orientadas a procesos de negocio, indicadores y consumo BI. \\
+
+Pruebas & Automatizar validaciones de nulidad, unicidad, integridad referencial y valores permitidos. \\
+
+Documentacion & Documentar significado, granularidad, supuestos y dependencias de modelos y columnas. \\
+
+Git & Revisar cambios mediante ramas y commits claros; ejecutar pruebas antes de integrar al proyecto principal. \\
+
+\bottomrule
+\end{longtable}
+
+\section{Conclusiones}
+dbt permite aplicar disciplina de ingenieria al modelado analitico. Su valor no esta solamente en ejecutar SQL, sino en convertir transformaciones dispersas en un proyecto reproducible, documentado, probado y versionado. Esta forma de trabajo mejora la confianza en los datos y reduce la ambiguedad de las metricas usadas en inteligencia de negocios.
+
+La separacion entre \texttt{staging}, \texttt{intermediate} y \texttt{marts} ayuda a organizar responsabilidades. Las fuentes y semillas permiten controlar el punto de partida; los modelos expresan transformaciones; las pruebas verifican supuestos; la documentacion comunica significado; y el linaje conserva trazabilidad. En conjunto, estos elementos permiten construir datos confiables para BI y preparan al estudiante para colaborar en proyectos modernos de analitica de datos.
+
+\printbibliography
+
+\end{document}

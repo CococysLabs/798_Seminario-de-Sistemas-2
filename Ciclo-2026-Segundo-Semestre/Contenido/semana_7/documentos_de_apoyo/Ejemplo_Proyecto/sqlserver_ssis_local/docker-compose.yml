@@ -1,0 +1,39 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: ssis-sqlserver-2022
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Developer"
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD}"
+      MSSQL_AGENT_ENABLED: "true"
+      MSSQL_TCP_PORT: "1433"
+      MSSQL_COLLATION: "SQL_Latin1_General_CP1_CI_AS"
+      TZ: "America/Guatemala"
+    ports:
+      - "${MSSQL_HOST_PORT:-1433}:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    restart: unless-stopped
+
+  sqlserver-init:
+    image: mcr.microsoft.com/mssql-tools
+    container_name: ssis-sqlserver-init
+    depends_on:
+      - sqlserver
+    environment:
+      SQLSERVER_HOST: "sqlserver"
+      SQLSERVER_PORT: "1433"
+      SA_PASSWORD: "${MSSQL_SA_PASSWORD}"
+      APP_DB: "${APP_DB:-SSISLab}"
+      APP_LOGIN: "${APP_LOGIN:-ssis_user}"
+      APP_PASSWORD: "${APP_PASSWORD}"
+    entrypoint:
+      - /bin/bash
+      - /workspace/init-db.sh
+    volumes:
+      - ./init:/workspace:ro
+    restart: "no"
+
+volumes:
+  sqlserver_data:

@@ -1,0 +1,106 @@
+#!/bin/bash
+set -euxo pipefail
+apt-get update
+apt-get install -y docker.io docker-compose-v2
+systemctl enable --now docker
+mkdir -p /opt/ss2-airflow/dags /opt/ss2-airflow/logs /opt/ss2-airflow/plugins
+chmod -R 777 /opt/ss2-airflow/logs
+
+cat >/opt/ss2-airflow/Dockerfile <<'EOF'
+FROM apache/airflow:3.3.0-python3.11
+RUN pip install --no-cache-dir apache-airflow-providers-fab pandas==2.2.3
+EOF
+
+cat >/opt/ss2-airflow/docker-compose.yml <<'EOF'
+services:
+  postgres:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes: [postgres-db:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U airflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  airflow-init:
+    build: .
+    depends_on: {postgres: {condition: service_healthy}}
+    environment: &airflow-env
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
+      AIRFLOW__CORE__FERNET_KEY: '${fernet_key}'
+      AIRFLOW__API_AUTH__JWT_SECRET: '${jwt_secret}'
+      AIRFLOW__API__SECRET_KEY: '${api_secret}'
+      AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://api-server:8080/execution/
+    volumes: &airflow-volumes
+      - ./dags:/opt/airflow/dags:ro
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins:ro
+    command: >
+      bash -c "airflow db migrate &&
+      (airflow users create --username admin --password '${admin_password}' --firstname Docente --lastname SS2 --role Admin --email docente@example.edu || true) &&
+      (airflow users create --username estudiantes --password '${viewer_password}' --firstname Estudiantes --lastname SS2 --role Viewer --email estudiantes@example.edu || true)"
+  api-server:
+    build: .
+    restart: unless-stopped
+    depends_on: {airflow-init: {condition: service_completed_successfully}}
+    environment: *airflow-env
+    volumes: *airflow-volumes
+    command: api-server
+    ports: ["8080:8080"]
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/api/v2/monitor/health"]
+      interval: 20s
+      timeout: 10s
+      retries: 20
+  scheduler:
+    build: .
+    restart: unless-stopped
+    depends_on: {airflow-init: {condition: service_completed_successfully}}
+    environment: *airflow-env
+    volumes: *airflow-volumes
+    command: scheduler
+  dag-processor:
+    build: .
+    restart: unless-stopped
+    depends_on: {airflow-init: {condition: service_completed_successfully}}
+    environment: *airflow-env
+    volumes: *airflow-volumes
+    command: dag-processor
+volumes:
+  postgres-db:
+EOF
+
+cat >/usr/local/bin/sync-airflow-dags <<'EOF'
+#!/bin/bash
+docker run --rm --network host -v /opt/ss2-airflow/dags:/dags gcr.io/google.com/cloudsdktool/google-cloud-cli:slim gcloud storage rsync gs://${bucket} /dags --recursive --delete-unmatched-destination-objects
+EOF
+chmod +x /usr/local/bin/sync-airflow-dags
+
+cat >/etc/systemd/system/airflow-dag-sync.service <<'EOF'
+[Unit]
+Description=Sync Airflow DAGs from GCS
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/sync-airflow-dags
+EOF
+cat >/etc/systemd/system/airflow-dag-sync.timer <<'EOF'
+[Unit]
+Description=Sync Airflow DAGs every minute
+[Timer]
+OnBootSec=30
+OnUnitActiveSec=60
+[Install]
+WantedBy=timers.target
+EOF
+systemctl daemon-reload
+systemctl enable --now airflow-dag-sync.timer
+/usr/local/bin/sync-airflow-dags || true
+cd /opt/ss2-airflow
+docker compose up -d --build

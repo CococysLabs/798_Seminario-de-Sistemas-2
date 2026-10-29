@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Proyecto 2 - Ejercicio guiado BigQuery ML</title>
+</head>
+<body style="font-family: Arial, Helvetica, sans-serif; line-height: 1.5; color: #222;">
+  <h2>Proyecto 2 - Ejercicio guiado: análisis exploratorio y modelo lineal con BigQuery ML</h2>
+
+  <p>
+    Se publica un ejercicio guiado basado en el dataset público
+    <code>bigquery-public-data.new_york_taxi_trips.tlc_yellow_trips_2022</code>.
+    El objetivo es practicar un flujo mínimo pero técnicamente correcto que cubra:
+    exploración inicial, creación de una tabla derivada optimizada, construcción de un
+    conjunto de variables y entrenamiento de un <strong>modelo lineal de regresión</strong>
+    en BigQuery ML.
+  </p>
+
+  <h3>Objetivo del ejercicio</h3>
+  <p>
+    Construir un modelo de regresión lineal que estime <code>tip_amount</code> a partir de
+    variables del viaje, y comprender la relación entre:
+  </p>
+  <ul>
+    <li>dataset fuente;</li>
+    <li>limpieza y transformación de datos;</li>
+    <li>feature engineering;</li>
+    <li>definición de variable objetivo;</li>
+    <li>entrenamiento y evaluación de un modelo predictivo.</li>
+  </ul>
+
+  <h3>Dataset a utilizar</h3>
+  <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse;">
+    <tr>
+      <th align="left">Elemento</th>
+      <th align="left">Valor</th>
+    </tr>
+    <tr>
+      <td>Proyecto fuente</td>
+      <td><code>bigquery-public-data</code></td>
+    </tr>
+    <tr>
+      <td>Dataset fuente</td>
+      <td><code>new_york_taxi_trips</code></td>
+    </tr>
+    <tr>
+      <td>Tabla fuente</td>
+      <td><code>tlc_yellow_trips_2022</code></td>
+    </tr>
+    <tr>
+      <td>Proyecto de trabajo</td>
+      <td><code>project-9f4fe3c2-3919-4941-805</code></td>
+    </tr>
+    <tr>
+      <td>Dataset de trabajo</td>
+      <td><code>proyecto2_taxi</code></td>
+    </tr>
+  </table>
+
+  <h3>Resultados esperados</h3>
+  <ul>
+    <li>Validar el esquema y el volumen del dataset público.</li>
+    <li>Crear una tabla optimizada particionada por fecha y clusterizada por variables analíticas.</li>
+    <li>Construir una tabla de features para machine learning.</li>
+    <li>Entrenar un modelo <code>LINEAR_REG</code> para predecir <code>tip_amount</code>.</li>
+    <li>Evaluar el modelo con métricas como <code>MAE</code>, <code>MSE</code>, <code>RMSE</code> y <code>R2</code>.</li>
+  </ul>
+
+  <h3>Indicaciones generales</h3>
+  <ol>
+    <li>Ejecutar el ejercicio en BigQuery con <strong>Standard SQL</strong>.</li>
+    <li>Trabajar siempre sobre el dataset de trabajo <code>proyecto2_taxi</code>.</li>
+    <li>Tomar capturas de los resultados más importantes para documentar el proceso.</li>
+    <li>Leer el script antes de ejecutarlo para entender qué hace cada bloque.</li>
+  </ol>
+
+  <h3>Paso 1. Explorar el esquema del dataset</h3>
+  <p>
+    Antes de entrenar cualquier modelo, debe entenderse qué columnas existen, cuáles son numéricas,
+    cuáles son categóricas y qué variable objetivo se desea predecir.
+  </p>
+  <pre style="background: #f4f4f4; padding: 12px; border: 1px solid #ddd; overflow-x: auto;">SELECT
+  column_name,
+  data_type,
+  is_nullable,
+  ordinal_position
+FROM `bigquery-public-data.new_york_taxi_trips.INFORMATION_SCHEMA.COLUMNS`
+WHERE table_name = 'tlc_yellow_trips_2022'
+ORDER BY ordinal_position;</pre>
+
+  <h3>Paso 2. Realizar una exploración inicial</h3>
+  <p>
+    Validar volumen, rango temporal y algunos patrones básicos del dataset antes de transformarlo.
+  </p>
+  <pre style="background: #f4f4f4; padding: 12px; border: 1px solid #ddd; overflow-x: auto;">SELECT
+  COUNT(*) AS total_rows,
+  MIN(pickup_datetime) AS min_pickup_datetime,
+  MAX(pickup_datetime) AS max_pickup_datetime,
+  MIN(trip_distance) AS min_trip_distance,
+  MAX(trip_distance) AS max_trip_distance
+FROM `bigquery-public-data.new_york_taxi_trips.tlc_yellow_trips_2022`;
+
+SELECT
+  EXTRACT(MONTH FROM pickup_datetime) AS pickup_month,
+  COUNT(*) AS trips,
+  ROUND(AVG(total_amount), 2) AS avg_total_amount,
+  ROUND(AVG(trip_distance), 2) AS avg_trip_distance
+FROM `bigquery-public-data.new_york_taxi_trips.tlc_yellow_trips_2022`
+GROUP BY pickup_month
+ORDER BY pickup_month;</pre>
+
+  <h3>Paso 3. Crear el dataset de trabajo</h3>
+  <pre style="background: #f4f4f4; padding: 12px; border: 1px solid #ddd; overflow-x: auto;">CREATE SCHEMA IF NOT EXISTS `project-9f4fe3c2-3919-4941-805.proyecto2_taxi`
+OPTIONS (
+  location = 'US',
+  description = 'Proyecto 2 Seminario de Sistemas 2 - NYC Taxi Trips 2022'
+);</pre>
+
+  <h3>Paso 4. Crear una tabla derivada optimizada</h3>
+  <p>
+    La tabla optimizada permite controlar mejor el costo de análisis y preparar una base más limpia
+    para machine learning. Se particiona por <code>pickup_date</code> y se clusteriza por variables
+    utilizadas con frecuencia en análisis y segmentación.
+  </p>
+  <pre style="background: #f4f4f4; padding: 12px; border: 1px solid #ddd; overflow-x: auto;">DECLARE source_start_date DATE DEFAULT DATE '2022-01-01';
+DECLARE source_end_date DATE DEFAULT DATE '2022-12-31';
+
+CREATE OR REPLACE TABLE `project-9f4fe3c2-3919-4941-805.proyecto2_taxi.taxi_trips_2022_optimized`
+PARTITION BY pickup_date
+CLUSTER BY vendor_id, pickup_location_id, dropoff_location_id, payment_type
+AS
+WITH source_data AS (
+  SELECT
+    vendor_id,
+    pickup_datetime,
+    dropoff_datetime,
+    DATE(pickup_datetime) AS pickup_date,
+    passenger_count,
+    trip_distance,
+    rate_code,
+    store_and_fwd_flag,
+    pickup_location_id,
+    dropoff_location_id,
+    payment_type,
+    fare_amount,
+    extra,
+    mta_tax,
+    tip_amount,
+    tolls_amount,
+    imp_surcharge,
+    airport_fee,
+    total_amount
+  FROM `bigquery-public-data.new_york_taxi_trips.tlc_yellow_trips_2022`
+  WHERE DATE(pickup_datetime) BETWEEN source_start_date AND source_end_date
+)
+SELECT
+  vendor_id,
+  pickup_datetime,
+  dropoff_datetime,
+  pickup_date,
+  passenger_count,
+  trip_distance,
+  rate_code,
+  store_and_fwd_flag,
+  pickup_location_id,
+  dropoff_location_id,
+  payment_type,
+  fare_amount,
+  extra,
+  mta_tax,
+  tip_amount,
+  tolls_amount,
+  imp_surcharge,
+  airport_fee,
+  total_amount,
+  TIMESTAMP_DIFF(dropoff_datetime, pickup_datetime, MINUTE) AS trip_duration_minutes,
+  EXTRACT(HOUR FROM pickup_datetime) AS pickup_hour,
+  EXTRACT(DAYOFWEEK FROM pickup_datetime) AS pickup_day_of_week,
+  EXTRACT(MONTH FROM pickup_datetime) AS pickup_month,
+  SAFE_DIVIDE(tip_amount, NULLIF(fare_amount, 0)) AS tip_pct,
+  IF(SAFE_DIVIDE(tip_amount, NULLIF(fare_amount, 0)) &gt;= 0.20, 1, 0) AS is_high_tip
+FROM source_data
+WHERE pickup_datetime IS NOT NULL
+  AND dropoff_datetime IS NOT NULL
+  AND dropoff_datetime &gt;= pickup_datetime
+  AND passenger_count BETWEEN 1 AND 6
+  AND trip_distance &gt; 0
+  AND trip_distance &lt;= 100
+  AND fare_amount &gt; 0
+  AND fare_amount &lt;= 500
+  AND tip_amount &gt;= 0
+  AND total_amount &gt; 0
+  AND total_amount &lt;= 1000;</pre>
+
+  <h3>Paso 5. Construir la tabla de features</h3>
+  <p>
+    En esta etapa se define qué filas se usarán para entrenamiento, evaluación y predicción.
+    Esto ayuda a evitar fuga de información y permite una separación temporal del problema.
+  </p>
+  <pre style="background: #f4f4f4; padding: 12px; border: 1px solid #ddd; overflow-x: auto;">CREATE OR REPLACE TABLE `project-9f4fe3c2-3919-4941-805.proyecto2_taxi.ml_features_taxi_2022`
+PARTITION BY pickup_date
+CLUSTER BY split_col, payment_type, vendor_id, pickup_location_id, dropoff_location_id
+AS
+SELECT
+  pickup_date,
+  vendor_id,
+  passenger_count,
+  trip_distance,
+  rate_code,
+  store_and_fwd_flag,
+  pickup_location_id,
+  dropoff_location_id,
+  payment_type,
+  fare_amount,
+  trip_duration_minutes,
+  pickup_hour,
+  pickup_day_of_week,
+  pickup_month,
+  is_high_tip,
+  tip_amount,
+  CASE
+    WHEN pickup_date &lt; '2022-10-01' THEN 'TRAIN'
+    WHEN pickup_date &lt; '2022-12-01' THEN 'EVAL'
+    ELSE 'PREDICT'
+  END AS split_col
+FROM `project-9f4fe3c2-3919-4941-805.proyecto2_taxi.taxi_trips_2022_optimized`
+WHERE trip_duration_minutes BETWEEN 1 AND 180
+  AND tip_amount BETWEEN 0 AND 200
+  AND fare_amount BETWEEN 1 AND 300;</pre>
+
+  <h3>Paso 6. Entrenar un modelo lineal de regresión</h3>
+  <p>
+    El objetivo será predecir <code>tip_amount</code>. En este punto, las columnas del
+    <code>SELECT</code> son las variables que se le pasan al modelo para aprender, mientras que
+    <code>tip_amount</code> es la variable objetivo.
+  </p>
+  <pre style="background: #f4f4f4; padding: 12px; border: 1px solid #ddd; overflow-x: auto;">CREATE OR REPLACE MODEL `project-9f4fe3c2-3919-4941-805.proyecto2_taxi.modelo_regresion_propina_lineal`
+OPTIONS (
+  model_type = 'LINEAR_REG',
+  input_label_cols = ['tip_amount'],
+  l2_reg = 1.0
+) AS
+SELECT
+  vendor_id,
+  passenger_count,
+  trip_distance,
+  rate_code,
+  store_and_fwd_flag,
+  pickup_location_id,
+  dropoff_location_id,
+  payment_type,
+  fare_amount,
+  trip_duration_minutes,
+  pickup_hour,
+  pickup_day_of_week,
+  pickup_month,
+  tip_amount
+FROM `project-9f4fe3c2-3919-4941-805.proyecto2_taxi.ml_features_taxi_2022`
+WHERE split_col = 'TRAIN';</pre>
+
+  <h3>Paso 7. Evaluar el modelo lineal</h3>
+  <p>
+    Para la evaluación se usa el conjunto <code>EVAL</code>. Las métricas esperadas incluyen
+    <code>mean_absolute_error</code>, <code>mean_squared_error</code> y <code>r2_score</code>.
+    A partir de <code>mean_squared_error</code> también puede obtenerse <code>RMSE</code>.
+  </p>
+  <pre style="background: #f4f4f4; padding: 12px; border: 1px solid #ddd; overflow-x: auto;">SELECT *
+FROM ML.EVALUATE(
+  MODEL `project-9f4fe3c2-3919-4941-805.proyecto2_taxi.modelo_regresion_propina_lineal`,
+  (
+    SELECT
+      vendor_id,
+      passenger_count,
+      trip_distance,
+      rate_code,
+      store_and_fwd_flag,
+      pickup_location_id,
+      dropoff_location_id,
+      payment_type,
+      fare_amount,
+      trip_duration_minutes,
+      pickup_hour,
+      pickup_day_of_week,
+      pickup_month,
+      tip_amount
+    FROM `project-9f4fe3c2-3919-4941-805.proyecto2_taxi.ml_features_taxi_2022`
+    WHERE split_col = 'EVAL'
+  )
+);</pre>
+
+  <h3>Preguntas de análisis para el estudiante</h3>
+  <ol>
+    <li>¿Por qué <code>tip_amount</code> corresponde a un problema de regresión y no de clasificación?</li>
+    <li>¿Qué rol cumplen <code>pickup_hour</code>, <code>trip_distance</code> y <code>fare_amount</code> como variables de entrada?</li>
+    <li>¿Por qué conviene separar los datos en <code>TRAIN</code>, <code>EVAL</code> y <code>PREDICT</code>?</li>
+    <li>¿Qué significado tienen las métricas MAE, MSE, RMSE y R2 en este contexto?</li>
+    <li>¿Qué ventaja ofrece crear una tabla particionada y clusterizada antes del modelado?</li>
+  </ol>
+
+  <h3>Entregables mínimos del ejercicio</h3>
+  <ul>
+    <li>Captura del esquema del dataset.</li>
+    <li>Captura del conteo y exploración inicial.</li>
+    <li>Captura de la tabla optimizada creada en BigQuery.</li>
+    <li>Captura del entrenamiento del modelo lineal.</li>
+    <li>Captura de <code>ML.EVALUATE</code> con interpretación breve de los resultados.</li>
+  </ul>
+
+  <h3>Observación final</h3>
+  <p>
+    Este ejercicio llega intencionalmente hasta el entrenamiento y evaluación de un modelo lineal.
+    En una fase posterior puede extenderse hacia comparación entre modelos, predicción sobre nuevos datos
+    y construcción de visualizaciones para el dashboard del proyecto.
+  </p>
+</body>
+</html>

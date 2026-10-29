@@ -1,0 +1,91 @@
+<h2>Hoja de Trabajo 6 - Modelo de clasificacion con BigQuery ML</h2>
+<p>En esta hoja de trabajo se construira un modelo de <strong>clasificacion
+    binaria</strong> usando el dataset de taxis trabajado en el Proyecto 2. El
+  objetivo es predecir si un viaje tendra <strong>propina alta</strong>.</p>
+<h3>Objetivo</h3>
+<ul>
+  <li>Preparar una tabla de features para clasificacion.</li>
+  <li>Entrenar un modelo <code>LOGISTIC_REG</code> con BigQuery ML.</li>
+  <li>Evaluar el modelo con al menos una metrica de clasificacion.</li>
+  <li>Mostrar la matriz de confusion con <code>ML.CONFUSION_MATRIX</code>.</li>
+  <li>Interpretar brevemente los resultados.</li>
+</ul>
+<h3>Dataset</h3>
+<p>Se debe trabajar con el dataset de taxi_trips_2022</p>
+<p>La etiqueta del modelo sera <code>is_high_tip</code>, donde <code>1</code>
+  representa propina alta y <code>0</code> representa no propina alta.</p>
+<h3>Regla para la etiqueta</h3>
+<pre
+  style="background: #f4f4f4; padding: 12px; border: 1px solid #ddd; overflow-x: auto;">IF(SAFE_DIVIDE(tip_amount, NULLIF(fare_amount, 0)) &gt;= 0.20, 1, 0) AS is_high_tip</pre>
+<h3>Instrucciones</h3>
+<ol>
+  <li>Reemplazar <code>TU_PROYECTO</code> por el ID real del proyecto.</li>
+  <li>Crear o verificar una tabla de features para clasificacion.</li>
+  <li>Dividir los datos en <code>TRAIN</code>, <code>EVAL</code> y
+    <code>PREDICT</code>.</li>
+  <li>Entrenar un modelo <code>LOGISTIC_REG</code>.</li>
+  <li>Ejecutar <code>ML.EVALUATE</code>.</li>
+  <li>Reportar al menos una metrica: <code>precision</code>,
+    <code>recall</code>, <code>f1_score</code>, <code>accuracy</code> </li>
+  <li>Ejecutar <code>ML.CONFUSION_MATRIX</code>.</li>
+  <li>Explicar que significa un falso positivo y un falso negativo.</li>
+</ol>
+<h3>Entregable</h3>
+<p>Un archivo PDF con:</p>
+<ul>
+  <li>Script SQL final.</li>
+  <li>Resultado o captura de <code>ML.EVALUATE</code>.</li>
+  <li>Resultado o captura de <code>ML.CONFUSION_MATRIX</code>.</li>
+  <li>Explicacion breve de una metrica de clasificacion <code>precision</code>,
+    <code>recall</code>, <code>f1_score</code>, <code>accuracy</code> </li>
+  <li>Respuesta: ¿Que significa un falso negativo en este problema?</li>
+</ul>
+<h3>Rubrica de calificacion</h3>
+<table border="1" cellpadding="8" cellspacing="0"
+  style="border-collapse: collapse; width: 100%;">
+  <thead>
+    <tr>
+      <th style="text-align: left;">Criterio</th>
+      <th style="text-align: left;">Descripcion</th>
+      <th style="text-align: center;">Puntos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Preparacion de datos</td>
+      <td>Crea o verifica correctamente la tabla de features y define la etiqueta
+        <code>is_high_tip</code>.</td>
+      <td style="text-align: center;">20</td>
+    </tr>
+    <tr>
+      <td>Entrenamiento del modelo</td>
+      <td>Entrena correctamente un modelo <code>LOGISTIC_REG</code> usando
+        variables permitidas y separacion de datos.</td>
+      <td style="text-align: center;">25</td>
+    </tr>
+    <tr>
+      <td>Metrica de clasificacion</td>
+      <td>Presenta y explica al menos una metrica de clasificacion:
+        <code>precision</code>, <code>recall</code>, <code>f1_score</code> o
+        <code>accuracy</code>.</td>
+      <td style="text-align: center;">20</td>
+    </tr>
+    <tr>
+      <td>Matriz de confusion</td>
+      <td>Ejecuta <code>ML.CONFUSION_MATRIX</code> y muestra el resultado en la
+        entrega.</td>
+      <td style="text-align: center;">20</td>
+    </tr>
+    <tr>
+      <td>Interpretacion</td>
+      <td>Explica correctamente que significa un falso positivo y un falso
+        negativo en el contexto de propina alta.</td>
+      <td style="text-align: center;">15</td>
+    </tr>
+    <tr>
+      <td colspan="2" style="text-align: right;"><strong>Total</strong></td>
+      <td style="text-align: center;"><strong>100</strong></td>
+    </tr>
+  </tbody>
+</table>
+<p></p>

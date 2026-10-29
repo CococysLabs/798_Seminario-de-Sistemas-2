@@ -1,0 +1,573 @@
+% !TeX program = pdflatex
+\documentclass[12pt]{article}
+
+% Idioma y codificación
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+
+% Página y espaciado (para acercarse a ~15 páginas)
+\usepackage{geometry}
+\geometry{letterpaper, margin=1in}
+\usepackage{setspace}
+\onehalfspacing
+
+% Tipografía y microajustes
+\usepackage{microtype}
+\usepackage{csquotes}
+
+% Tablas
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+
+% Listas
+\usepackage{enumitem}
+
+% Código
+\usepackage{listingsutf8}
+\usepackage{listings}
+\lstset{inputencoding=utf8}
+\lstset{literate=%
+  {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'\i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+  {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+  {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {ü}{{\"u}}1 {Ü}{{\"U}}1
+}
+\usepackage{xcolor}
+\lstdefinestyle{sql}{
+  language=SQL,
+  inputencoding=utf8,
+  basicstyle=\ttfamily\small,
+  numbers=left,
+  numberstyle=\tiny,
+  stepnumber=1,
+  numbersep=8pt,
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=2,
+  frame=single
+}
+\lstdefinestyle{xmla}{
+  language=XML,
+  inputencoding=utf8,
+  basicstyle=\ttfamily\small,
+  numbers=left,
+  numberstyle=\tiny,
+  stepnumber=1,
+  numbersep=8pt,
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=2,
+  frame=single
+}
+
+% Hipervínculos
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  urlcolor=blue,
+  citecolor=blue
+}
+
+% Formato académico y paginación por sección
+\usepackage{titlesec}
+\usepackage{etoolbox}
+\titlespacing*{\section}{0pt}{3ex plus 1ex minus .2ex}{2ex}
+\titlespacing*{\subsection}{0pt}{2.5ex plus 0.8ex minus .2ex}{1.2ex}
+\titlespacing*{\subsubsection}{0pt}{2ex plus 0.6ex minus .2ex}{1ex}
+\preto\section{\clearpage} % cada sección inicia en nueva hoja
+
+% Encabezados/pies limpios
+\usepackage{fancyhdr}
+\setlength{\headheight}{15pt}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Documento de apoyo (Sesión 8, Unidad 2)}
+\rhead{Apache Airflow}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Bibliografía (biblatex + biber)
+\usepackage[
+  backend=biber,
+  style=ieee,
+  sorting=nyt,
+  maxbibnames=99
+]{biblatex}
+\addbibresource{referencias_s8.bib}
+
+% Metadatos del documento
+\title{\textbf{Documento de apoyo (Sesión 8, Unidad 2)}\\
+\large Orquestación de Pipelines con Apache Airflow\\
+\normalsize DAGs, automatización, dbt y operación de procesos de datos}
+\author{Javier Andrés Valdez González / Auxiliar \\
+\small Seminario de Sistemas 2 --- Sección P \\
+\small Universidad de San Carlos de Guatemala}
+\date{Septiembre de 2026}
+
+\lstdefinestyle{python}{style=sql,language=Python}
+\lstdefinestyle{terminal}{style=sql,language={},basicstyle=\ttfamily\footnotesize}
+\setlength{\emergencystretch}{2em}
+\begin{document}
+\maketitle
+\begin{abstract}
+Un pipeline de datos confiable necesita coordinar procesos, respetar dependencias y responder de forma controlada ante errores. Esta sesión estudia Apache Airflow como plataforma de orquestación de flujos de trabajo: DAGs, tareas, operadores, programación y seguimiento de ejecuciones. Se relaciona la automatización con el modelado analítico en dbt y las cargas hacia un warehouse. El documento combina fundamentos, ejemplos de Python y SQL, una guía de despliegue local con Docker aplicada al caso SGFood. La planificación, la responsabilidad operacional, la disciplina técnica y el pensamiento crítico orientan las decisiones de diseño y recuperación.
+\end{abstract}
+\textbf{Palabras clave:} Apache Airflow, orquestación, pipeline, DAG, task, operator, scheduler, executor, dbt, SQL, Docker, monitoreo, idempotencia.
+\newpage
+\tableofcontents
+
+\section{Introducción}
+En la semana anterior se abordó la construcción de modelos analíticos con dbt. Sin embargo, ejecutar correctamente un modelo una vez no resuelve su operación diaria. En SGFood, por ejemplo, el reporte de ventas necesita recibir archivos de las sucursales, revisar su contenido, cargar datos y actualizar las tablas analíticas antes de que el equipo consulte los resultados. Si una sucursal entrega información incompleta, el sistema debe detectar esa condición y evitar publicar métricas engañosas.
+
+La orquestación hace explícitos el orden, la frecuencia y las condiciones de ejecución. Un script puede transformar un archivo; el flujo que lo contiene debe establecer cuándo está disponible ese archivo, qué tarea lo consume y qué sucede si la transformación falla. Separar estas responsabilidades facilita explicar y operar el proceso.
+
+Apache Airflow representa flujos como grafos dirigidos acíclicos y mantiene información sobre sus ejecuciones. Permite combinar tareas de Python, comandos y herramientas externas mediante dependencias declaradas en código \cite{airflow_overview}. En este documento se estudia su aplicación a procesos de datos por lotes.
+
+\subsection{Alcance y versión de los ejemplos}
+Los ejemplos utilizan la API pública de \textbf{Airflow 3} y toman \textbf{3.1.0} como referencia reproducible para el laboratorio. Esta selección identifica una versión concreta; no afirma que sea la más reciente. Se emplean importaciones desde \texttt{airflow.sdk} y operadores de paquetes \textit{provider}. Los materiales escritos para Airflow 2 pueden usar rutas de importación y servicios diferentes.
+
+El primer DAG es una demostración pequeña y autocontenida de extracción, transformación, validación y carga de un archivo. La integración con dbt y SQL se presenta después como una ampliación que requiere preparar el proyecto, sus dependencias y la conexión al warehouse. No se presupone que esas configuraciones existan automáticamente.
+
+\section{Marco formativo de la sesión}
+\subsection{Área actitudinal: saber ser}
+\begin{longtable}{@{}p{0.26\textwidth}p{0.66\textwidth}@{}}
+\toprule
+\textbf{Valor} & \textbf{Aplicación en la sesión} \\
+\midrule
+Planificación & Se fortalece al diseñar flujos de trabajo ordenados, programados y dependientes entre sí. \\
+Responsabilidad operacional & Se promueve al monitorear ejecuciones, registrar errores y definir acciones ante fallas de pipelines. \\
+Disciplina técnica & Se desarrolla al estructurar DAGs, tareas y dependencias siguiendo buenas prácticas de automatización. \\
+Pensamiento crítico & Se aplica al decidir qué procesos deben automatizarse, con qué frecuencia y bajo qué condiciones. \\
+\bottomrule
+\end{longtable}
+Estos valores se evidencian mediante decisiones verificables: un diagrama previo expresa planificación; un registro de recuperación demuestra responsabilidad; nombres claros y código versionado reflejan disciplina; y justificar la frecuencia de carga ejercita el pensamiento crítico.
+
+\subsection{Área de conocimiento: saber}
+\textbf{Competencia:} Diseña y automatiza pipelines de datos mediante Apache Airflow, integrando tareas de extracción, transformación, validación y carga para coordinar procesos de datos de forma programada, monitoreable y reproducible.
+\begin{longtable}{@{}p{0.36\textwidth}p{0.56\textwidth}@{}}
+\toprule
+\textbf{Tema} & \textbf{Subtema} \\
+\midrule
+Orquestación de pipelines & Conceptos de DAG, task, operator, scheduler y executor. \\
+Apache Airflow & Creación de DAGs y definición de dependencias. \\
+Automatización de procesos de datos & Programación, reintentos, monitoreo y manejo de fallos. \\
+Integración con dbt y bases de datos & Ejecución de modelos dbt, consultas SQL y cargas hacia el warehouse. \\
+Buenas prácticas operacionales & Variables, conexiones, logs, alertas y despliegue local con Docker. \\
+\bottomrule
+\end{longtable}
+
+\subsection{Área de habilidades: saber hacer}
+Se aplica la misma competencia mediante el diseño, ejecución y recuperación de un pipeline. Al finalizar, el estudiante debe poder explicar sus dependencias, interpretar el estado de una tarea, comprobar los datos producidos y repetir una carga sin generar duplicados.
+
+
+
+\section{Fundamentos de orquestación de pipelines}
+\subsection{Pipeline, automatización y orquestación}
+Un pipeline es una secuencia organizada de etapas que produce un resultado de datos. La automatización permite ejecutar una operación sin repetir manualmente sus instrucciones. La orquestación coordina varias operaciones considerando dependencias, condiciones y recursos.
+
+Considérese este caso de diseño: SGFood recibe ventas por sucursal. Un comando que importa un CSV automatiza la carga. Para disponer de un reporte diario también se debe comprobar la llegada del archivo, validar las ventas, actualizar modelos y registrar la ejecución. El diseño del pipeline debe responder qué operaciones son obligatorias y qué salida se considera publicable.
+
+\subsection{ETL y ELT bajo un mismo coordinador}
+En ETL, la transformación precede a la carga al destino analítico. En ELT, los datos se cargan primero a una zona inicial del warehouse y se transforman dentro de él. Airflow puede coordinar ambos enfoques; el trabajo concreto lo realiza el código o sistema invocado por cada tarea.
+
+\begin{center}
+\textbf{ETL:} Extraer $\rightarrow$ Transformar $\rightarrow$ Validar $\rightarrow$ Cargar\\[6pt]
+\textbf{ELT:} Extraer $\rightarrow$ Cargar raw $\rightarrow$ dbt $\rightarrow$ Verificar
+\end{center}
+
+\subsection{Decidir qué automatizar}
+La frecuencia debe responder a la disponibilidad del origen y a la necesidad de negocio. Para un reporte utilizado cada mañana, una actualización diaria puede ser suficiente. Ejecutar el mismo proceso cada minuto, cuando el archivo cambia una vez al día, consume recursos sin mejorar el resultado.
+
+Antes de definir un flujo, se propone responder: ¿qué evento habilita el trabajo?, ¿qué datos identifica cada ejecución?, ¿cuál es el plazo útil del resultado?, ¿qué comprobación impide publicar datos incorrectos? y ¿quién atiende los errores? Estas preguntas convierten una secuencia de comandos en un proceso operable.
+
+Airflow se orienta a workflows finitos por lotes. Si el problema requiere procesar continuamente cada evento, conviene separar el motor de streaming de los trabajos de preparación, verificación o consolidación que lo rodean.
+
+\section{Conceptos y arquitectura de Apache Airflow}
+\subsection{DAG, tarea y operador}
+Un \textbf{DAG} es un grafo dirigido sin ciclos: los nodos representan tareas y las aristas, dependencias. Una \textbf{task} es una unidad de trabajo del flujo; un \textbf{operator} aporta una implementación reutilizable para un tipo de operación. Una función decorada con \texttt{@task} permite expresar trabajo Python con TaskFlow \cite{airflow_overview,airflow_taskflow}.
+
+En el caso propuesto, \texttt{extraer} puede preceder a \texttt{transformar}, y \texttt{validar} debe preceder a \texttt{cargar}. Agregar una dependencia desde cargar hacia extraer cerraría un ciclo. La repetición diaria se resuelve creando nuevas ejecuciones del DAG, no dibujando una flecha de regreso.
+
+\subsection{Componentes y responsabilidades}
+\begin{longtable}{@{}p{0.27\textwidth}p{0.65\textwidth}@{}}
+\toprule
+\textbf{Componente} & \textbf{Responsabilidad} \\
+\midrule
+DAG processor & Procesa los archivos que definen los flujos. \\
+Scheduler & Decide cuándo corresponde programar tareas según el calendario y sus dependencias. \\
+Executor & Determina el mecanismo con el que se ejecuta el trabajo programado. \\
+Workers & Ejecutan las tareas; su distribución depende del executor. \\
+API server e interfaz & Permiten consultar y administrar ejecuciones en el despliegue de Airflow 3. \\
+Base de metadatos & Conserva información operacional de los flujos y sus estados. \\
+Triggerer & Atiende esperas de tareas diferidas cuando se utilizan operadores que las soportan. \\
+\bottomrule
+\end{longtable}
+La separación entre programación y ejecución permite distribuir trabajo. El entorno Docker oficial de referencia utiliza CeleryExecutor, workers y Redis como intermediario de mensajes \cite{airflow_overview,airflow_docker}.
+
+\subsection{Metadatos y datos de negocio}
+La base interna de Airflow mantiene información de operación. El warehouse almacena las ventas, dimensiones y modelos utilizados para análisis. Aunque ambos puedan usar PostgreSQL, cumplen funciones distintas. En la práctica del curso se deben identificar con nombres y conexiones separados para evitar cargar ventas en la base de metadatos.
+
+\section{Creación de DAGs y definición de dependencias}
+\subsection{Estructura de un archivo}
+Un archivo de DAG contiene importaciones, configuración, declaraciones de tareas y relaciones. Con TaskFlow, llamar una función decorada mientras se construye el DAG crea una tarea y una referencia a su resultado; su cuerpo se ejecuta posteriormente al correr esa tarea \cite{airflow_taskflow}.
+
+\begin{lstlisting}[style=python,caption={DAG mínimo para Airflow 3}]
+import pendulum
+from airflow.sdk import dag, task
+
+@dag(
+    dag_id="s8_saludo",
+    schedule=None,
+    start_date=pendulum.datetime(2026, 1, 1, tz="UTC"),
+    catchup=False,
+    tags=["semana8"],
+)
+def saludo():
+    @task
+    def preparar():
+        return "SGFood"
+
+    @task
+    def mostrar(nombre):
+        print(f"Pipeline preparado para {nombre}")
+
+    mostrar(preparar())
+
+saludo()
+\end{lstlisting}
+Guardar el archivo en \texttt{dags/s8\_saludo.py} permite que el procesador lo descubra. Como \texttt{schedule=None}, se inicia manualmente. El resultado de preparar alimenta mostrar y establece una dependencia implícita.
+
+\subsection{Orden explícito y paralelismo}
+La expresión \texttt{a \textgreater\textgreater\ b} exige que b espere a a según su regla de disparo. Con la regla predeterminada, las tareas previas deben terminar correctamente. Para dos extracciones independientes puede utilizarse:
+\begin{lstlisting}[style=python]
+[extraer_ventas, extraer_productos] >> integrar
+integrar >> validar >> publicar
+\end{lstlisting}
+Este fragmento supone objetos de tareas previamente declarados. Las extracciones son elegibles para ejecutarse en paralelo; la concurrencia real también depende de los recursos. Numerar nombres de archivos o escribir una tarea primero en Python no sustituye una dependencia.
+
+\subsection{Separar construcción y ejecución}
+No se deben descargar archivos ni consultar bases al importar el DAG. Ese código puede evaluarse repetidamente durante su procesamiento. Las operaciones pertenecen al cuerpo de tareas; esto evita efectos secundarios y reduce el costo de descubrimiento \cite{airflow_best}.
+
+\section{Programación, intervalos y reintentos}
+\subsection{Calendario y zona horaria}
+Un calendario expresa cuándo se generan ejecuciones programadas. Es conveniente declarar una zona horaria explícita y una fecha inicial fija. \texttt{schedule=None} es útil durante el aprendizaje porque permite controlar cada prueba.
+\begin{longtable}{@{}p{0.32\textwidth}p{0.60\textwidth}@{}}
+\toprule
+\textbf{Configuración} & \textbf{Interpretación} \\
+\midrule
+\texttt{schedule=None} & Sin creación automática de ejecuciones por calendario. \\
+\texttt{0 6 * * *} & Calendario cron a las 06:00 cada día, en la zona del DAG. \\
+\texttt{0 */4 * * *} & Calendario cron cada cuatro horas, al minuto cero. \\
+\texttt{catchup=False} & Evita crear automáticamente todo el historial pendiente. \\
+\texttt{max\_active\_runs=1} & Limita el DAG a una ejecución activa a la vez. \\
+\bottomrule
+\end{longtable}
+
+\subsection{Intervalo de datos y fecha de ejecución}
+El tiempo de inicio real y el periodo procesado son conceptos distintos. Para ilustrar intervalos diarios se propone usar explícitamente \texttt{CronDataIntervalTimetable}; así no se depende de la configuración que selecciona el comportamiento de una cadena cron \cite{airflow_timetable,airflow_runs}.
+\begin{lstlisting}[style=python]
+from airflow.timetables.interval import CronDataIntervalTimetable
+
+# Argumentos para @dag(...)
+schedule= CronDataIntervalTimetable(
+    "0 0 * * *", timezone="America/Guatemala"
+)
+\end{lstlisting}
+El intervalo que comienza el 9 de marzo a las 00:00 y termina el 10 a las 00:00 se programa después de terminar ese periodo. Los filtros deben usar inicio inclusivo y fin exclusivo: fecha $\geq$ inicio y fecha $<$ fin. Si la tarea arranca tarde, continúa procesando el mismo intervalo.
+
+\subsection{Reintentos y límites}
+\texttt{retries=2} permite dos reintentos después del intento inicial. \texttt{retry\_delay} establece la espera base; el retroceso exponencial aumenta esa espera. \texttt{execution\_timeout} limita la duración de cada intento de una tarea \cite{airflow_tasks}.
+\begin{lstlisting}[style=python]
+from datetime import timedelta
+
+default_args = {
+    "retries": 2,
+    "retry_delay": timedelta(minutes=1),
+    "retry_exponential_backoff": True,
+    "execution_timeout": timedelta(minutes=10),
+}
+\end{lstlisting}
+Una interrupción temporal de red puede desaparecer en el siguiente intento. Un archivo con columnas incorrectas normalmente necesita una corrección. En el ejemplo práctico la validación tendrá cero reintentos: volver a revisar los mismos datos defectuosos no los modifica.
+
+\section{Ejemplo guiado: pipeline ETL de ventas}
+\subsection{Objetivo y contrato de datos}
+El siguiente ejemplo original extrae tres ventas incorporadas en el código para no depender de un servicio externo. Calcula el total, valida reglas mínimas y escribe una salida JSON. Es una demostración de orquestación; la carga al warehouse se desarrolla en la siguiente sección.
+
+El contrato exige identificadores únicos, cantidades positivas y precios no negativos. Se esperan los totales 50.00, 30.00 y 15.00, con suma 95.00. Los tres registros pueden pasar por XCom por su tamaño reducido; un proceso real debería intercambiar referencias a archivos o tablas \cite{airflow_xcom}.
+
+\subsection{Archivo completo: s8\_ventas.py}
+\begin{lstlisting}[style=python,caption={Pipeline autocontenido de cuatro tareas}]
+from datetime import timedelta
+import pendulum
+from airflow.sdk import dag, task, get_current_context
+
+@dag(
+    dag_id="s8_ventas",
+    schedule=None,
+    start_date=pendulum.datetime(
+        2026, 1, 1, tz="America/Guatemala"
+    ),
+    catchup=False,
+    max_active_runs=1,
+    default_args={
+        "retries": 2,
+        "retry_delay": timedelta(seconds=30),
+        "execution_timeout": timedelta(minutes=5),
+    },
+    tags=["semana8", "sgfood"],
+)
+def ventas():
+    @task
+    def extraer():
+        return [
+            {"id": 1, "cantidad": 2, "precio": "25.00"},
+            {"id": 2, "cantidad": 1, "precio": "30.00"},
+            {"id": 3, "cantidad": 3, "precio": "5.00"},
+        ]
+
+    @task
+    def transformar(filas):
+        from decimal import Decimal
+        return [
+            {**f, "total": str(
+                Decimal(f["precio"]) * f["cantidad"]
+            )}
+            for f in filas
+        ]
+
+    @task(retries=0)
+    def validar(filas):
+        from decimal import Decimal
+        if not filas:
+            raise ValueError("Lote vacio")
+        ids = [f["id"] for f in filas]
+        if len(ids) != len(set(ids)):
+            raise ValueError("Identificadores duplicados")
+        for f in filas:
+            if f["cantidad"] <= 0 or Decimal(f["precio"]) < 0:
+                raise ValueError(f"Venta invalida: {f['id']}")
+        return filas
+
+    @task
+    def cargar(filas):
+        import hashlib
+        import json
+        import logging
+        from pathlib import Path
+        context = get_current_context()
+        clave = hashlib.sha256(
+            context["run_id"].encode("utf-8")
+        ).hexdigest()[:20]
+        carpeta = Path("/opt/airflow/logs/s8_resultados")
+        carpeta.mkdir(parents=True, exist_ok=True)
+        destino = carpeta / f"ventas_{clave}.json"
+        temporal = destino.with_suffix(".tmp")
+        temporal.write_text(
+            json.dumps(filas, indent=2), encoding="utf-8"
+        )
+        temporal.replace(destino)
+        logging.info("Filas=%s; salida=%s", len(filas), destino)
+        return {"filas": len(filas), "ruta": str(destino)}
+
+    cargar(validar(transformar(extraer())))
+
+ventas()
+\end{lstlisting}
+
+\subsection{Lectura del comportamiento}
+La cadena de llamadas establece extraer $\rightarrow$ transformar $\rightarrow$ validar $\rightarrow$ cargar. Una excepción en validar bloquea cargar. La escritura temporal seguida de reemplazo reduce la posibilidad de exponer un archivo parcialmente escrito.
+
+La ruta usa el identificador de ejecución: repetir la tarea dentro de esa ejecución reemplaza el mismo archivo. Disparar una ejecución manual nueva crea otro archivo. Esta es idempotencia dentro de una ejecución, no deduplicación de ventas entre ejecuciones. Para un warehouse, la clave de negocio y el periodo procesado deben controlar la repetición.
+
+El uso de la carpeta de logs como salida es una simplificación del laboratorio: ya está montada en el Compose oficial y permite inspeccionar el resultado desde el equipo anfitrión. En una solución desplegada se debe usar almacenamiento de datos dedicado y accesible a los workers.
+
+\section{Integración con dbt, SQL y el warehouse}
+\subsection{Responsabilidades y orden de ejecución}
+Airflow coordina el proceso completo y dbt administra las dependencias entre sus modelos. Una propuesta ELT para SGFood es: extraer ventas, cargar raw, ejecutar dbt y verificar el mart. Conviene conservar en dbt la lógica SQL y evitar replicar manualmente cada dependencia interna en Airflow.
+
+\texttt{dbt build} ejecuta recursos seleccionados, incluidos modelos y pruebas, siguiendo su grafo. Un fallo en una prueba puede impedir la construcción de recursos posteriores. Sin embargo, este comando no convierte todo el proyecto en una única transacción ni garantiza que consumidores no observen relaciones ya actualizadas \cite{dbt_build}.
+
+\subsection{Ejecutar un proyecto dbt preparado}
+Este fragmento se inserta dentro de un DAG y supone que \texttt{cargar\_raw} es una tarea ya definida. El worker debe disponer del ejecutable dbt, el adaptador correspondiente, el proyecto montado y un perfil válido. Una conexión creada en Airflow no configura automáticamente \texttt{profiles.yml}.
+\begin{lstlisting}[style=python,caption={Integración ilustrativa con dbt Core}]
+from airflow.providers.standard.operators.bash import BashOperator
+
+construir_modelos = BashOperator(
+    task_id="construir_modelos_dbt",
+    bash_command=(
+        "dbt build "
+        "--project-dir /opt/airflow/dbt/sgfood "
+        "--profiles-dir /opt/airflow/dbt_config "
+        "--target dev"
+    ),
+)
+# cargar_raw >> construir_modelos
+\end{lstlisting}
+Se recomienda preparar una imagen con versiones compatibles de dbt y su adaptador, o ejecutar dbt en un entorno aislado. Para reutilizar el proyecto de la semana 7 se deben comprobar las rutas, el warehouse de destino y las credenciales disponibles dentro del contenedor. Instalar dbt únicamente en Windows no lo hace accesible al worker Linux.
+
+\subsection{Consultas y validación SQL}
+Los operadores comunes de SQL utilizan una conexión identificada por \texttt{conn\_id}; también se requiere el provider del motor elegido. Una consulta que devuelve cero no necesariamente falla: para convertir una condición de calidad en estado de tarea se puede usar \texttt{SQLCheckOperator} \cite{airflow_sql}.
+\begin{lstlisting}[style=python]
+from airflow.providers.common.sql.operators.sql import SQLCheckOperator
+
+verificar_mart = SQLCheckOperator(
+    task_id="verificar_mart",
+    conn_id="warehouse_sgfood",
+    sql="SELECT COUNT(*) > 0 FROM marts.fact_ventas",
+)
+construir_modelos >> verificar_mart
+\end{lstlisting}
+Este ejemplo presupone PostgreSQL y la tabla indicada. Comprobar que existe alguna fila es un control básico: en una carga diaria debe añadirse un filtro del lote o periodo esperado para que datos antiguos no oculten una carga vacía.
+
+\subsection{Carga idempotente al warehouse}
+El siguiente SQL original ilustra una carga en PostgreSQL con clave única. Debe ejecutarse mediante una conexión al warehouse, nunca contra la base de metadatos de Airflow.
+\begin{lstlisting}[style=sql,caption={Repetición sin duplicar la venta del ejemplo}]
+CREATE SCHEMA IF NOT EXISTS raw;
+CREATE TABLE IF NOT EXISTS raw.ventas (
+    venta_id INTEGER PRIMARY KEY,
+    fecha DATE NOT NULL,
+    total NUMERIC(12,2) NOT NULL CHECK (total >= 0)
+);
+
+INSERT INTO raw.ventas (venta_id, fecha, total)
+VALUES (1, DATE '2026-03-09', 50.00)
+ON CONFLICT (venta_id) DO UPDATE
+SET fecha = EXCLUDED.fecha, total = EXCLUDED.total;
+\end{lstlisting}
+Ejecutarlo dos veces debe dejar una sola venta con identificador 1. Si el origen identifica ventas por sucursal y número local, la clave deberá incluir ambos campos. Para lotes se propone cargar a staging, validar y aplicar una transacción que actualice el destino; el diseño exacto depende del motor y del volumen.
+
+\section{Variables, conexiones y comunicación entre tareas}
+\subsection{Configuración con Variables}
+Una Variable conserva configuración global consultable durante la ejecución. En el caso del curso puede representar un umbral operativo, mientras que las reglas estables se mantienen en código versionado \cite{airflow_variables}.
+\begin{lstlisting}[style=python]
+from airflow.sdk import task, Variable
+
+@task
+def leer_umbral():
+    return int(Variable.get("s8_min_filas", default="1"))
+\end{lstlisting}
+La consulta está dentro de la tarea. No se utiliza una Variable global para comunicar cuántas filas produjo una ejecución, porque varias ejecuciones podrían sobrescribir ese valor.
+
+\subsection{Conexiones y credenciales}
+Una conexión reúne los datos de acceso a un sistema externo. El identificador \texttt{warehouse\_sgfood} permite que la tarea utilice una configuración administrada fuera de su código. Para el laboratorio, se debe registrar tipo de motor, host visible desde Docker, puerto, base y usuario con acceso al esquema requerido.
+
+\texttt{localhost} dentro de un contenedor se refiere a ese contenedor. Si PostgreSQL está en otro servicio de Compose, se utiliza el nombre del servicio. Los permisos para escribir raw y para consultar marts deben comprobarse con el mismo usuario que utilizará el pipeline. Las credenciales se suministran mediante conexiones o mecanismos de secretos, sin incorporarlas al DAG ni a las capturas.
+
+\subsection{XCom y almacenamiento compartido}
+XCom permite intercambiar resultados pequeños vinculados a tareas y ejecuciones. TaskFlow lo utiliza al entregar el resultado de una tarea a otra \cite{airflow_xcom,airflow_taskflow}. Una ruta, el identificador de un lote y un conteo son ejemplos adecuados.
+
+Para un archivo grande, el productor escribe en almacenamiento compartido y entrega su URI. El consumidor lee esa URI con sus propios permisos. Retornar la ruta de un archivo que solo existe en el disco de un worker no garantiza que otra tarea pueda abrirlo. El contrato debe incluir formato, ubicación, periodo y condiciones de disponibilidad.
+
+\section{Monitoreo, alertas y manejo de fallos}
+\subsection{Interpretar los estados}
+\begin{longtable}{@{}p{0.30\textwidth}p{0.62\textwidth}@{}}
+\toprule
+\textbf{Estado} & \textbf{Interpretación operacional} \\
+\midrule
+\texttt{scheduled / queued} & Trabajo programado o en cola, pendiente de ejecución. \\
+\texttt{running} & El intento está ejecutándose. \\
+\texttt{success} & La tarea terminó correctamente. \\
+\texttt{up\_for\_retry} & Se espera otro intento después de un fallo. \\
+\texttt{failed} & La tarea falló sin recuperación automática pendiente. \\
+\texttt{upstream\_failed} & Una dependencia previa falló e impide esta ejecución. \\
+\texttt{skipped} & La tarea fue omitida por la lógica del flujo. \\
+\bottomrule
+\end{longtable}
+Estos estados permiten distinguir un error propio de una tarea del bloqueo provocado por una dependencia \cite{airflow_tasks}. En el ejemplo, una venta negativa hace fallar validar; cargar no debe continuar como si los datos fueran correctos.
+
+\subsection{Logs y evidencia}
+Para investigar, se identifica DAG, ejecución, tarea e intento. Después se revisan el mensaje y la excepción original. En SGFood conviene registrar periodo procesado, filas leídas, filas rechazadas y destino de salida. El log de una tarea que informa tres filas no sustituye la verificación del archivo o tabla producida.
+
+\subsection{Alertas y callbacks}
+Airflow permite asociar callbacks a eventos como fallo o reintento. Su ejecución depende de cambios de estado originados por la ejecución de tareas; cambiar manualmente el estado desde la interfaz no equivale a ejecutar el callback \cite{airflow_callbacks}.
+
+Una alerta útil debe indicar qué falló, qué ejecución está afectada, dónde están los logs y quién atiende el caso. Para enviar correo o mensajes se necesita configurar un canal y sus credenciales; declarar una función que escribe un log no envía una notificación. En clase basta con diseñar el contenido y documentar dónde se conectaría el mecanismo de aviso.
+
+\subsection{Procedimiento de recuperación}
+\begin{enumerate}[leftmargin=*]
+\item Localizar el primer fallo y comprobar si proviene de datos, configuración o infraestructura.
+\item Corregir la causa; conservar evidencia del error y de la corrección.
+\item Revisar si existe una salida parcial o una carga ya confirmada.
+\item Limpiar el estado de la tarea afectada y, cuando corresponda, sus dependientes para permitir la repetición.
+\item Verificar tanto el estado final como los conteos y resultados de negocio.
+\end{enumerate}
+Marcar una tarea como exitosa no ejecuta su trabajo. Tampoco conviene agregar una tarea final con \texttt{all\_done} y asumir que su éxito garantiza el del pipeline: la evaluación de las tareas hoja puede ocultar fallos anteriores si el diseño no los preserva \cite{airflow_runs}.
+
+\section{Despliegue local con Docker}
+\subsection{Preparación del entorno}
+Se requiere Docker con contenedores Linux y Docker Compose v2. La guía oficial indica al menos 4 GB de memoria para Docker y recomienda disponer de más recursos, idealmente 8 GB. El Compose de referencia es para aprendizaje y exploración \cite{airflow_docker}.
+
+Los comandos siguientes se ejecutan en \textbf{PowerShell}, dentro de una carpeta nueva para el laboratorio. El archivo Compose se descarga de la misma versión utilizada por los ejemplos.
+\begin{lstlisting}[style=terminal,caption={Preparación en PowerShell}]
+New-Item -ItemType Directory -Force airflow_s8
+Set-Location airflow_s8
+Invoke-WebRequest -Uri "https://airflow.apache.org/docs/apache-airflow/3.1.0/docker-compose.yaml" -OutFile docker-compose.yaml
+New-Item -ItemType Directory -Force dags,logs,plugins,config
+Set-Content -Path .env -Value "AIRFLOW_UID=50000" -Encoding ascii
+docker compose version
+docker compose config --quiet
+docker compose up airflow-init
+docker compose up -d
+docker compose ps
+\end{lstlisting}
+Esperar a que la inicialización termine con código cero antes de iniciar los servicios. Copiar el código completo del ejemplo en \texttt{dags/s8\_ventas.py}. La interfaz queda disponible en \url{http://localhost:8080}; el Compose oficial utiliza inicialmente usuario y contraseña \texttt{airflow}. Estas credenciales corresponden exclusivamente al entorno de aprendizaje.
+
+\subsection{Comprobación y primera ejecución}
+\begin{lstlisting}[style=terminal]
+docker compose exec airflow-scheduler airflow version
+docker compose exec airflow-scheduler airflow dags list-import-errors
+docker compose logs --tail 100 airflow-dag-processor
+\end{lstlisting}
+La lista de errores de importación debe quedar vacía para el archivo creado. En la interfaz, localizar \texttt{s8\_ventas}, revisar su grafo, habilitarlo si está pausado y disparar una ejecución manual. Abrir los logs de cada tarea y verificar cuatro estados exitosos.
+
+La salida se encuentra en \texttt{logs/s8\_resultados} del equipo anfitrión, por el montaje del Compose. Inspeccionar el JSON: debe contener tres ventas y sumar 95.00. La ruta exacta también aparece en el log de cargar.
+
+\subsection{Prueba de fallo y recuperación}
+Cambiar la cantidad de la primera venta a $-2$, guardar el archivo y esperar a que se actualice el DAG. Disparar una ejecución nueva: transformar calcula el valor, validar lo rechaza y cargar queda bloqueada. Confirmar que no se produjo el archivo para esa ejecución.
+
+Restaurar la cantidad a 2. Para la primera práctica se recomienda disparar otra ejecución y comprobar el éxito. Si se recupera la ejecución fallida mediante limpieza de estados, hay que volver a ejecutar también extraer y transformar: sus resultados previos contienen el dato incorrecto. Después se limpian validar y cargar. La repetición debe utilizar la versión corregida del código.
+
+\subsection{Diagnóstico y cierre}
+Si el DAG no aparece, revisar errores de importación y el montaje de dags. Si los servicios reinician, revisar memoria y logs. Si dbt no se encuentra, comprobar la imagen del worker; si falla SQL, comprobar la conexión y el provider del motor. Un DAG importado correctamente todavía puede fallar durante su ejecución.
+\begin{lstlisting}[style=terminal]
+docker compose logs --tail 100 airflow-scheduler
+docker compose logs --tail 100 airflow-worker
+docker compose down
+\end{lstlisting}
+El último comando detiene y retira los contenedores y la red del proyecto; no solicita eliminar los volúmenes de datos.
+
+\section{Buenas prácticas operacionales}
+\subsection{Diseñar para repetición y trazabilidad}
+Las tareas deben tolerar reejecución, utilizar periodos identificables y evitar efectos secundarios durante el procesamiento del archivo DAG. Los datos grandes se conservan fuera de XCom; los secretos se administran fuera del código \cite{airflow_best}.
+
+Para SGFood se propone conservar una bitácora con identificador de lote, periodo, estado, conteo y versión del proyecto. Un resultado se considera reproducible cuando se conocen sus entradas, su configuración y el código que lo generó. Tener un DAG en Git es necesario para rastrear cambios, pero no recupera por sí solo un archivo de origen que fue sobrescrito.
+
+\subsection{Control de recursos y publicación}
+Si varias tareas consultan el mismo sistema operacional, debe limitarse su concurrencia para no saturarlo. Se puede organizar el acceso mediante pools y límites de ejecución. En el ejercicio, \texttt{max\_active\_runs=1} simplifica las pruebas; no elimina la necesidad de claves únicas ni transacciones.
+
+La publicación debe depender de controles relevantes para el negocio. Como propuesta, un mart diario de SGFood podría exigir presencia del periodo esperado, ausencia de identificadores duplicados, totales no negativos y conciliación con raw. Un valor fuera de lo normal debe investigarse antes de decidir si es un error o una variación válida de ventas.
+
+\subsection{Lista de revisión del pipeline}
+\begin{enumerate}[leftmargin=*]
+\item Cada tarea tiene una responsabilidad, un nombre comprensible y una salida definida.
+\item La frecuencia y el periodo procesado están documentados.
+\item Las dependencias impiden publicar tras una validación fallida.
+\item Los reintentos no producen ventas duplicadas ni archivos incompletos.
+\item Los workers pueden acceder a entradas, configuración y destinos.
+\item Las versiones de Airflow, providers y dbt están registradas.
+\item Los logs permiten localizar el error y existe un procedimiento de recuperación.
+\end{enumerate}
+
+\section{Conclusiones}
+Orquestar un pipeline exige definir tanto su recorrido normal como su respuesta ante fallos. Los DAGs expresan dependencias; la programación determina cuándo corresponde trabajar; y las evidencias de ejecución permiten comprobar qué ocurrió. La utilidad del flujo depende de que los datos producidos cumplan el objetivo de negocio.
+
+La integración con dbt conecta esta sesión con el modelado analítico: Airflow coordina las etapas y dbt organiza la transformación de modelos. Las conexiones, los controles SQL y una carga idempotente permiten pasar de una demostración local a un proceso de datos verificable.
+
+En el caso SGFood, el aprendizaje se demuestra cuando el estudiante puede explicar por qué una venta inválida impide publicar, corregir la causa y repetir el trabajo sin duplicar información. Así, planificación, responsabilidad operacional, disciplina técnica y pensamiento crítico se traducen en decisiones observables.
+\newpage
+\printbibliography
+\end{document}
